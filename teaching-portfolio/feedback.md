@@ -21,7 +21,9 @@ _This is a mandatory laboratory course for undergraduate students in the Pre-Med
 
 **Teaching:**
 > “The prelab lectures done by Giancarlo have very much helped me this semester, because of how informative and well done they are.”
+>
 > “I’ve found the content review prior to actually completing the lab very helpful – it ties in both theory/content and experimental processes very nicely. It’s also been helping with reviewing lecture material.”
+>
 > “I wish he was teaching my lecture class.”
 
 **Feedback (in response to “What has helped your learning?”):**
@@ -33,9 +35,13 @@ _This is a mandatory laboratory course for undergraduate students in the Pre-Med
 
 **In-class interactions and environment:**
 > “Giancarlo does a great job of keeping the class engaged.”
+>
 > “ He's also very patient and kind and goes out of his way to make sure we understand what is happening. Very glad he is our TA.”
+>
 > “[He makes] sure we understand the material and is always available to ask any questions we have. He is very helpful during experiments when we are lost! He also maintains a very good energy during this section, which helps on the energy of the class too.”
+>
 > “Very approachable when we have confusions.”
+>
 > “Giancarlo is super helpful and supportive during our labs.”
 
 **Teaching:**
@@ -44,6 +50,7 @@ _This is a mandatory laboratory course for undergraduate students in the Pre-Med
 
 **Feedback:**
 > “His feedback is always helpful and productive.”
+>
 > “He also gives good actionable feedback on lab reports.”
 
 
