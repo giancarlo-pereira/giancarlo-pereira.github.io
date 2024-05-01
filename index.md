@@ -15,6 +15,6 @@ In addition to research, I was awarded a [Lead Teaching Fellowship](https://ctl.
 In the academic year of 2021-2022, I was a full-time teacher at Xaverian High School, located in Brooklyn, NY.
 I taught sixth-grade engineering and high school physics.
 
-If you would like to know more about my teaching and educational efforts, please head to my [portfolio](./teaching-portfolio.html) page.
+If you would like to know more about my teaching and educational efforts, please head to my [portfolio](./teaching-portfolio/index.html) page.
 
 
