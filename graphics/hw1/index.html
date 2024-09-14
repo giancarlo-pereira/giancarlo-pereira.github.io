@@ -39,13 +39,11 @@ void main() {
 
    float dayFrequency = .5;
 
-   // day sky
-   vec3 rgb = vec3(145./255., 206./255., 225./255.);
-
-   // night sky
-   if (cos(dayFrequency*uTime) < 0.) {
-      rgb = vec3(1./255.,1./255.,9./255.);
-   }
+   // sky
+   float r = min(145., max(1., 1000.*cos(dayFrequency*uTime)))/255.;
+   float g = min(206., max(1., 1000.*cos(dayFrequency*uTime)))/255.;
+   float b = min(225., max(9., 1000.*cos(dayFrequency*uTime)))/255.;
+   vec3 rgb = vec3(r, g, b);
 
    float horizon = 0.25;
    float pivot = -0.4;
