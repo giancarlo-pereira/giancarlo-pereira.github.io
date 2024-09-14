@@ -35,8 +35,7 @@ void main() {
 
 // SET A COLOR FOR THIS FRAGMENT.
 
-   // mix(A , B , float)
-
+   // change this value for faster or slower days
    float dayFrequency = .5;
 
    // sky
@@ -46,11 +45,11 @@ void main() {
    vec3 rgb = vec3(r, g, b);
 
    float horizon = 0.25;
-   float pivot = -0.4;
+   float pivot = -0.1;
 
    // sun
-   float x = vPos.x-(pivot + .5*sin(dayFrequency*uTime));
-   float y = vPos.y-(horizon + .5*cos(dayFrequency*uTime));
+   float x = vPos.x-(pivot + .8*sin(dayFrequency*uTime));
+   float y = vPos.y-(horizon + .6*cos(dayFrequency*uTime));
    float rr = .01 - x*x - y*y;
    if (rr > 0.) {
       float z = 1./rr;
@@ -59,8 +58,8 @@ void main() {
    }
    
    // moon
-   x = vPos.x - (pivot - .5*sin(dayFrequency*uTime));
-   y = vPos.y - (horizon - .5*cos(dayFrequency*uTime));
+   x = vPos.x - (pivot - .8*sin(dayFrequency*uTime));
+   y = vPos.y - (horizon - .6*cos(dayFrequency*uTime));
    rr = .001 - x*x - y*y;
    if (rr > 0.) {
       float z = 1./rr;
