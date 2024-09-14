@@ -66,14 +66,23 @@ void main() {
       rgb = vec3(5., 5., 5.);
    }
 
-
    // water
    if (vPos.y < horizon) {
       rgb = vec3(37./255., 159./255., 175./255.);
    }
 
+   float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos))) - .7;
+
+   // foam and wet sand
+   if (vPos.y < .98 * shore) {
+      rgb = vec3(153./255., 200./255., 207./255.) + noise(vPos);
+   }
+   if (vPos.y < shore) {
+      rgb = vec3(140./255., 113./255., 69./255.) + noise(vPos);
+   }
+
    // sand
-   if (vPos.y < -0.5) {
+   if (vPos.y < 1.02 * shore) {
       rgb = vec3(219./255., 195./255., 155./255.);
    }
 
