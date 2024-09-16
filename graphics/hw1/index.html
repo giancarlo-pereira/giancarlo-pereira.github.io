@@ -39,9 +39,9 @@
       float dayFrequency = .2, horizon = 0.25, pivot = -0.2;
    
       // sky
-      float rs = min(145., max(1., 1.+1000.*cos(dayFrequency*uTime)))/255.;
-      float gs = min(206., max(1., 1.+1000.*cos(dayFrequency*uTime)))/255.;
-      float bs = min(225., max(9., 9.+1000.*cos(dayFrequency*uTime)))/255.;
+      float rs = min(145., max(1., 1. + (145.-1.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float gs = min(206., max(1., 1. + (206.-1.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float bs = min(225., max(9., 9. + (225.-9.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
    
       vec3 rgb = vec3(rs, gs, bs);
    
@@ -69,11 +69,11 @@
       }
 
       // water
-      float rw = min(37., max(29., 1000.*cos(dayFrequency*uTime)))/255.;
-      float gw = min(159., max(52., 1000.*cos(dayFrequency*uTime)))/255.;
-      float bw = min(175., max(135., 1000.*cos(dayFrequency*uTime)))/255.;
+      float rw = min(37., max(29., 29 + (37.-29.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
+      float gw = min(159., max(52., 52. + (159.-52.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
+      float bw = min(175., max(135., 135. + (175.-135.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < horizon) {
-         rgb = vec3(rw, gw, bw) + .05*noise(vec3(vPos.y*uTime));
+         rgb = vec3(rw, gw, bw) + .025*noise(vec3(vPos.y*uTime));
       }
    
       float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
@@ -93,9 +93,9 @@
       }
    
       // sand
-      float rsa = min(219., max(85., 1000.*cos(dayFrequency*uTime)))/255.;
-      float gsa = min(195., max(72., 1000.*cos(dayFrequency*uTime)))/255.;
-      float bsa = min(155., max(44., 1000.*cos(dayFrequency*uTime)))/255.;
+      float rsa = min(219., max(85., 85. + (219.-85.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float gsa = min(195., max(72., 72. + (195.-72.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float bsa = min(155., max(44., 44. + (155.-44.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < 1.02 * shore) {
          rgb = vec3(rsa, gsa, bsa);
       }
@@ -117,7 +117,7 @@
       }
 
       // add random noise to scene
-      rgb += .05*noise(vPos*uTime);
+      rgb += .01*noise(vPos*uTime);
       
       gl_FragColor = vec4(sqrt(rgb), 1.0);
    }
