@@ -97,11 +97,12 @@
       }
    
       // birds
-      float c = .05+.05*cos(4.*uTime);
+      float flapFrequency = 6.;
+      float c = .05 + .05*cos(flapFrequency.*uTime);
       float xb = vPos.x - .000001*uTime;
       float yb = vPos.y + .1*noise(vec3(.1*uTime)) + c;
       float a = -10.;
-      float b = 1.;
+      float b = 1. - .5*cos(flapFrequency.*uTime);
       if (xb < 0.) {b=-b;}
       if (yb > -0.01)
       if (a * xb * xb + b * xb + c - yb < 0.01) {
