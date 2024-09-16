@@ -23,70 +23,96 @@
 
 <script id='my_fragment_shader' type='x-shader/x-fragment'>
 
-uniform float uTime;   // TIME, IN SECONDS
+   uniform float uTime;   // TIME, IN SECONDS
 
-varying vec3 vPos;     // -1 < vPos.x < +1
-                       // -1 < vPos.y < +1
-                       //      vPos.z == 0
-
-// A FRAGMENT SHADER MUST DEFINE main().
-
-void main() {
-
-// SET A COLOR FOR THIS FRAGMENT.
-
-   // change this value for faster or slower days
-   float dayFrequency = .2;
-
-   // sky
-   float r = min(145., max(1., 1000.*cos(dayFrequency*uTime)))/255.;
-   float g = min(206., max(1., 1000.*cos(dayFrequency*uTime)))/255.;
-   float b = min(225., max(9., 1000.*cos(dayFrequency*uTime)))/255.;
-   vec3 rgb = vec3(r, g, b);
-
-   float horizon = 0.25;
-   float pivot = -0.1;
-
-   // sun
-   float x = vPos.x-(pivot + .8*sin(dayFrequency*uTime));
-   float y = vPos.y-(horizon + .6*cos(dayFrequency*uTime));
-   float rr = .01 - x*x - y*y;
-   if (rr > 0.) {
-      float z = 1./rr;
-      rgb = vec3(1., 204./255., 51./255.);
-      rgb *= 1. + .5 * noise(3. * vec3(vPos.x,vPos.y,z + .1 * uTime));
+   varying vec3 vPos;     // -1 < vPos.x < +1
+                          // -1 < vPos.y < +1
+                          //      vPos.z == 0
+   
+   // A FRAGMENT SHADER MUST DEFINE main().
+   
+   void main() {
+   
+   // SET A COLOR FOR THIS FRAGMENT.
+   
+      // change this value for faster or slower days
+      float dayFrequency = .2, horizon = 0.25, pivot = -0.1;
+   
+      // sky
+      float rs = min(145., max(1., 1.+1000.*cos(dayFrequency*uTime)))/255.;
+      float gs = min(206., max(1., 1.+1000.*cos(dayFrequency*uTime)))/255.;
+      float bs = min(225., max(9., 9.+1000.*cos(dayFrequency*uTime)))/255.;
+   
+      vec3 rgb = vec3(rs, gs, bs);
+   
+      // sun
+      float xs = vPos.x-(pivot + .8*sin(dayFrequency*uTime));
+      float ys = vPos.y-(horizon + .6*cos(dayFrequency*uTime));
+      float rrs = .01 - xs*xs - ys*ys;
+      if (rrs > 0.) {
+         float z = rrs*rrs*rrs;
+         rgb = vec3(1., 204./255., 51./255.);
+      }
+      
+      // moon
+      float xm = vPos.x - (pivot - .8*sin(dayFrequency*uTime));
+      float ym = vPos.y - (horizon - .6*cos(dayFrequency*uTime));
+      float rrm = .001 - xm*xm - ym*ym;
+      if (rrm > 0.) {
+         float z = 1./rrm;
+         rgb = vec3(.8*z, .8*z, .8*z) + noise(vec3(rrm));
+      }
+   
+      // water
+      float rw = min(37., max(29., 1000.*cos(dayFrequency*uTime)))/255.;
+      float gw = min(159., max(52., 1000.*cos(dayFrequency*uTime)))/255.;
+      float bw = min(175., max(135., 1000.*cos(dayFrequency*uTime)))/255.;
+      if (vPos.y < horizon) {
+         rgb = vec3(rw, gw, bw);
+      }
+   
+   
+      float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
+   
+      // antialiasing
+      if (vPos.y < .97 * shore) {
+         rgb = vec3(95./255., 180./255., 191./255.) + .1*noise(vPos);
+      }
+   
+      // foam
+      if (vPos.y < .98 * shore) {
+         rgb = vec3(153./255., 200./255., 207./255.) + .1*noise(vPos);
+      }
+      // wet sand
+      if (vPos.y < shore) {
+         rgb = vec3(185./255., 197./255., 175./255.) + .1*noise(vPos);
+      }
+   
+      // sand
+      float rsa = min(219., max(85., 1000.*cos(dayFrequency*uTime)))/255.;
+      float gsa = min(195., max(72., 1000.*cos(dayFrequency*uTime)))/255.;
+      float bsa = min(155., max(44., 1000.*cos(dayFrequency*uTime)))/255.;
+      if (vPos.y < 1.02 * shore) {
+         rgb = vec3(rsa, gsa, bsa) + .1*noise(vPos);
+      }
+   
+      // birds
+      float c = .05+.05*cos(4.*uTime);
+      float xb = vPos.x - .000001*uTime;
+      float yb = vPos.y + .1*noise(vec3(.1*uTime)) + c;
+      float a = -10.;
+      float b = 1.;
+      if (xb < 0.) {b=-b;}
+      if (yb > -0.01)
+      if (a * xb * xb + b * xb + c - yb < 0.01) {
+          if (a * xb * xb + b * xb + c - yb > -0.01) {
+             rgb = vec3(0.,0.,0.);
+          }
+      }
+   
+      gl_FragColor = vec4(sqrt(rgb), 1.0);
    }
    
-   // moon
-   x = vPos.x - (pivot - .8*sin(dayFrequency*uTime));
-   y = vPos.y - (horizon - .6*cos(dayFrequency*uTime));
-   rr = .001 - x*x - y*y;
-   if (rr > 0.) {
-      float z = 1./rr;
-      rgb = vec3(5., 5., 5.);
-   }
-
-   // water
-   if (vPos.y < horizon) {
-      rgb = vec3(37./255., 159./255., 175./255.);
-   }
-
-   float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos))) - .7;
-
-   // foam and wet sand
-   if (vPos.y < .98 * shore) {
-      rgb = vec3(153./255., 200./255., 207./255.) + noise(vPos);
-   }
-   if (vPos.y < shore) {
-      rgb = vec3(140./255., 113./255., 69./255.) + noise(vPos);
-   }
-
-   // sand
-   if (vPos.y < 1.02 * shore) {
-      rgb = vec3(219./255., 195./255., 155./255.);
-   }
-
-   gl_FragColor = vec4(sqrt(rgb), 1.0);
 }
 </script>
 
