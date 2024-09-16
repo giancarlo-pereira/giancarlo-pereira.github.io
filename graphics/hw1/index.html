@@ -69,7 +69,7 @@
       }
 
       // water
-      float rw = min(37., max(29., 29 + (37.-29.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
+      float rw = min(37., max(29., 29. + (37.-29.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
       float gw = min(159., max(52., 52. + (159.-52.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
       float bw = min(175., max(135., 135. + (175.-135.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < horizon) {
