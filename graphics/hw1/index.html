@@ -64,7 +64,7 @@
       if (rrm > 0.) {
          if (rrmp < 0.) {
             float z = 1./rrm;
-            rgb = vec3(.8*z, .8*z, .8*z) + noise(vec3(rrm));
+            rgb = vec3(.8*z, .8*z, .8*z);
          }
       }
 
@@ -73,24 +73,23 @@
       float gw = min(159., max(52., 1000.*cos(dayFrequency*uTime)))/255.;
       float bw = min(175., max(135., 1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < horizon) {
-         rgb = vec3(rw, gw, bw);
+         rgb = vec3(rw, gw, bw) + .05*noise(vec3(vPos.y*uTime));
       }
-   
    
       float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
    
       // antialiasing
       if (vPos.y < .97 * shore) {
-         rgb = vec3(95./255., 180./255., 191./255.) + .1*noise(vPos);
+         rgb = vec3(95./255., 180./255., 191./255.);
       }
    
       // foam
       if (vPos.y < .98 * shore) {
-         rgb = vec3(153./255., 200./255., 207./255.) + .1*noise(vPos);
+         rgb = vec3(153./255., 200./255., 207./255.);
       }
       // wet sand
       if (vPos.y < shore) {
-         rgb = vec3(185./255., 197./255., 175./255.) + .1*noise(vPos);
+         rgb = vec3(185./255., 197./255., 175./255.);
       }
    
       // sand
@@ -98,7 +97,7 @@
       float gsa = min(195., max(72., 1000.*cos(dayFrequency*uTime)))/255.;
       float bsa = min(155., max(44., 1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < 1.02 * shore) {
-         rgb = vec3(rsa, gsa, bsa) + .1*noise(vPos);
+         rgb = vec3(rsa, gsa, bsa);
       }
    
       // birds
@@ -116,8 +115,10 @@
             }
          }
       }
+
+      // add random noise to scene
+      rgb += .05*noise(vPos*uTime);
       
-   
       gl_FragColor = vec4(sqrt(rgb), 1.0);
    }
 </script>
