@@ -97,7 +97,7 @@
       float gsa = min(195., max(72., 72. + (195.-72.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
       float bsa = min(155., max(44., 44. + (155.-44.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < 1.02 * shore) {
-         rgb = vec3(rsa, gsa, bsa);
+         rgb = vec3(rsa, gsa, bsa) + .1*noise(vPos*uTime);
       }
    
       // birds
