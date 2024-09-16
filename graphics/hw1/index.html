@@ -72,31 +72,26 @@
       float rw = min(37., max(29., 29. + (37.-29.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
       float gw = min(159., max(52., 52. + (159.-52.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
       float bw = min(175., max(135., 135. + (175.-135.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+
+      // sand
+      float rsa = min(219., max(85., 85. + (219.-85.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float gsa = min(195., max(72., 72. + (195.-72.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float bsa = min(155., max(44., 44. + (155.-44.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+
       if (vPos.y < horizon) {
          rgb = vec3(rw, gw, bw) + .05*noise(vec3(vPos.x + vPos.y*(100.+.5*uTime)));
       }
    
       float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
-   
+
       // antialiasing
-      if (vPos.y < .97 * shore) {
-         rgb = vec3(95./255., 180./255., 191./255.);
-      }
-   
-      // foam
-      if (vPos.y < .98 * shore) {
-         rgb = vec3(153./255., 200./255., 207./255.);
-      }
-      // wet sand
+      for (int i = 5; i > 0; i--) {
+          if (vPos.y < (1. - float(i)/100.)*shore) {
+             rgb = vec3(rsa + float(i) * (rw - rsa)/5., gsa + float(i) * (gw - gsa)/5., bsa + float(i) * (bw - bsa)/5.)+ .05*noise(vPos*100.);
+          }
+      } 
+
       if (vPos.y < shore) {
-         rgb = vec3(185./255., 197./255., 175./255.);
-      }
-   
-      // sand
-      float rsa = min(219., max(85., 85. + (219.-85.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
-      float gsa = min(195., max(72., 72. + (195.-72.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
-      float bsa = min(155., max(44., 44. + (155.-44.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
-      if (vPos.y < 1.02 * shore) {
          rgb = vec3(rsa, gsa, bsa) + .1*noise(vPos*100.);
       }
    
