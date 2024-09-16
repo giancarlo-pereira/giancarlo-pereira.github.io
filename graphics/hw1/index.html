@@ -100,11 +100,11 @@
          rgb = vec3(rsa, gsa, bsa) + .1*noise(vPos*uTime);
       }
    
-      // birds
+      // bird
       float flapFrequency = 6.;
       float c = .05 + .05*cos(flapFrequency*uTime);
-      float xb = vPos.x - .000001*uTime;
-      float yb = vPos.y + .1*noise(vec3(.1*uTime)) + c;
+      float xb = vPos.x - 2.*cos(.2*uTime)*sin(.3*uTime);
+      float yb = vPos.y + .4*noise(vec3(.2*uTime)) + c;
       float a = -10.;
       float b = 1. - .5*cos(flapFrequency*uTime);
       if (xb < 0.) {b=-b;}
