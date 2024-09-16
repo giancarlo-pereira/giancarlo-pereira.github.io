@@ -58,11 +58,16 @@
       float xm = vPos.x - (pivot - .8*sin(dayFrequency*uTime));
       float ym = vPos.y - (horizon - .6*cos(dayFrequency*uTime));
       float rrm = .001 - xm*xm - ym*ym;
+      float xmp = xm - 0.01;
+      float ymp = ym - 0.01;
+      float rrmp = .001 - xmp*xmp - ymp*ymp;
       if (rrm > 0.) {
-         float z = 1./rrm;
-         rgb = vec3(.8*z, .8*z, .8*z) + noise(vec3(rrm));
+         if (rrmp < 0.) {
+            float z = 1./rrm;
+            rgb = vec3(.8*z, .8*z, .8*z) + noise(vec3(rrm));
+         }
       }
-   
+      
       // water
       float rw = min(37., max(29., 1000.*cos(dayFrequency*uTime)))/255.;
       float gw = min(159., max(52., 1000.*cos(dayFrequency*uTime)))/255.;
