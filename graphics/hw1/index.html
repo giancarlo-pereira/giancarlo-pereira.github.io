@@ -73,7 +73,7 @@
       float gw = min(159., max(52., 52. + (159.-52.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
       float bw = min(175., max(135., 135. + (175.-135.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
       if (vPos.y < horizon) {
-         rgb = vec3(rw, gw, bw) + .05*noise(vec3(vPos.x + vPos.y*(10.+2.*uTime)));
+         rgb = vec3(rw, gw, bw) + .05*noise(vec3(vPos.x + vPos.y*(100.+.5*uTime)));
       }
    
       float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
