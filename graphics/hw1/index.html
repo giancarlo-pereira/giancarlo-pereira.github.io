@@ -47,11 +47,10 @@
    
       // sun
       float xs = vPos.x-(pivot + 1.*sin(dayFrequency*uTime));
-      float ys = vPos.y-(horizon + .6*cos(dayFrequency*uTime));
+      float ys = vPos.y-(horizon - .2 + .8*cos(dayFrequency*uTime));
       float rrs = .01 - xs*xs - ys*ys;
       if (rrs > 0.) {
-         float z = rrs*rrs*rrs;
-         rgb = vec3(1., 204./255., 51./255.);
+         rgb = vec3(1., (204. * rrs/0.01 + 150.)/255., 51./255. * rrs/0.01);
       }
       
       // moon
@@ -63,8 +62,7 @@
       float rrmp = .001 - xmp*xmp - ymp*ymp;
       if (rrm > 0.) {
          if (rrmp < 0.) {
-            float z = 1./rrm;
-            rgb = vec3(.8*z, .8*z, .8*z);
+            rgb = vec3(.8, .8, .8);
          }
       }
 
@@ -87,7 +85,9 @@
       // antialiasing
       for (int i = 5; i > 0; i--) {
           if (vPos.y < (1. - float(i)/100.)*shore) {
-             rgb = vec3(rsa + float(i) * (rw - rsa)/5., gsa + float(i) * (gw - gsa)/5., bsa + float(i) * (bw - bsa)/5.)+ .05*noise(vPos*100.);
+             rgb = vec3(rsa + float(i) * (rw - rsa)/5.,
+             gsa + float(i) * (gw - gsa)/5.,
+             bsa + float(i) * (bw - bsa)/5.) + .05*noise(vPos*100.);
           }
       } 
 
