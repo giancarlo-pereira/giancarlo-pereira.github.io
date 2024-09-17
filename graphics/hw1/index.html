@@ -35,7 +35,6 @@
    
    // SET A COLOR FOR THIS FRAGMENT.
    
-      // change this value for faster or slower days
       float dayFrequency = .2, horizon = 0.25, pivot = -0.2;
    
       // sky
@@ -67,20 +66,20 @@
       }
 
       // water
-      float rw = min(37., max(29., 29. + (37.-29.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
-      float gw = min(159., max(52., 52. + (159.-52.)/255.* 1000.*cos(dayFrequency*uTime)))/255.;
-      float bw = min(175., max(135., 135. + (175.-135.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float rw = min( 37., max( 29.,  29.+( 37.- 29.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float gw = min(159., max( 52.,  52.+(159.- 52.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float bw = min(175., max(135., 135.+(175.-135.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
 
       // sand
-      float rsa = min(219., max(85., 85. + (219.-85.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
-      float gsa = min(195., max(72., 72. + (195.-72.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
-      float bsa = min(155., max(44., 44. + (155.-44.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float rsa = min(219., max(85., 85.+(219.-85.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float gsa = min(195., max(72., 72.+(195.-72.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
+      float bsa = min(155., max(44., 44.+(155.-44.)/255.*1000.*cos(dayFrequency*uTime)))/255.;
 
       if (vPos.y < horizon) {
          rgb = vec3(rw, gw, bw) + .05*noise(vec3(vPos.x + vPos.y*(100.+.5*uTime)));
       }
    
-      float shore =  noise(vec3( .1 * uTime) ) * cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
+      float shore =  noise(vec3( .1 * uTime) ) *cos(vPos.x + noise(vec3(vPos.x, vPos.y, .1*uTime))) - .7;
 
       // antialiasing
       for (int i = 5; i > 0; i--) {
