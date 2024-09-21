@@ -1,0 +1,167 @@
+<script src=lib2.js></script>
+
+<body bgcolor=black text=white link=white alink=white vlink=white>
+<center>
+<canvas id='canvas1' width=600 height=600></canvas>
+</center>
+</body>
+
+
+<!!-------- VERTEX SHADER: YOU PROBABLY DON'T WANT TO CHANGE THIS RIGHT NOW -------->
+
+<script id='my_vertex_shader' type='x-shader/x-vertex'>
+   attribute vec3 aPos;
+   varying   vec3 vPos;
+   void main() {
+      gl_Position = vec4(aPos, 1.);
+      vPos = aPos;
+   }
+</script>
+
+
+<!!-------- FRAGMENT SHADER: THIS IS WHERE YOU WILL DO YOUR WORK -------->
+
+<script id='my_fragment_shader' type='x-shader/x-fragment'>
+
+    uniform float uTime;   // TIME, IN SECONDS
+    uniform float uFL;
+
+    uniform vec3 uCursor;
+
+    varying vec3 vPos;     // -1 < vPos.x < +1
+                            // -1 < vPos.y < +1
+                            //      vPos.z == 0
+
+    // SET A COLOR FOR THIS FRAGMENT.
+    vec3 bgColor = vec3(.5, .5, 1.);
+
+    float raySphere(vec3 V, vec3 W, vec3 C, float r) {
+        V -= C;
+        float VV = dot(V, V);
+        float VW = dot(V, W);
+        float d = VW * VW - (VV - r*r);
+        if (d > .0)
+            return -VW - sqrt(d);
+        return -1.;
+    }
+   
+   // A FRAGMENT SHADER MUST DEFINE main().
+   
+   void main() {
+
+    vec3 color = bgColor;
+
+    vec3 V = vec3(0.);
+    vec3 W = normalize(vec3(vPos.xy, -uFL));
+
+    vec3 C = vec3(cos(uTime), 0., -2. + sin(uTime));
+    float r = .2;
+
+    if (uCursor.z > .0) r = .5;
+    float t = raySphere(V, W, C, r);
+    if (t > 0.) {
+        vec3 P = V + t*W;
+        vec3 N = normalize(P - C);
+        color = vec3(.1 + .5 * max(0., dot(N, vec3(.57))));
+    }
+    
+    gl_FragColor = vec4(sqrt(color), 1.0);
+   }
+</script>
+
+<!!-------- CREATE A PROPERLY DESCRIPTIVE TITLE BELOW -------->
+
+<script id='my_title' type='text/html'>
+GIANCARLO PEREIRA HW1 -- FRAGMENT SHADER.
+</script>
+
+
+<!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
+
+<script id='my_instructions' type='text/html'><font color=#b0b0b0>
+A bird's life by the beach
+<br>
+throughout the days and nights.
+</script>
+
+
+<!!-------- YOU PROBABLY DON'T WANT TO CHANGE ANYTHING BELOW FOR NOW -------->
+   
+<script>
+
+// CREATE THE HTML DOCUMENT
+
+let vs = my_vertex_shader.innerHTML,
+    fs = my_fragment_shader.innerHTML;
+    fs = fs.substring(1, fs.length);
+
+document.body.innerHTML = [''
+   ,'<center><font size=6 color=#b0b0b0>' + my_title.innerHTML + '</center>'
+   ,'<TABLE cellspacing=0 cellpadding=0><TR>'
+   ,'<td width=50></td><td><font color=red size=5><div id=errorMessage>&nbsp;</div></font></td>'
+   ,'</TR><TR>'
+   ,'<table cellspacing=10>'
+   ,'<tr>'
+   ,'<td valign=top><font size=2 color=red><div id=errorMarker>&nbsp;</div></font></td>'
+   ,'<td valign=top>'
+   ,'<textArea id=textArea spellcheck=false '
+   ,'style="font:16px courier;outline-width:0;border-style:none;resize:none;overflow:scroll;"'
+   ,'></textArea>'
+   ,'</td><td valign=top>' + document.body.innerHTML + '</td>'
+   ,'<td valign=top><font size=5>' + my_instructions.innerHTML + '</td>'
+   ,'</tr></table>'
+   ,'</TR></TABLE>'
+   ].join('');
+
+// SET UP THE EDITABLE TEXT AREA ON THE LEFT SIDE.
+
+let text = fs.split('\n'), cols = 0;
+for (let i = 0 ; i < text.length ; i++)
+   cols = Math.max(cols, text[i].length);
+
+textArea.rows = text.length;
+textArea.cols = cols;
+textArea.value = fs;
+textArea.style.backgroundColor = '#202020';
+textArea.style.color = 'white';
+
+// REPARSE THE SHADER PROGRAM AFTER EVERY KEYSTROKE.
+
+textArea.onkeyup = function() { canvas1.setShaders(vs, this.value); }
+
+// SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
+
+let startTime = Date.now();
+let focalLength = 0.3;
+
+let cursor = {
+    x: 0,
+    y: 0,
+    z: 0 // 0 for mouse up, 1 for mouse down
+};
+
+canvas1.addEventListener('mousemove', (e) => {
+    const rect = canvas1.getBoundingClientRect();
+    cursor.x = 2 * (e.clientX - rect.left) / canvas1.width - 1;
+    cursor.y = -2 * (e.clientY - rect.top) / canvas1.height + 1;
+})
+
+canvas1.addEventListener('mousedown', () => {
+    cursor.z = 1;
+})
+canvas1.addEventListener('mouseup', () => {
+    cursor.z = 0;
+})
+
+function animate(gl) {
+   let time = (Date.now() - startTime) / 1000;
+   setUniform('1f', 'uTime', time);
+   setUniform('1f', 'uFL', focalLength);
+   setUniform('3fv', 'uCursor', [cursor.x, cursor.y, cursor.z]);
+}
+
+// START EVERYTHING.
+
+gl_start(canvas1, vs, fs);
+</script>
+
