@@ -26,6 +26,7 @@
     uniform float uTime;   // TIME, IN SECONDS
     uniform float uFL;
 
+    uniform vec3 uLColor;
     uniform vec3 uCursor;
 
     varying vec3 vPos;     // -1 < vPos.x < +1
@@ -34,6 +35,7 @@
 
     // SET A COLOR FOR THIS FRAGMENT.
     vec3 bgColor = vec3(.5, .5, 1.);
+    vec3 E = vec3(0., 0., 1.); // eye direction
 
     float raySphere(vec3 V, vec3 W, vec3 C, float r) {
         V -= C;
@@ -49,21 +51,29 @@
    
    void main() {
 
+    vec3 L = normalize(vec3(uCursor.xy, uFL));
+
     vec3 color = bgColor;
 
     vec3 V = vec3(0.);
     vec3 W = normalize(vec3(vPos.xy, -uFL));
 
     vec3 C = vec3(cos(uTime), 0., -2. + sin(uTime));
-    float r = .2;
+    float r = .5;
 
-    if (uCursor.z > .0) r = .5;
     float t = raySphere(V, W, C, r);
     if (t > 0.) {
         vec3 P = V + t*W;
         vec3 N = normalize(P - C);
+        
         color = vec3(.1);
-        if (uCursor.z > 0.) color += .5 * max(0., dot(N, vec3(.57)));
+        if (uCursor.z > 0.) {
+            vec3 d = uLColor * max(0., dot(N, L));
+            vec3 E = vec3(.0, .0, 1.);
+            vec3 R = 2. * N * dot(N, E) - E;
+            vec3 s = vec3(1.) * pow(max(0., dot(R,L)), 20.);
+            color += d + s;  
+        }
     }
     
     gl_FragColor = vec4(sqrt(color), 1.0);
@@ -139,6 +149,12 @@ let cursor = {
     z: 0 // 0 for mouse up, 1 for mouse down
 };
 
+let lightColor = {
+    r: 1,
+    g: 0,
+    b: 0 // 0 for mouse up, 1 for mouse down
+};
+
 canvas1.addEventListener('mousemove', (e) => {
     const rect = canvas1.getBoundingClientRect();
     cursor.x = 2 * (e.clientX - rect.left) / canvas1.width - 1;
@@ -156,6 +172,7 @@ function animate(gl) {
    let time = (Date.now() - startTime) / 1000;
    setUniform('1f', 'uTime', time);
    setUniform('1f', 'uFL', focalLength);
+   setUniform('3fv', 'uLColor', [lightColor.r, lightColor.g, lightColor.b]);
    setUniform('3fv', 'uCursor', [cursor.x, cursor.y, cursor.z]);
 }
 
