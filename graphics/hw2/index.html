@@ -65,15 +65,16 @@
     if (t > 0.) {
         vec3 P = V + t*W;
         vec3 N = normalize(P - C);
+        vec3 eye = vec3(1.) * pow(max(0., dot(N, L)), 30.);
         
-        color = vec3(.1);
+        color = vec3(.2, .2, .8);
         if (uCursor.z > 0.) {
             vec3 d = uLColor * max(0., dot(N, L));
-            vec3 E = vec3(.0, .0, 1.);
             vec3 R = 2. * N * dot(N, E) - E;
             vec3 s = vec3(1.) * pow(max(0., dot(R,L)), 20.);
-            color += d + s;  
+            color += d + s;
         }
+        color -= eye;
     }
     
     gl_FragColor = vec4(sqrt(color), 1.0);
