@@ -24,7 +24,7 @@
 <script id='my_fragment_shader' type='x-shader/x-fragment'>
 
     uniform float uTime;   // TIME, IN SECONDS
-    uniform float uFL;
+    uniform float uFL, uLightInner, uLightOuter;
 
     uniform vec3 uLColor;
     uniform vec3 uCursor;
@@ -35,7 +35,7 @@
 
     // SET A COLOR FOR THIS FRAGMENT.
     vec3 bgColor = vec3(.5, .5, 1.);
-    vec3 E = vec3(0., 0., 1.); // eye direction
+    vec3 E = vec3(0., 0., 1.);
 
     float raySphere(vec3 V, vec3 W, vec3 C, float r) {
         V -= C;
@@ -51,29 +51,36 @@
    
    void main() {
 
-    vec3 L = normalize(vec3(uCursor.xy, uFL));
-
     vec3 color = bgColor;
 
     vec3 V = vec3(0.);
     vec3 W = normalize(vec3(vPos.xy, -uFL));
+
+    vec3 lightPosition = V;
+    vec3 lightDirection = normalize(vec3(uCursor.xy, -uFL));
 
     vec3 C = vec3(cos(uTime), 0., -2. + sin(uTime));
     float r = .5;
 
     float t = raySphere(V, W, C, r);
     if (t > 0.) {
-        float attenuation = 1.0 / (t * t);
         vec3 P = V + t*W;
         vec3 N = normalize(P - C);
-        vec3 eye = vec3(1.) * pow(max(0., dot(N, L)), 30.);
+
+        vec3 eye = vec3(1.) * pow(max(0.,
+        dot(N, normalize(vec3(uCursor.xy, 0.) - P))), 10.);
         
         color = vec3(.2, .2, .8);
         if (uCursor.z > 0.) {
-            vec3 diffuse = uLColor * max(0., dot(N, L));
+            float attenuation = 1.0 / (t * t);
+            vec3 surfToLight = normalize(lightPosition - P);
+            vec3 diffuse = uLColor * max(0., dot(N, surfToLight));
+            float angle = dot(lightDirection, -surfToLight);
+            float spot = smoothstep(uLightOuter, uLightInner, angle);
             vec3 R = 2. * N * dot(N, E) - E;
-            vec3 specular = vec3(1.) * pow(max(0., dot(R,L)), 20.);
-            color += (diffuse + specular) * attenuation;
+            vec3 specular = vec3(1.) * pow(max(0.,
+            dot(R,surfToLight)), 20.);
+            color += (diffuse + specular) * spot * attenuation;
         }
         color -= eye;
     }
@@ -157,6 +164,11 @@ let lightColor = {
     b: 0 // 0 for mouse up, 1 for mouse down
 };
 
+let spotlight = {
+    innerAngle: Math.cos(Math.PI / 7) ,
+    outerAngle: Math.cos(Math.PI / 4)
+}
+
 canvas1.addEventListener('mousemove', (e) => {
     const rect = canvas1.getBoundingClientRect();
     cursor.x = 2 * (e.clientX - rect.left) / canvas1.width - 1;
@@ -182,6 +194,8 @@ function animate(gl) {
    let time = (Date.now() - startTime) / 1000;
    setUniform('1f', 'uTime', time);
    setUniform('1f', 'uFL', focalLength);
+   setUniform('1f', 'uLightInner', spotlight.innerAngle);
+   setUniform('1f', 'uLightOuter', spotlight.outerAngle);
    setUniform('3fv', 'uLColor', [lightColor.r, lightColor.g, lightColor.b]);
    setUniform('3fv', 'uCursor', [cursor.x, cursor.y, cursor.z]);
 }
