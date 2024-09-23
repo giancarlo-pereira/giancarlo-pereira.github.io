@@ -36,6 +36,7 @@
     // SET A COLOR FOR THIS FRAGMENT.
     vec3 bgColor = vec3(.5, .5, 1.);
     vec3 E = vec3(0., 0., 1.);
+    float g = 9.8;
 
     float raySphere(vec3 V, vec3 W, vec3 C, float r) {
         V -= C;
@@ -45,6 +46,10 @@
         if (d > .0)
             return -VW - sqrt(d);
         return -1.;
+    }
+
+    float pendulumTheta(float thetanot, float l, float g, float t) {
+        return thetanot*cos(sqrt(g/l)*t);
     }
    
    // A FRAGMENT SHADER MUST DEFINE main().
@@ -59,7 +64,9 @@
     vec3 lightPosition = V;
     vec3 lightDirection = normalize(vec3(uCursor.xy, -uFL));
 
-    vec3 C = vec3(cos(uTime), 0., -2. + sin(uTime));
+    float l = 5.;
+    float theta = pendulumTheta(0.3, l, g, uTime);
+    vec3 C = vec3(l*sin(theta),l-l*cos(theta), -2.);
     float r = .5;
 
     float t = raySphere(V, W, C, r);
