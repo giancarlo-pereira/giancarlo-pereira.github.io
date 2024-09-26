@@ -6,37 +6,46 @@
 </center>
 </body>
 
+<!!-------- CREATE A PROPERLY DESCRIPTIVE TITLE BELOW -------->
 
-<!!-------- VERTEX SHADER: YOU PROBABLY DON'T WANT TO CHANGE THIS RIGHT NOW -------->
+<script id='my_title' type='text/html'>
+GIANCARLO PEREIRA HW2 -- RAY TRACING.
+</script>
 
-<script id='my_vertex_shader' type='x-shader/x-vertex'>
-   attribute vec3 aPos;
+<!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
+
+<script id='my_instructions' type='text/html'><font color=#b0b0b0>
+Still figuring it out.
+</script>
+   
+<script>
+// CREATE THE HTML DOCUMENT
+
+const NSPHERES = 5;
+
+let vertexShader = `
+attribute vec3 aPos;
    varying   vec3 vPos;
    void main() {
       gl_Position = vec4(aPos, 1.);
       vPos = aPos;
    }
-</script>
+`;
 
-
-<!!-------- FRAGMENT SHADER: THIS IS WHERE YOU WILL DO YOUR WORK -------->
-
-<script id='my_fragment_shader' type='x-shader/x-fragment'>
-
+let fragmentShader = `
     uniform float uTime;   // TIME, IN SECONDS
     uniform float uFL, uLightInner, uLightOuter;
 
-    uniform vec3 uLColor;
-    uniform vec3 uCursor;
+    uniform vec3  uLColor, uCursor;
+    uniform vec4  uSpheres[`+NSPHERES+`];
 
-    varying vec3 vPos;     // -1 < vPos.x < +1
-                           // -1 < vPos.y < +1
-                           //      vPos.z == 0
+    varying vec3  vPos;     // -1 < vPos.x < +1
+                            // -1 < vPos.y < +1
+                            //      vPos.z == 0
 
     // SET A COLOR FOR THIS FRAGMENT.
     vec3 bgColor = vec3(.5, .5, 1.);
     vec3 E = vec3(0., 0., 1.);
-    float g = 9.8;
 
     float raySphere(vec3 V, vec3 W, vec3 C, float r) {
         V -= C;
@@ -46,10 +55,6 @@
         if (d > .0)
             return -VW - sqrt(d);
         return -1.;
-    }
-
-    float pendulumTheta(float thetanot, float l, float g, float t) {
-        return thetanot*cos(sqrt(g/l)*t);
     }
    
    // A FRAGMENT SHADER MUST DEFINE main().
@@ -64,61 +69,50 @@
     vec3 lightPosition = V;
     vec3 lightDirection = normalize(vec3(uCursor.xy, -uFL));
 
-    float l = 5.;
-    float theta = pendulumTheta(0.3, l, g, uTime);
-    vec3 C = vec3(l*sin(theta),l-l*cos(theta), -2.);
-    float r = .5;
+    float tMin = 1000.;
 
-    float t = raySphere(V, W, C, r);
-    if (t > 0.) {
-        vec3 P = V + t*W;
-        vec3 N = normalize(P - C);
+    for (int i = 0 ; i < ` + NSPHERES + ` ; i++) {
+        vec3  C = uSpheres[i].xyz;
+        float r = uSpheres[i].w;
+        float t = raySphere(V, W, C, r);
+        if (t > 0. && t < tMin) {
+	        tMin = t;
+            vec3 P = V + t * W;
+	        vec3 N = normalize(P - C);
+            vec3 eye = vec3(1.) * pow(max(0.,
+                dot(N, normalize(vec3(uCursor.xy, 0.) - P))), 10.);
+            color = vec3(.2, .2, .8);
 
-        vec3 eye = vec3(1.) * pow(max(0.,
-        dot(N, normalize(vec3(uCursor.xy, 0.) - P))), 10.);
-        
-        color = vec3(.2, .2, .8);
-        if (uCursor.z > 0.) {
-            float attenuation = 1.0 / (t * t);
-            vec3 surfToLight = normalize(lightPosition - P);
-            vec3 diffuse = uLColor * max(0., dot(N, surfToLight));
-            float angle = dot(lightDirection, -surfToLight);
-            float spot = smoothstep(uLightOuter, uLightInner, angle);
-            vec3 R = 2. * N * dot(N, E) - E;
-            vec3 specular = vec3(1.) * pow(max(0.,
-            dot(R,surfToLight)), 20.);
-            color += (diffuse + specular) * spot * attenuation;
-        }
+            if (uCursor.z > 0.) {
+                vec3 surfToLight = normalize(lightPosition - P);
+                bool inShadow = false;
+                for (int j = 0 ; j < ` + NSPHERES + ` ; j++) {
+                    if (j != i) {
+                        vec3  C = uSpheres[j].xyz;
+                        float r = uSpheres[j].w;
+                        if (raySphere(P, surfToLight, C, r) > 0.)
+                        inShadow = true;
+                    }
+                }
+
+                if (! inShadow) {
+                    float attenuation = 10.0 / (t * t);
+                    vec3 diffuse = uLColor * max(0., dot(N, surfToLight));
+                    float angle = dot(lightDirection, -surfToLight);
+                    float spot = smoothstep(uLightOuter, uLightInner, angle);
+                    vec3 R = W - 2. * N * dot(N, W);
+                    vec3 specular = vec3(1.) * pow(max(0.,
+                    dot(R,surfToLight)), 20.);
+                    color += (diffuse + specular) * spot * attenuation;
+                }
+            }
         color -= eye;
+        }
     }
     
     gl_FragColor = vec4(sqrt(color), 1.0);
    }
-</script>
-
-<!!-------- CREATE A PROPERLY DESCRIPTIVE TITLE BELOW -------->
-
-<script id='my_title' type='text/html'>
-GIANCARLO PEREIRA HW2 -- RAY TRACING.
-</script>
-
-
-<!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
-
-<script id='my_instructions' type='text/html'><font color=#b0b0b0>
-Still figuring it out.
-</script>
-
-
-<!!-------- YOU PROBABLY DON'T WANT TO CHANGE ANYTHING BELOW FOR NOW -------->
-   
-<script>
-
-// CREATE THE HTML DOCUMENT
-
-let vs = my_vertex_shader.innerHTML,
-    fs = my_fragment_shader.innerHTML;
-    fs = fs.substring(1, fs.length);
+`;
 
 document.body.innerHTML = [''
    ,'<center><font size=6 color=#b0b0b0>' + my_title.innerHTML + '</center>'
@@ -140,35 +134,42 @@ document.body.innerHTML = [''
 
 // SET UP THE EDITABLE TEXT AREA ON THE LEFT SIDE.
 
-let text = fs.split('\n'), cols = 0;
+let text = fragmentShader.split('\n'), cols = 0;
 for (let i = 0 ; i < text.length ; i++)
    cols = Math.max(cols, text[i].length);
 
 textArea.rows = text.length;
 textArea.cols = cols;
-textArea.value = fs;
+textArea.value = fragmentShader;
 textArea.style.backgroundColor = '#202020';
 textArea.style.color = 'white';
 
 // REPARSE THE SHADER PROGRAM AFTER EVERY KEYSTROKE.
 
-textArea.onkeyup = function() { canvas1.setShaders(vs, this.value); }
+textArea.onkeyup = function() { canvas1.setShaders(vertexShader, this.value); }
 
 // SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
 
 let startTime = Date.now();
-let focalLength = 0.3;
+let focalLength = 2;
 
-let cursor = {
-    x: 0,
-    y: 0,
-    z: 0 // 0 for mouse up, 1 for mouse down
-};
 
+// CURSOR TRACKING
+let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
+let setCursor = (e, z) => cursor = [ 2 * (e.clientX - rect.left) / canvas1.width - 1,
+                                     -2 * (e.clientY - rect.top) / canvas1.height + 1,
+                                     z !== undefined ? z : cursor[2] ];
+
+canvas1.onmousedown = e => setCursor(e, 1);
+canvas1.onmousemove = e => setCursor(e,  );
+canvas1.onmouseup   = e => setCursor(e, 0);
+
+
+// LIGHT SOURCE
 let lightColor = {
     r: 1,
-    g: 0,
-    b: 0 // 0 for mouse up, 1 for mouse down
+    g: 0.5,
+    b: 0 
 };
 
 let spotlight = {
@@ -176,18 +177,12 @@ let spotlight = {
     outerAngle: Math.cos(Math.PI / 4)
 }
 
-canvas1.addEventListener('mousemove', (e) => {
-    const rect = canvas1.getBoundingClientRect();
-    cursor.x = 2 * (e.clientX - rect.left) / canvas1.width - 1;
-    cursor.y = -2 * (e.clientY - rect.top) / canvas1.height + 1;
-})
+// PHYSICS
+const g = 9.8; // gravity on Earth
 
-canvas1.addEventListener('mousedown', () => {
-    cursor.z = 1;
-})
-canvas1.addEventListener('mouseup', () => {
-    cursor.z = 0;
-})
+function pendulumTheta(thetanot, l, g, t) {
+        return thetanot*Math.cos(Math.sqrt(g/l)*t);
+}
 
 // function logMousePos(cursor) {
 //     console.log(`Cursor is at (${cursor.x}, ${cursor.y}) and its press status is ${cursor.z}`);
@@ -204,11 +199,115 @@ function animate(gl) {
    setUniform('1f', 'uLightInner', spotlight.innerAngle);
    setUniform('1f', 'uLightOuter', spotlight.outerAngle);
    setUniform('3fv', 'uLColor', [lightColor.r, lightColor.g, lightColor.b]);
-   setUniform('3fv', 'uCursor', [cursor.x, cursor.y, cursor.z]);
+   setUniform('3fv', 'uCursor', cursor);
+   let data = [];
+   for (let n = 0 ; n < NSPHERES ; n++) {
+        let l = .5 - 1 * n / NSPHERES;
+        let thetanot = 1 + n / NSPHERES;
+        let theta = pendulumTheta(thetanot, l, g, time);
+        let x = l * Math.sin(theta);
+        let y = n / NSPHERES * (l+1) - l * Math.cos(theta);
+        let z = -2 - 2 * Math.PI * n / NSPHERES;
+        data.push(x, y, z, .25);
+    }
+   setUniform('4fv', 'uSpheres', data);
 }
 
 // START EVERYTHING.
 
-gl_start(canvas1, vs, fs);
+gl_start(canvas1, vertexShader, fragmentShader);
 </script>
 
+
+<!-- 
+   let modeButton   = () => mode = (mode + 1) % 4;
+   let extendButton = () => extend = ! extend;
+   let leftButton   = () => I = (I+3) % 3 - 1;
+   let rightButton  = () => I = (I+2) % 3 - 1;
+   let upButton     = () => J = (J+3) % 3 - 1;
+   let downButton   = () => J = (J+2) % 3 - 1;
+
+   let m = new M4();
+   isNoise = 0;
+
+   let s = t => 1 - (3 - 2*abs(t)) * t * t;
+
+   let C = [], S = [];
+   for (let i = -2 ; i <= 2 ; i++)
+   for (let j = -2 ; j <= 2 ; j++) {
+      let theta = 100*Math.sin(456*i+100*Math.sin(456*j));
+      C.push(cos(theta));
+      S.push(sin(theta));
+   }
+
+   let mode = 0, extend = false, I = 0, J = 0;
+   
+   cube.keyDown = c => { }
+   cube.keyUp   = c => {
+      switch (c) {
+      case 13: extend = ! extend; break; // return
+      case 32: mode = (mode+1)%4; break; // space
+      case 37: I = (I+3) % 3 - 1; break; // left
+      case 38: J = (J+3) % 3 - 1; break; // up
+      case 39: I = (I+2) % 3 - 1; break; // right
+      case 40: J = (J+2) % 3 - 1; break; // down
+      }
+   }
+
+   let rgb, zMin, zMax;
+
+   let mC = c => {
+      for (let n = 1 ; n < c.length ; n++) {
+         let A = m.transform(c[n-1]);
+	 let B = m.transform(c[n  ]);
+	 let a = (400 - A[2]) / 900;
+	 color(lerp(a, rgb[0], 255),
+	       lerp(a, rgb[1], 255),
+	       lerp(a, rgb[2], 255));
+	 line(A[0],A[1],B[0],B[1]);
+      }
+   }
+
+   cube.animate = function() {
+      zMin = 1000;
+      zMax = -1000;
+      let w = width(), rx = 1-this.mouseX/(w/2), ry = this.mouseY/(w/2)-1;
+      let R = (x,z,i,j) => C[5*(j+2)+(i+2)] * x + S[5*(j+2)+(i+2)] * z;
+      m.save();
+         standardView(.5,.5,rx,ry+.5,.5);
+	 let drawGrid = (y, r,g,b, lw, i,j) => {
+	    rgb = [r,g,b];
+	    lineWidth(lw);
+            for (let z = -1 ; z < 1.001 ; z += 1/20) {
+               let L = []; for (let x = -1 ; x < 1.001 ; x += 1/20) L.push([x+i,y(x,z),z+j]); mC(L);
+                   L = []; for (let x = -1 ; x < 1.001 ; x += 1/20) L.push([z+i,y(z,x),x+j]); mC(L);
+	    }
+	 }
+
+	 m.save();
+	    m.scale(2,1,2);
+	    drawGrid((x,z) => {
+	       let sum = 0;
+	       let n = extend ? 2 : 1;
+               for (let i = -n ; i <= n ; i++)
+               for (let j = -n ; j <= n ; j++) {
+		  let xi = 2*x-i;
+		  let zj = 2*z-j;
+		  if (abs(xi) < 1 && abs(zj) < 1)
+		     sum += s(xi)*s(zj) * R(xi,zj,i,j);
+               }
+	       return sum;
+	    }, 0,0,0, 1, 0,0);
+	 m.restore();
+
+         switch (mode) {
+	    case 3: drawGrid((x,z) => s(x)*s(z) * R(x,z,I,J), 128,0,255,  1, I,J); break;
+	    case 2: drawGrid((x,z) =>             R(x,z,I,J), 255, 0, 0, .6, I,J);
+	    case 1: drawGrid((x,z) => s(x)*s(z)             , 0, 64,255, .3, I,J);
+         }
+
+      m.restore();
+
+      console.log(zMin, zMax);
+   }
+ -->
