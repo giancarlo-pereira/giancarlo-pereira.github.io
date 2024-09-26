@@ -102,11 +102,11 @@ let fragmentShader = `
                     float spot = smoothstep(uLightOuter, uLightInner, angle);
                     vec3 R = W - 2. * N * dot(N, W);
                     vec3 specular = vec3(1.) * pow(max(0.,
-                    dot(R,surfToLight)), 20.);
+                        dot(R,surfToLight)), 20.);
                     color += (diffuse + specular) * spot * attenuation;
                 }
             }
-        color -= eye;
+            color -= eye;
         }
     }
     
@@ -149,21 +149,20 @@ textArea.style.color = 'white';
 textArea.onkeyup = function() { canvas1.setShaders(vertexShader, this.value); }
 
 // SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
-
 let startTime = Date.now();
-let focalLength = 2;
 
+// CAMERA VIEW
+let focalLength = 2;
 
 // CURSOR TRACKING
 let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
-let setCursor = (e, z) => cursor = [ 2 * (e.clientX - rect.left) / canvas1.width - 1,
-                                     -2 * (e.clientY - rect.top) / canvas1.height + 1,
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
+                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
                                      z !== undefined ? z : cursor[2] ];
 
 canvas1.onmousedown = e => setCursor(e, 1);
 canvas1.onmousemove = e => setCursor(e,  );
 canvas1.onmouseup   = e => setCursor(e, 0);
-
 
 // LIGHT SOURCE
 let lightColor = {
@@ -184,13 +183,13 @@ function pendulumTheta(thetanot, l, g, t) {
         return thetanot*Math.cos(Math.sqrt(g/l)*t);
 }
 
-// function logMousePos(cursor) {
-//     console.log(`Cursor is at (${cursor.x}, ${cursor.y}) and its press status is ${cursor.z}`);
-// }
+function logMousePos(cursor) {
+    console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
+}
 
-// setInterval(function() {
-//     logMousePos(cursor);
-// }, 100);
+setInterval(function() {
+    logMousePos(cursor);
+}, 100);
 
 function animate(gl) {
    let time = (Date.now() - startTime) / 1000;
@@ -202,7 +201,7 @@ function animate(gl) {
    setUniform('3fv', 'uCursor', cursor);
    let data = [];
    for (let n = 0 ; n < NSPHERES ; n++) {
-        let l = .5 - 1 * n / NSPHERES;
+        let l = 1 - .5 * n / NSPHERES;
         let thetanot = 1 + n / NSPHERES;
         let theta = pendulumTheta(thetanot, l, g, time);
         let x = l * Math.sin(theta);
