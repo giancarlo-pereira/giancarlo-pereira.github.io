@@ -3,6 +3,9 @@
 <body bgcolor=black text=white link=white alink=white vlink=white>
 <center>
 <canvas id='canvas1' width=600 height=600></canvas>
+<p>
+    <button id='lightbutton' onclick=colorButton()  ><font size=10><big>LIGHT</button>
+</p>
 </center>
 </body>
 
@@ -165,15 +168,25 @@ canvas1.onmousemove = e => setCursor(e,  );
 canvas1.onmouseup   = e => setCursor(e, 0);
 
 // LIGHT SOURCE
-let lightColor = {
-    r: 1,
-    g: 0.5,
-    b: 0 
-};
+let color = 0;
+let colors = [[1,0.5, 0], [0, 1, 0.5], [0.5, 0, 1], [0, 0.5, 1], [0.5, 1, 0]]
+let colorButton   = () => color = (color + 1) % 5;
 
 let spotlight = {
     innerAngle: Math.cos(Math.PI / 7) ,
     outerAngle: Math.cos(Math.PI / 4)
+}
+
+canvas1.keyUp     = c => { }
+canvas1.keyDown   = c => {
+    switch (c) {
+        // case 13: extend = ! extend; break; // return
+        case 32: color = (color+1)%5; break; // space
+        // case 37: I = (I+3) % 3 - 1; break; // left
+        // case 38: J = (J+3) % 3 - 1; break; // up
+        // case 39: I = (I+2) % 3 - 1; break; // right
+        // case 40: J = (J+2) % 3 - 1; break; // down
+    }
 }
 
 // PHYSICS
@@ -186,9 +199,13 @@ function pendulumTheta(thetanot, l, g, t) {
 function logMousePos(cursor) {
     console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
 }
+function logColor(colors, color) {
+    console.log(`color is ${colors[color]}$`);
+}
 
 setInterval(function() {
     logMousePos(cursor);
+    logColor(colors, color)
 }, 100);
 
 function animate(gl) {
@@ -197,16 +214,16 @@ function animate(gl) {
    setUniform('1f', 'uFL', focalLength);
    setUniform('1f', 'uLightInner', spotlight.innerAngle);
    setUniform('1f', 'uLightOuter', spotlight.outerAngle);
-   setUniform('3fv', 'uLColor', [lightColor.r, lightColor.g, lightColor.b]);
+   setUniform('3fv', 'uLColor', colors[color]);
    setUniform('3fv', 'uCursor', cursor);
    let data = [];
    for (let n = 0 ; n < NSPHERES ; n++) {
         let l = 1 - .5 * n / NSPHERES;
-        let thetanot = 1 + n / NSPHERES;
+        let thetanot = 1 + .5 * n / NSPHERES;
         let theta = pendulumTheta(thetanot, l, g, time);
         let x = l * Math.sin(theta);
         let y = n / NSPHERES * (l+1) - l * Math.cos(theta);
-        let z = -2 - 2 * Math.PI * n / NSPHERES;
+        let z = -2 - 2 * n / NSPHERES;
         data.push(x, y, z, .25);
     }
    setUniform('4fv', 'uSpheres', data);
@@ -301,8 +318,8 @@ gl_start(canvas1, vertexShader, fragmentShader);
 
          switch (mode) {
 	    case 3: drawGrid((x,z) => s(x)*s(z) * R(x,z,I,J), 128,0,255,  1, I,J); break;
-	    case 2: drawGrid((x,z) =>             R(x,z,I,J), 255, 0, 0, .6, I,J);
-	    case 1: drawGrid((x,z) => s(x)*s(z)             , 0, 64,255, .3, I,J);
+	    case 2: drawGrid((x,z) =>             R(x,z,I,J), 255, 0, 0, .6, I,J); break;
+	    case 1: drawGrid((x,z) => s(x)*s(z)             , 0, 64,255, .3, I,J); break;
          }
 
       m.restore();

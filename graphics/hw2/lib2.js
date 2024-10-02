@@ -21,8 +21,24 @@ let nfsh = fragmentShaderHeader.split('\n').length; // NUMBER OF LINES OF CODE I
 let isFirefox = navigator.userAgent.indexOf('Firefox') > 0;         // IS THIS THE FIREFOX BROWSER?
 let errorMsg = '';
 
-function gl_start(canvas, vertexShader, fragmentShader) {           // START WEBGL RUNNING IN A CANVAS
+let initEventHandlers = canvas => {
+   // RESPOND TO KEYBOARD EVENTS
 
+   window.addEventListener("keydown", e => {
+       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.code) >= 0)
+           e.preventDefault();
+   });
+   window.addEventListener('keydown', e => canvas.keyDown(e.code));
+   window.addEventListener('keyup', e => canvas.keyUp(e.code));
+   if (!canvas.keyDown)
+       canvas.keyDown = () => {}
+   if (!canvas.keyUp)
+       canvas.keyUp = () => {}
+}
+
+function gl_start(canvas, vertexShader, fragmentShader) {           // START WEBGL RUNNING IN A CANVAS
+   initEventHandlers(canvas);
+   
    setTimeout(function() {
       try { 
          canvas.gl = canvas.getContext('experimental-webgl');              // Make sure WebGl is supported.
