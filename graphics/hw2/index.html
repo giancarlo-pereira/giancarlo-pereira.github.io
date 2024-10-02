@@ -18,7 +18,7 @@ GIANCARLO PEREIRA HW2 -- RAY TRACING.
 <!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
 
 <script id='my_instructions' type='text/html'><font color=#b0b0b0>
-Happy October.<br>
+Happy Spooky October!<br>
 Are all these eyes looking at me?<br>
 Click with your mouse to shine a flashlight on them.<br>
 Click on the LIGHT button to change the color of the flashlight.
@@ -27,7 +27,7 @@ Click on the LIGHT button to change the color of the flashlight.
 <script>
 // CREATE THE HTML DOCUMENT
 
-const NSPHERES = 5;
+const NSPHERES = 6;
 
 let vertexShader = `
 attribute vec3 aPos;
@@ -96,13 +96,13 @@ let fragmentShader = `
                     if (j != i) {
                         vec3  C = uSpheres[j].xyz;
                         float r = uSpheres[j].w;
-                        if (raySphere(P, surfToLight, C, r) > 0.)
+                        if (raySphere(P, -lightDirection, C, r) > 0.)
                         inShadow = true;
                     }
                 }
 
                 if (! inShadow) {
-                    float attenuation = 10.0 / (t * t);
+                    float attenuation = 5.0 / (t * t);
                     vec3 diffuse = uLColor * max(0., dot(N, surfToLight));
                     float angle = dot(lightDirection, -surfToLight);
                     float spot = smoothstep(uLightOuter, uLightInner, angle);
@@ -208,7 +208,7 @@ function animate(gl) {
    setUniform('3fv', 'uLColor', colors[color]);
    setUniform('3fv', 'uCursor', cursor);
    let data = [];
-   for (let n = 0 ; n < NSPHERES ; n++) {
+   for (let n = 0 ; n < NSPHERES - 1; n++) {
         let l = 1 - .5 * n / NSPHERES;
         let thetanot = 1 + .5 * n / NSPHERES;
         let theta = pendulumTheta(thetanot, l, g, time);
@@ -217,6 +217,8 @@ function animate(gl) {
         let z = -2 - 2 * n / NSPHERES;
         data.push(x, y, z, .25);
     }
+
+    data.push(0, 0, -100, 80)
    setUniform('4fv', 'uSpheres', data);
 }
 
