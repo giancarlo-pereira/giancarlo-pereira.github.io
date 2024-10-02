@@ -18,7 +18,10 @@ GIANCARLO PEREIRA HW2 -- RAY TRACING.
 <!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
 
 <script id='my_instructions' type='text/html'><font color=#b0b0b0>
-Still figuring it out.
+Happy October.<br>
+Are all these eyes looking at me?<br>
+Click with your mouse to shine a flashlight on them.<br>
+Click on the LIGHT button to change the color of the flashlight.
 </script>
    
 <script>
@@ -126,30 +129,30 @@ document.body.innerHTML = [''
    ,'<tr>'
    ,'<td valign=top><font size=2 color=red><div id=errorMarker>&nbsp;</div></font></td>'
    ,'<td valign=top>'
-   ,'<textArea id=textArea spellcheck=false '
-   ,'style="font:16px courier;outline-width:0;border-style:none;resize:none;overflow:scroll;"'
-   ,'></textArea>'
+//    ,'<textArea id=textArea spellcheck=false '
+//    ,'style="font:16px courier;outline-width:0;border-style:none;resize:none;overflow:scroll;"'
+//    ,'></textArea>'
    ,'</td><td valign=top>' + document.body.innerHTML + '</td>'
    ,'<td valign=top><font size=5>' + my_instructions.innerHTML + '</td>'
    ,'</tr></table>'
    ,'</TR></TABLE>'
    ].join('');
 
-// SET UP THE EDITABLE TEXT AREA ON THE LEFT SIDE.
+// // SET UP THE EDITABLE TEXT AREA ON THE LEFT SIDE.
 
-let text = fragmentShader.split('\n'), cols = 0;
-for (let i = 0 ; i < text.length ; i++)
-   cols = Math.max(cols, text[i].length);
+// let text = fragmentShader.split('\n'), cols = 0;
+// for (let i = 0 ; i < text.length ; i++)
+//    cols = Math.max(cols, text[i].length);
 
-textArea.rows = text.length;
-textArea.cols = cols;
-textArea.value = fragmentShader;
-textArea.style.backgroundColor = '#202020';
-textArea.style.color = 'white';
+// textArea.rows = text.length;
+// textArea.cols = cols;
+// textArea.value = fragmentShader;
+// textArea.style.backgroundColor = '#202020';
+// textArea.style.color = 'white';
 
-// REPARSE THE SHADER PROGRAM AFTER EVERY KEYSTROKE.
+// // REPARSE THE SHADER PROGRAM AFTER EVERY KEYSTROKE.
 
-textArea.onkeyup = function() { canvas1.setShaders(vertexShader, this.value); }
+// textArea.onkeyup = function() { canvas1.setShaders(vertexShader, this.value); }
 
 // SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
 let startTime = Date.now();
@@ -175,18 +178,6 @@ let colorButton   = () => color = (color + 1) % 5;
 let spotlight = {
     innerAngle: Math.cos(Math.PI / 7) ,
     outerAngle: Math.cos(Math.PI / 4)
-}
-
-canvas1.keyUp     = c => { }
-canvas1.keyDown   = c => {
-    switch (c) {
-        // case 13: extend = ! extend; break; // return
-        case 32: color = (color+1)%5; break; // space
-        // case 37: I = (I+3) % 3 - 1; break; // left
-        // case 38: J = (J+3) % 3 - 1; break; // up
-        // case 39: I = (I+2) % 3 - 1; break; // right
-        // case 40: J = (J+2) % 3 - 1; break; // down
-    }
 }
 
 // PHYSICS
