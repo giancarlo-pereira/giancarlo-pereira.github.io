@@ -1,0 +1,104 @@
+<script src=../matrix.js></script>
+<script src=lib4.js></script>
+
+<body bgcolor=white text=black link=black alink=black vlink=black>
+<center>
+<canvas id='canvas1' width=600 height=600></canvas>
+</center>
+</body>
+
+<!!-------- CREATE A PROPERLY DESCRIPTIVE TITLE BELOW -------->
+
+<script id='my_title' type='text/html'>
+GIANCARLO PEREIRA HW4 -- REFLECTION AND REFRACTION
+</script>
+
+<!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
+
+<script id='my_instructions' type='text/html'><font color=#000000>
+Still figuring it out.
+</script>
+
+<script>
+
+// CAMERA VIEW
+let V = [0, 0, 0];
+let focalLength = 3;
+
+// CURSOR TRACKING
+let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
+                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
+                                     z !== undefined ? z : cursor[2] ];
+
+canvas1.onmousedown = e => setCursor(e, 1);
+canvas1.onmousemove = e => setCursor(e,  );
+canvas1.onmouseup   = e => setCursor(e, 0);
+
+function logMousePos(cursor) {
+    console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
+}
+
+setInterval(function() {
+    logMousePos(cursor);
+}, 100);
+
+// VERTEX AND FRAGMENT SHADERS
+let vertexShader = `
+    attribute vec3 aPos;
+    varying   vec3 vPos;
+    void main() {
+        gl_Position = vec4(aPos, 1.0);
+        vPos = aPos;
+    }
+`;
+let fragmentShader = `
+    precision highp float;
+    uniform float uTime, uFL;
+    uniform vec3 uV, uCursor;
+    varying vec3  vPos;
+
+    vec3 bgColor = vec3(0.,0.,.05);
+
+    void main() {
+
+        // SET BACKGROUND COLOR
+    
+        vec3 color = bgColor;
+        if (uCursor.z > 0.) {
+            color += vec3(.5,.5,.5);
+        }
+
+        gl_FragColor = vec4(sqrt(color), 1.0);
+    }
+`;
+
+document.body.innerHTML = [''
+,'<center><font size=6 color=#000000>' + my_title.innerHTML + '</center>'
+,'<TABLE cellspacing=0 cellpadding=0><TR>'
+,'</TR><TR>'
+,'<table cellspacing=10>'
+,'<tr>'
+,'<td valign=top>' + document.body.innerHTML + '</td>'
+,'<td valign=top><font size=5>' + my_instructions.innerHTML + '</td>'
+,'</tr></table>'
+,'</TR></TABLE>'
+].join('');
+
+
+// SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
+let startTime = Date.now();
+
+function animate(gl) {
+   let time = (Date.now() - startTime) / 1000;
+   setUniform('3fv', 'uV', V);
+   setUniform('1f', 'uTime', time);
+   setUniform('1f', 'uFL', focalLength);
+   setUniform('3fv', 'uCursor', cursor);
+}
+
+// START EVERYTHING.
+gl_start(canvas1, vertexShader, fragmentShader);
+
+</script>
+   
