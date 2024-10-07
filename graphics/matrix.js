@@ -5,19 +5,19 @@ function Matrix() {
       // You need to implement this.
       let c = Math.cos(theta),
           s = Math.sin(theta);
-      value = multiply(value, [ 1,0,0,0, 0,c,-s,0, 0,s,c,0, 0,0,0,1]);
+      value = multiply(value, [ 1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]);
    } 
    this.rotateY     = theta   => {
       // You need to implement this.
       let c = Math.cos(theta),
           s = Math.sin(theta);
-      value = multiply(value, [ c,0,s,0, 0,1,0,0, -s,0,c,0, 0,0,0,1]);
+      value = multiply(value, [ c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]);
    } 
    this.rotateZ     = theta   => {
       // You need to implement this.
       let c = Math.cos(theta),
           s = Math.sin(theta);
-      value = multiply(value, [ c,-s,0,0, s,c,0,0, 0,0,1,0, 0,0,0,1]);
+      value = multiply(value, [ c,s,0,0, -s,c,0,0, 0,0,1,0, 0,0,0,1]);
    } 
    this.scale       = (x,y,z) => {
       // You need to implement this.
@@ -33,10 +33,10 @@ function Matrix() {
    this.transform   = vector  => {
       // You need to implement this.
       let tm = _transpose(this.value);
-      let m1 = _column1[tm],
-          m2 = _column2[tm],
-          m3 = _column3[tm],
-          m4 = _column4[tm];
+      let m1 = _column1(tm),
+          m2 = _column2(tm),
+          m3 = _column3(tm),
+          m4 = _column4(tm);
       return [_dot(m1, vector), _dot(m2, vector), _dot(m3, vector), _dot(m4, vector)]
    }
 
@@ -45,14 +45,14 @@ function Matrix() {
    let multiply = (matrix1,matrix2) => {
       // You need to implement this.
       let tm1 = _transpose(matrix1);
-      let m11 = _column1[tm1];
-          m12 = _column2[tm1],
-          m13 = _column3[tm1],
-          m14 = _column4[tm1],      
-          m21 = _column1[matrix2],
-          m22 = _column2[matrix2],
-          m23 = _column3[matrix2],
-          m24 = _column4[matrix2];
+      let m11 = _column1(tm1);
+          m12 = _column2(tm1),
+          m13 = _column3(tm1),
+          m14 = _column4(tm1),      
+          m21 = _column1(matrix2),
+          m22 = _column2(matrix2),
+          m23 = _column3(matrix2),
+          m24 = _column4(matrix2);
 
       return [_dot(m11, m21), _dot(m12, m21), _dot(m13, m21), _dot(m14, m21),
               _dot(m11, m22), _dot(m12, m22), _dot(m13, m22), _dot(m14, m22),
