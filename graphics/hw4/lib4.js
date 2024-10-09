@@ -30,19 +30,18 @@ let fragmentShaderHeader = [''                      // WHATEVER CODE WE WANT TO 
     let errorMsg = '';
     
     let initEventHandlers = canvas => {
-       // RESPOND TO KEYBOARD EVENTS
-    
-       window.addEventListener("keydown", e => {
-           if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.code) >= 0)
-               e.preventDefault();
-       });
-       window.addEventListener('keydown', e => canvas.keyDown(e.code));
-       window.addEventListener('keyup', e => canvas.keyUp(e.code));
-       if (!canvas.keyDown)
-           canvas.keyDown = () => {}
-       if (!canvas.keyUp)
-           canvas.keyUp = () => {}
-    }
+      // RESPOND TO KEYBOARD EVENTS
+   
+      window.addEventListener("keydown", e => {
+         if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'S', 'D', 'W'].indexOf(e.code) >= 0)
+            e.preventDefault();
+      });
+      window.addEventListener('keydown', e => canvas.keyDown(e.code));
+      window.addEventListener('keyup', e => canvas.keyUp(e.code));
+      if (! canvas.keyDown) canvas.keyDown = () => {}
+      if (! canvas.keyUp  ) canvas.keyUp   = () => {}
+   }
+
     
     function gl_start(canvas, vertexShader, fragmentShader) {           // START WEBGL RUNNING IN A CANVAS
        initEventHandlers(canvas);

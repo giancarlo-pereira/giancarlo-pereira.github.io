@@ -73,6 +73,22 @@ canvas1.onmousedown = e => setCursor(e, 1);
 canvas1.onmousemove = e => setCursor(e,  );
 canvas1.onmouseup   = e => setCursor(e, 0);
 
+canvas1.keyDown     = c => {
+    switch(c) {
+        case 'KeyA':        console.log(`you have pressed A`);          break; // 'A'
+        case 'KeyS':        console.log(`you have pressed S`);          break; // 'S'
+        case 'KeyD':        console.log(`you have pressed D`);          break; // 'D'
+        case 'KeyW':        console.log(`you have pressed W`);          break; // 'W'
+        case 'Space':       console.log(`you have pressed Space`);      break; // 'Space'
+        case 'Enter':       console.log(`you have pressed Enter`);      break; // 'Enter'
+        case 'Backspace':   console.log(`you have pressed Backspace`);  break; // 'Enter'
+        case 'ArrowUp':     console.log(`you have pressed ArrowUp`);    break; // 'ArrowUp'
+        case 'ArrowDown':   console.log(`you have pressed ArrowDown`);  break; // 'ArrowUp'
+        case 'ArrowRight':  console.log(`you have pressed ArrowRight`); break; // 'ArrowUp'
+        case 'ArrowLeft':   console.log(`you have pressed ArrowLeft`);  break; // 'ArrowUp'
+    }
+}
+
 function logMousePos(cursor) {
     console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
 }
