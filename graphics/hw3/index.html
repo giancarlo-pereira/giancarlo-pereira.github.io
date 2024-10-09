@@ -1,0 +1,212 @@
+<pre>
+
+<big><font color=blue>
+<b>A note about this week's course notes and assignment:</b>
+
+   We went over a lot of topics in class this week. For next week (Oct 9),
+   I am only going to ask you to finish implementing the Matrix object
+   class at the bottom of these notes. Meanwhile, feel free to work on
+   reflection, refraction and other ray tracing topics that interest you.
+   Your work on those techniques can be used toward an assignment that
+   will be due two weeks from now, on October 16.</font></big>
+
+
+<big><big><b>NOTES ABOUT RAY TRACING</b></big></big>
+
+
+<b>REFLECTION IN RAY TRACING</b>
+
+    (1) Shoot ray (V, W) to find the point P on the surface and the surface normal N.
+
+    (2) Use P, W and N to find a reflection direction R:
+
+    	R = W - 2 (N&#149;W) N
+
+    (3) Shoot a ray from (P + &epsilon; R, R) into the scene, for some very small &epsilon;.
+
+    (4) If an object is hit by this ray, do surface shading, and mix into the final color.
+
+<b>REFRACTION IN RAY TRACING</b>
+
+    (1) Shoot ray (V, W<sub>1</sub>) to find the point P<sub>1</sub> on the surface and surface normal N<sub>1</sub>.
+
+    (2) Use Snell's law <b>sin(&theta;<sub>1</sub>)/sin(&theta;<sub>2</sub>) = n<sub>2</sub>/n<sub>1</sub></b> to find direction W<sub>2</sub> of the refracting ray into the object:
+
+	C<sub>1</sub> = (N<sub>1</sub>&#149;W<sub>1</sub>) * N<sub>1</sub>
+	S<sub>1</sub> = W<sub>1</sub> - C<sub>1</sub>
+	S<sub>2</sub> = n<sub>1</sub>/n<sub>2</sub> * S<sub>1</sub>
+	C<sub>2</sub> = - &radic;<SPAN STYLE="text-decoration:overline">1-S</SPAN><sub>2</sub><sup>2</sup> * N<sub>1</sub>
+	W<sub>2</sub> = C<sub>2</sub> + S<sub>2</sub>
+
+    (3) Shoot ray (P<sub>1</sub> + &epsilon; W<sub>2</sub>, W<sub>2</sub>) to find the point P<sub>2</sub> where the ray exits the object.
+
+        If the object is a sphere, you will need to find the second of its two quadratic roots.
+
+    (4) Repeat the refraction calculation. This time use the normal N<sub>2</sub> at P<sub>2</sub>, and reverse n<sub>1</sub> and n<sub>2</sub>.
+
+	C<sub>3</sub> = (N<sub>2</sub>&#149;W<sub>2</sub>) * N<sub>2</sub>
+	S<sub>3</sub> = W<sub>2</sub> - C<sub>3</sub>
+	S<sub>4</sub> = n<sub>2</sub>/n<sub>1</sub> * S<sub>3</sub>
+	C<sub>4</sub> = &radic;<SPAN STYLE="text-decoration:overline">1-S</SPAN><sub>4</sub><sup>2</sup> * N<sub>2</sub>
+	W<sub>3</sub> = C<sub>4</sub> + S<sub>4</sub>
+
+    (5) Shoot ray (P<sub>2</sub> + &epsilon; W<sub>3</sub>, W<sub>3</sub>) into the scene.
+
+    (6) If an object is hit by this ray, do surface shading, and mix into the final color.
+
+<b>RAY TRACING TO THE INTERSECTING OF TWO OBJECTS</b>
+
+    Suppose we want to find the intersection C of two objects A and B along ray (V,W).
+
+    Suppose also that the ray enters A at t = A<sub>in</sub> and exits A at t = A<sub>out</sub>.
+
+    Similarly, suppose the ray enters B at t = B<sub>in</sub> and exits B at t = B<sub>out</sub>.
+
+    The intersection C of the two objects along the ray is then given by the interval:
+
+       C<sub>in</sub> <small> </small>= max(A<sub>in</sub>, B<sub>in</sub>)
+       C<sub>out</sub> = min(A<sub>out</sub>, B<sub>out</sub>)
+
+    If C<sub>in</sub> > C<sub>out</sub>, then the ray has missed C.
+
+<b>RAY TRACING TO A PLANE</b>
+
+    The equation of plane L = [a,b,c,d] is given by: ax + by + cz + d = 0
+
+    In other words, plane L consists of all points (x,y,z) for which ax + by + cz + d = 0
+
+    To intersect ray V+tW with plane L, we just need to substitute variables:
+
+       a(Vx + t Wx) + b(Vy + t Wy) + c(Vz + t Wz) + d = 0
+
+    When we represent V and W as 1x4 column vectors:
+
+        Vx     Wx
+        Vy     Wy
+        Vz     Wz
+        1      0
+
+    it becomes clear that the intersection of the ray and the plane can be expressed as:
+
+       L&#149;V + t L&#149;W = 0
+
+    From this we can see that we can solve for t by:
+
+       t = -L&#149;V / L&#149;W
+
+    Suppose we are using L to describe the boundary of a half space. Then:
+
+       If L&#149;W &lt; 0 then the ray is entering the half space.
+       If L&#149;W &gt; 0 then the ray is exiting the half space.
+
+<b>RAY TRACING TO A TRIANGLE</b>
+
+    We can find out whether any ray intersects a triangle by first precomputing four plane equations.
+
+    The first plane contains the triangle's three vertices A,B,C.
+
+        (1) Normalize the cross product (B-A) x (C-B) to get N<sub>0</sub>.
+
+    	(2) Plane L<sub>0</sub> = [ N<sub>0</sub>x, N<sub>0</sub>y, N<sub>0</sub>z, -A&#149;N<sub>0</sub> ]
+
+    Then for edge A,B we can compute plane L<sub>1</sub> as follows:
+
+        (1) Normalize the cross product (B-A) x N<sub>0</sub> to get N<sub>1</sub>.
+
+	(2) Plane L<sub>1</sub> = [ N<sub>1</sub>x, N<sub>1</sub>y, N<sub>1</sub>z, -A&#149;N<sub>1</sub> ]
+
+    Similarly we can use edges B,C and C,A to compute planes L<sub>2</sub> and L<sub>3</sub>.
+
+    Now we have everything we need to determine whether any ray V+tW intersects the triangle:
+
+        (1) Compute point P where ray V+tW intersects L<sub>0</sub>
+
+	(2) P is inside the triangle iff L<sub>1</sub>&#149;P < 0 and L<sub>2</sub>&#149;P < 0 L<sub>3</sub>&#149;P < 0
+
+<b>RAY TRACING TO A GENERAL QUADRATIC SURFACE</b>
+
+    We are going to go over this topic next week in more detail,
+    so I am going to hold off for now on notes about this.
+
+
+<big><big><b>NOTES ABOUT MATRICES</b></big></big>
+
+
+<b>THE 16 VALUES OF A 4x4 MATRIX CAN BE STORED AS AN ARRAY IN COLUMN-MAJOR FORMAT</b>
+
+    0 4  8 12
+    1 5  9 13
+    2 6 10 14
+    3 7 11 15
+
+<b>YOU CAN USE A MATRIX TO TRANSFORM A VECTOR: B = M &#149; A</b>
+
+<table>
+<tr>
+<td width=20>&nbsp;
+<th>1x4 <th>&nbsp; <th>4x4 <th>&nbsp; <th>1x4
+<tr><td>&nbsp;
+
+<tr>
+<td width=20>&nbsp;
+<td align=center>ax+by+cz+dw<p>ex+fy+gz+hw<p>ix+jy+kz+lw<p>mx+ny+oz+pw
+<td valign=center><big><big>&nbsp; &xlarr; &nbsp;</big></big>
+<td>a &nbsp; b &nbsp; c &nbsp; d<p>e &nbsp; f &nbsp; g &nbsp; h<p>i &nbsp; j &nbsp; k &nbsp; l<p>m &nbsp; n &nbsp; o &nbsp; p
+<td valign=center><big><big>&nbsp; &#149; &nbsp;</big></big>
+<td align=center>x<p>y<p>z<p>w
+</tr>
+</table>
+
+<b>YOU CAN MULTIPLY TWO MATRICES TO GET ANOTHER MATRIX: C = A &#149; B</b>
+
+                             <b>C                           =        A      &#149;      B</b>
+
+    aA+bE+cI+dM  aB+bF+cJ+dN  aC+bG+cK+dO  aD+bH+cL+dP         a b c d       A B C D
+    eA+fE+gI+hM  eB+fF+gJ+hN  eC+fG+gK+hO  eD+fH+gL+hP         e f g h       E F G H
+    iA+jE+kI+lM  iB+jF+kJ+lN  iC+jG+kK+lO  iD+jH+kL+lP         i j k l       I J K L
+    mA+nE+oI+pM  mB+nF+oJ+pN  mC+nG+oK+pO  mD+nH+oL+pP         m n o p       M N O P
+
+<b>THESE MATRIX PRIMITIVES ARE VERY USEFUL</b>
+
+    The value of each primitive 4x4 matrix as it is stored in column-major order:
+
+    Identity            =  [ 1  0  0  0    0  1  0  0    0  0  1  0    0  0  0  1 ]
+    Translate(x,y,z)    =  [ 1  0  0  0    0  1  0  0    0  0  1  0    x  y  z  1 ]
+    RotateX(theta)      =  [ 1  0  0  0    0  c -s  0    0  s  c  0    0  0  0  1 ]
+    RotateY(theta)      =  [ s  c  0  0    0  1  0  0    s -s  1  0    0  0  0  1 ]
+    RotateZ(theta)      =  [ c -s  0  0    s  c  0  0    0  0  1  0    0  0  0  1 ]
+    Scale(x,y,z)        =  [ x  0  0  0    0  y  0  0    0  0  z  0    0  0  0  1 ]
+    Perspective(x,y,z)  =  [ 1  0  0  x    0  1  0  y    0  0  1  z    0  0  0  1 ]
+
+    where c = cos(theta) and s = sin(theta).
+
+<b>BUILDING A MATRIX LIBRARY</b>
+
+   A matrix library lets you combine matrix primitives in different
+   ways, and then use the resulting matrices to transform vectors.
+   Following is a partial implementation in Javascript of a Matrix
+   handling object class. <font color=blue>The parts in blue</font> are not yet implemented.
+   For homework I would like you to implement those missing parts.
+
+   function Matrix() {
+      this.identity = () => value = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+      this.translate   = (x,y,z) => value = multiply(value, [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
+      this.rotateX     = theta   => <font color=blue>// You need to implement this.</font>
+      this.rotateY     = theta   => <font color=blue>// You need to implement this.</font>
+      this.rotateZ     = theta   => <font color=blue>// You need to implement this.</font>
+      this.scale       = (x,y,z) => <font color=blue>// You need to implement this.</font>
+      this.perspective = (x,y,z) => <font color=blue>// You need to implement this.</font>
+      this.get = () => value;
+      this.set = v => value = v;
+      this.transform = vector => {
+         <font color=blue>// You need to implement this.</font>
+      }
+
+      let value = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+
+      let multiply = (matrix1,matrix2) => {
+         <font color=blue>// You need to implement this.</font>
+      }
+
+   }
+
