@@ -32,7 +32,7 @@ function Matrix() {
 
    this.transform   = vector  => {
       // You need to implement this.
-      let tm = _transpose(this.value);
+      let tm = _transpose(value);
       let m1 = _column1(tm),
           m2 = _column2(tm),
           m3 = _column3(tm),

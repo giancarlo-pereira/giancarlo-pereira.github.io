@@ -73,16 +73,34 @@ canvas1.onmousedown = e => setCursor(e, 1);
 canvas1.onmousemove = e => setCursor(e,  );
 canvas1.onmouseup   = e => setCursor(e, 0);
 
+let m = new Matrix();
+
+// canvas1.keyDown     = c => {
+//     switch(c) {
+//         case 'KeyA':        console.log(`you have pressed A`);          break; // 'A'
+//         case 'KeyS':        console.log(`you have pressed S`);          break; // 'S'
+//         case 'KeyD':        console.log(`you have pressed D`);          break; // 'D'
+//         case 'KeyW':        console.log(`you have pressed W`);          break; // 'W'
+//         case 'Space':       console.log(`you have pressed Space`);      break; // 'Space'
+//         case 'Enter':       console.log(`you have pressed Enter`);      break; // 'Enter'
+//         case 'Backspace':   console.log(`you have pressed Backspace`);  break; // 'Enter'
+//         case 'ArrowUp':     console.log(`you have pressed ArrowUp`);    break; // 'ArrowUp'
+//         case 'ArrowDown':   console.log(`you have pressed ArrowDown`);  break; // 'ArrowUp'
+//         case 'ArrowRight':  console.log(`you have pressed ArrowRight`); break; // 'ArrowUp'
+//         case 'ArrowLeft':   console.log(`you have pressed ArrowLeft`);  break; // 'ArrowUp'
+//     }
+// }
+
 canvas1.keyDown     = c => {
     switch(c) {
-        case 'KeyA':        console.log(`you have pressed A`);          break; // 'A'
-        case 'KeyS':        console.log(`you have pressed S`);          break; // 'S'
-        case 'KeyD':        console.log(`you have pressed D`);          break; // 'D'
-        case 'KeyW':        console.log(`you have pressed W`);          break; // 'W'
-        case 'Space':       console.log(`you have pressed Space`);      break; // 'Space'
-        case 'Enter':       console.log(`you have pressed Enter`);      break; // 'Enter'
-        case 'Backspace':   console.log(`you have pressed Backspace`);  break; // 'Enter'
-        case 'ArrowUp':     console.log(`you have pressed ArrowUp`);    break; // 'ArrowUp'
+        case 'KeyA':        console.log(m.rotateX(0.785));          break; // 'A'
+        case 'KeyS':        console.log(m.rotateY(0.785));          break; // 'S'
+        case 'KeyD':        console.log(m.rotateZ(0.785));          break; // 'D'
+        case 'KeyW':        console.log(m.translate(2, 3, 4));      break; // 'W'
+        case 'Space':       console.log(m.get());              break; // 'Space'
+        case 'Enter':       console.log(m.identity());                   break; // 'Enter'
+        case 'Backspace':   console.log(m.set([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]));  break; // 'Enter'
+        case 'ArrowUp':     console.log(m.transform([4, 5, 3, 1]));    break; // 'ArrowUp'
         case 'ArrowDown':   console.log(`you have pressed ArrowDown`);  break; // 'ArrowUp'
         case 'ArrowRight':  console.log(`you have pressed ArrowRight`); break; // 'ArrowUp'
         case 'ArrowLeft':   console.log(`you have pressed ArrowLeft`);  break; // 'ArrowUp'
