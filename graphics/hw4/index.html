@@ -34,11 +34,15 @@ let fragmentShader = `
     precision highp float;
     uniform float uTime, uFL;
     uniform vec3 uV, uCursor;
+    uniform vec4 uSphere;
     varying vec3  vPos;
 
     vec3 bgColor = vec3(0.,0.,.05);
 
-    void main() {
+    void main() {    
+        vec3 V = vec3(0.);
+        vec3 W = normalize(vec3(vPos.xy, -uFL));
+        vec3 L = normalize(vec3(1.));
 
         // SET BACKGROUND COLOR
     
@@ -46,6 +50,21 @@ let fragmentShader = `
         if (uCursor.z > 0.) {
             color += vec3(.5,.5,.5);
         }
+      vec3 C = uSphere.xyz;
+      float r = uSphere.w;
+      V -= C;
+      float VV = dot(V,V);
+      float VW = dot(V,W);
+
+      float d = VW * VW - (VV - r*r);
+      if (d > 0.) {
+        float t = -VW - sqrt(d);
+        if (t > 0.) {
+        vec3 P = (V+C) + t * W;
+	    vec3 N = normalize(P - C);
+        color = vec3(.2, .2, .8) + max(0., dot(N, L));
+        }
+      }
 
         gl_FragColor = vec4(sqrt(color), 1.0);
     }
@@ -61,7 +80,7 @@ document.body.innerHTML = [''
 
 // CAMERA VIEW
 let V = [0, 0, 0];
-let focalLength = 3;
+let focalLength = 2;
 
 // CURSOR TRACKING
 let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
@@ -96,7 +115,7 @@ canvas1.keyDown     = c => {
         case 'KeyA':        console.log(m.rotateX(0.785));          break; // 'A'
         case 'KeyS':        console.log(m.rotateY(0.785));          break; // 'S'
         case 'KeyD':        console.log(m.rotateZ(0.785));          break; // 'D'
-        case 'KeyW':        console.log(m.translate(2, 3, 4));      break; // 'W'
+        case 'KeyW':        console.log(m.translate(0.25, 0.25, -2));      break; // 'W'
         case 'Space':       console.log(m.get());              break; // 'Space'
         case 'Enter':       console.log(m.identity());                   break; // 'Enter'
         case 'Backspace':   console.log(m.set([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]));  break; // 'Enter'
@@ -119,12 +138,19 @@ setInterval(function() {
 // SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
 let startTime = Date.now();
 
+
+
 function animate(gl) {
+    let x=0, y=0, z=-5, r=2;
+    let data = [];
+    let vector = m.transform([x, y, z, 1]);
+    data.push(vector[0], vector[1], vector[2], r);
    let time = (Date.now() - startTime) / 1000;
    setUniform('3fv', 'uV', V);
    setUniform('1f', 'uTime', time);
    setUniform('1f', 'uFL', focalLength);
    setUniform('3fv', 'uCursor', cursor);
+   setUniform('4fv', 'uSphere', data);
 }
 
 // START EVERYTHING.
