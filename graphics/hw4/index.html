@@ -33,15 +33,15 @@ let vertexShader = `
 let fragmentShader = `
     precision highp float;
     uniform float uTime, uFL;
-    uniform vec3 uV, uCursor;
+    uniform vec3 uV, uW, uUp, uRight, uCursor;
     uniform vec4 uSphere;
     varying vec3  vPos;
 
     vec3 bgColor = vec3(0.,0.,.05);
 
-    void main() {    
-        vec3 V = vec3(0.);
-        vec3 W = normalize(vec3(vPos.xy, -uFL));
+    void main() {
+        vec3 V = uV.xyz;
+        vec3 W = normalize(vPos.x * uRight + vPos.y * uUp + uW);
         vec3 L = normalize(vec3(1.));
 
         // SET BACKGROUND COLOR
@@ -79,8 +79,48 @@ document.body.innerHTML = [''
 ].join('');
 
 // CAMERA VIEW
-let V = [0, 0, 0];
 let focalLength = 2;
+let V  = [0, 0, 0, 1],
+    W  = [0, 0, -focalLength, 1],
+    up = [0, 1, 0, 1],
+    right = [1, 0, 0, 1];
+
+let rotateUp = (theta) => {
+    let m = new Matrix();
+    m.rotateX(up[0]*theta);
+    m.rotateY(up[1]*theta);
+    m.rotateZ(up[2]*theta);
+    W=m.transform(W);
+    right=m.transform(right);
+}
+
+let rotateW = (theta) => {
+    let m = new Matrix();
+    m.rotateX(W[0]*theta);
+    m.rotateY(W[1]*theta);
+    m.rotateZ(W[2]*theta);
+    right=m.transform(right);
+    up=m.transform(up);
+}
+
+let rotateRight = (theta) => {
+    let m = new Matrix();
+    m.rotateX(right[0]*theta);
+    m.rotateY(right[1]*theta);
+    m.rotateZ(right[2]*theta);
+    up=m.transform(up);
+    W=m.transform(W);
+}
+
+let moveV = (delta) => {
+    let m = new Matrix();
+    let x = delta*W[0],
+        y = delta*W[1],
+        z = delta*W[2];
+    m.translate(x, y, z);
+    V=m.transform(V);
+}
+
 
 // CURSOR TRACKING
 let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
@@ -92,37 +132,16 @@ canvas1.onmousedown = e => setCursor(e, 1);
 canvas1.onmousemove = e => setCursor(e,  );
 canvas1.onmouseup   = e => setCursor(e, 0);
 
-let m = new Matrix();
-
-// canvas1.keyDown     = c => {
-//     switch(c) {
-//         case 'KeyA':        console.log(`you have pressed A`);          break; // 'A'
-//         case 'KeyS':        console.log(`you have pressed S`);          break; // 'S'
-//         case 'KeyD':        console.log(`you have pressed D`);          break; // 'D'
-//         case 'KeyW':        console.log(`you have pressed W`);          break; // 'W'
-//         case 'Space':       console.log(`you have pressed Space`);      break; // 'Space'
-//         case 'Enter':       console.log(`you have pressed Enter`);      break; // 'Enter'
-//         case 'Backspace':   console.log(`you have pressed Backspace`);  break; // 'Enter'
-//         case 'ArrowUp':     console.log(`you have pressed ArrowUp`);    break; // 'ArrowUp'
-//         case 'ArrowDown':   console.log(`you have pressed ArrowDown`);  break; // 'ArrowUp'
-//         case 'ArrowRight':  console.log(`you have pressed ArrowRight`); break; // 'ArrowUp'
-//         case 'ArrowLeft':   console.log(`you have pressed ArrowLeft`);  break; // 'ArrowUp'
-//     }
-// }
-
 canvas1.keyDown     = c => {
     switch(c) {
-        case 'KeyA':        console.log(m.rotateX(0.785));          break; // 'A'
-        case 'KeyS':        console.log(m.rotateY(0.785));          break; // 'S'
-        case 'KeyD':        console.log(m.rotateZ(0.785));          break; // 'D'
-        case 'KeyW':        console.log(m.translate(0.25, 0.25, -2));      break; // 'W'
-        case 'Space':       console.log(m.get());              break; // 'Space'
-        case 'Enter':       console.log(m.identity());                   break; // 'Enter'
-        case 'Backspace':   console.log(m.set([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]));  break; // 'Enter'
-        case 'ArrowUp':     console.log(m.transform([4, 5, 3, 1]));    break; // 'ArrowUp'
-        case 'ArrowDown':   console.log(`you have pressed ArrowDown`);  break; // 'ArrowUp'
-        case 'ArrowRight':  console.log(`you have pressed ArrowRight`); break; // 'ArrowUp'
-        case 'ArrowLeft':   console.log(`you have pressed ArrowLeft`);  break; // 'ArrowUp'
+        case 'KeyA':        rotateUp(0.17);     break;
+        case 'KeyS':        moveV(-0.1);        break;
+        case 'KeyD':        rotateUp(-0.17);    break;
+        case 'KeyW':        moveV(0.1);         break;
+        case 'ArrowUp':     rotateRight(-0.17); break;
+        case 'ArrowDown':   rotateRight(0.17);  break;
+        case 'ArrowRight':  rotateW(0.17);      break;
+        case 'ArrowLeft':   rotateW(-0.17);     break;
     }
 }
 
@@ -130,9 +149,9 @@ function logMousePos(cursor) {
     console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
 }
 
-setInterval(function() {
-    logMousePos(cursor);
-}, 100);
+// setInterval(function() {
+//     logMousePos(cursor);
+// }, 100);
 
 
 // SET THE CURRENT TIME IN SECONDS BEFORE RENDERING EACH FRAME.
@@ -143,10 +162,12 @@ let startTime = Date.now();
 function animate(gl) {
     let x=0, y=0, z=-5, r=2;
     let data = [];
-    let vector = m.transform([x, y, z, 1]);
-    data.push(vector[0], vector[1], vector[2], r);
+    data.push(x, y, z, r);
    let time = (Date.now() - startTime) / 1000;
-   setUniform('3fv', 'uV', V);
+   setUniform('3fv', 'uV', [V[0], V[1], V[2]]);
+   setUniform('3fv', 'uW', [W[0], W[1], W[2]]);
+   setUniform('3fv', 'uUp', [up[0], up[1], up[2]]);
+   setUniform('3fv', 'uRight', [right[0], right[1], right[2]]);
    setUniform('1f', 'uTime', time);
    setUniform('1f', 'uFL', focalLength);
    setUniform('3fv', 'uCursor', cursor);
