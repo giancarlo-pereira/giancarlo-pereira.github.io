@@ -21,7 +21,8 @@ let fragmentShader =`
 
     uniform mat4 uA[`+NQ+`], uB[`+NQ+`], uC[`+NQ+`];
     uniform float uTime, uFL;
-    uniform vec3 uV, uW, uUp, uRight, uL, uCursor;
+    uniform vec3 uV, uW, uUp, uRight, uCursor;
+    uniform vec3 uL[2];
     varying vec3 vPos;
 
     vec3 bgColor = vec3(0.,0.,.05);
@@ -29,57 +30,76 @@ let fragmentShader =`
     vec2 rayTrace(vec3 V, vec3 W, float a, float b, float c,
                   float d, float e, float f, float g, float h,
                   float i, float j) {
-        vec2 t  = vec2(-1., -1.);
         float Vx = V.x,
               Vy = V.y,
-              Vz = V.z;
-        float Wx = W.x,
+              Vz = V.z,
+              Wx = W.x,
               Wy = W.y,
               Wz = W.z;
 
-        float A   = 	a*Wx*Wx + b*Wy*Wy + c*Wz*Wz + d*Wy*Wz + e*Wz*Wx + f*Wx*Wy;
-        float B   = 	2.*(a*Vx*Wx+b*Vy*Wy+c*Vz*Wz)+d*(Vy*Wz+Vz*Wy)+e*(Vz*Wx+Vx*Wz)+f*(Vx*Wy+Vy*Wx)+g*Wx+h*Wy+i*Wz;
-        float C   = 	a*Vx*Vx + b*Vy*Vy + c*Vz*Vz + d*Vy*Vz + e*Vz*Vx + f*Vx*Vy + g*Vx + h*Vy + i*Vz + j; 
-
-        float rad = B*B - 4.*A*C;
+        float A = a*Wx*Wx + b*Wy*Wy + c*Wz*Wz + d*Wy*Wz + e*Wz*Wx + f*Wx*Wy;
+        float B = 2.*(a*Vx*Wx + b*Vy*Wy + c*Vz*Wz) + d*(Vy*Wz + Vz*Wy) + e*(Vz*Wx + Vx*Wz) + f*(Vx*Wy + Vy*Wx) + g*Wx + h*Wy + i*Wz;
+        float C = a*Vx*Vx + b*Vy*Vy + c*Vz*Vz + d*Vy*Vz + e*Vz*Vx + f*Vx*Vy + g*Vx + h*Vy + i*Vz + j;
+        float temp = - B / (2.*A);
+        float rad = temp*temp - C/A;
         if (rad > 0.) {
-            t.x = - B + sqrt(rad);
-            t.y = - B - sqrt(rad);
+            return vec2(temp - sqrt(rad), temp + sqrt(rad));
         } 
-        return t;
+        return vec2(-1., -1.);
     }
 
     void main() {
 
         vec3 V = uV.xyz;
         vec3 W = normalize(vPos.x * uRight + vPos.y * uUp + uW);
-        float tMin = 1000.;
+        vec3 L = normalize(vec3(1.));
+        float tMin = 5000.;
         vec3 color = bgColor; 
         if (uCursor.z > 0.) {
             color += vec3(.5,.5,.5);
         }
 
-        // In the fragment shader main(), these values can be access like this:
-
         for (int o = 0 ; o < `+NQ+` ; o++) {
-            mat4 Q = uA[o];
-            mat4 Q2 = uB[o];
-            mat4 Q3 = uC[o];
+            mat4 Q1 = uA[o],
+                 Q2 = uB[o],
+                 Q3 = uC[o];
 
-            float a = Q[0].x,
-                    b = Q[1].y,
-                    c = Q[2].z,
-                    d = Q[2].y+Q[1].z,
-                    e = Q[2].x+Q[0].z,
-                    f = Q[1].x+Q[0].y,
-                    g = Q[3].x+Q[0].w,
-                    h = Q[3].y+Q[1].w,
-                    i = Q[3].z+Q[2].w,
-                    j = Q[3].w;
-            
-            vec2 t = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
-            float tin  = t.x,
-                    tout = t.y;
+            float a = Q1[0].x,
+                  b = Q1[1].y,
+                  c = Q1[2].z,
+                  d = Q1[2].y+Q1[1].z,
+                  e = Q1[2].x+Q1[0].z,
+                  f = Q1[1].x+Q1[0].y,
+                  g = Q1[3].x+Q1[0].w,
+                  h = Q1[3].y+Q1[1].w,
+                  i = Q1[3].z+Q1[2].w,
+                  j = Q1[3].w;
+            vec2 t1 = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
+            a = Q2[0].x,
+            b = Q2[1].y,
+            c = Q2[2].z,
+            d = Q2[2].y+Q2[1].z,
+            e = Q2[2].x+Q2[0].z,
+            f = Q2[1].x+Q2[0].y,
+            g = Q2[3].x+Q2[0].w,
+            h = Q2[3].y+Q2[1].w,
+            i = Q2[3].z+Q2[2].w,
+            j = Q2[3].w;
+            vec2 t2 = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
+            a = Q3[0].x,
+            b = Q3[1].y,
+            c = Q3[2].z,
+            d = Q3[2].y+Q3[1].z,
+            e = Q3[2].x+Q3[0].z,
+            f = Q3[1].x+Q3[0].y,
+            g = Q3[3].x+Q3[0].w,
+            h = Q3[3].y+Q3[1].w,
+            i = Q3[3].z+Q3[2].w,
+            j = Q3[3].w;
+            vec2 t3 = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
+
+            float tin  = max(t1.x, max(t2.x, t3.x)),
+                  tout = min(t1.y, min(t2.y, t3.y));
 
             if (tin < tout && tin > 0. && tin < tMin) {
                 tMin = tin;
@@ -88,9 +108,9 @@ let fragmentShader =`
                       y = P.y,
                       z = P.z;
                 vec3 N = normalize(vec3( 2.*a*x + e*z + f*y + g,
-                                            2.*b*y + d*z + f*x + h,
-                                            2.*c*z + d*y + e*x + i ) );
-                color = vec3(.2, .2, .8) + max(0., dot(N, uL));
+                                         2.*b*y + d*z + f*x + h,
+                                         2.*c*z + d*y + e*x + i ) );
+                color = vec3(.2, .2, .8) + max(0., dot(N, L));
             }
         }
         

@@ -1,5 +1,5 @@
 <script>
-const NQ = 6;
+const NQ = 1;
 </script>
 
 <script src=fragmentShader.js></script>
@@ -48,7 +48,7 @@ let vertexShader = `
 let initEventHandlers = canvas => {
  
  window.addEventListener("keydown", e => {
-    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'S', 'D', 'W'].indexOf(e.code) >= 0)
+    if (['Space', 'Return', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'S', 'D', 'W'].indexOf(e.code) >= 0)
        e.preventDefault();
  });
  window.addEventListener('keydown', e => canvas.keyDown(e.code));
@@ -94,7 +94,7 @@ let start_gl = (canvas, meshData, vertexSize, vertexShader, fragmentShader) => {
 
 let r = canvas1.getBoundingClientRect(), cursor = [0,0,0];
 let setCursor = (e, z) => cursor = [ (e.clientX - r.left) / canvas1.width * 2 - 1,
-                                     1 - (e.clientY - r.top) / canvas1.height * 2,
+                                     1 - (e.clientY - r.top + window.scrollY) / canvas1.height * 2,
                                      z !== undefined ? z : cursor[2] ];
 canvas1.onmousedown = e => setCursor(e, 1);
 canvas1.onmousemove = e => setCursor(e,  );
@@ -104,9 +104,9 @@ canvas1.onmouseup   = e => setCursor(e, 0);
 
 let focalLength = 2;
 let V  = [0, 0, 0, 1],
- W  = [0, 0, -focalLength, 1],
- up = [0, 1, 0, 1],
- right = [1, 0, 0, 1];
+    W  = [0, 0, -focalLength, 1],
+    up = [0, 1, 0, 1],
+    right = [1, 0, 0, 1];
 
 let rotateUp = (theta) => {
    let matrix = multiply(rotationZ(up[2]*theta),
@@ -139,6 +139,13 @@ let moveV = (delta) => {
    V=matvec(translation(x, y, z), V);
 }
 
+let originView = () => {
+   V  = [0, 0, 0, 1],
+   W  = [0, 0, -focalLength, 1],
+   up = [0, 1, 0, 1],
+   right = [1, 0, 0, 1];
+}
+
 canvas1.keyDown     = c => {
     switch(c) {
         case 'KeyA':        rotateUp(0.17);     break;
@@ -149,6 +156,7 @@ canvas1.keyDown     = c => {
         case 'ArrowDown':   rotateRight(0.17);  break;
         case 'ArrowRight':  rotateW(0.17);      break;
         case 'ArrowLeft':   rotateW(-0.17);     break;
+        case 'Enter':      originView();       break;
     }
 }
 
@@ -188,7 +196,7 @@ setTimeout(() => {
    let uL        = gl.getUniformLocation(gl.program, "uL"     ); 
    let uA        = gl.getUniformLocation(gl.program, "uA"     ); 
    let uB        = gl.getUniformLocation(gl.program, "uB"     ); 
-   let uC        = gl.getUniformLocation(gl.program, "uC"     ); 
+   let uC        = gl.getUniformLocation(gl.program, "uC"     );
 
    // ANIMATE AND RENDER EACH ANIMATION FRAME
 
@@ -263,25 +271,23 @@ setTimeout(() => {
          MC.push(transform(c===undefined ? everywhere : c, M));
       }
 
-      addShape(A, transform(sphere, translation(0,-.35,0)),
-                  transform(sphere, translation(0, .35,0)));
+      // addShape(A, transform(sphere, translation(0,-.35,0)),
+      //             transform(sphere, translation(0, .35,0)));
       addShape(B, xCylinder, yCylinder, zCylinder);
-      //addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
-      addShape(C, sphere);
-      addShape(D, xCylinder, xSlab);
-      addShape(E, xSlab, ySlab, zSlab);
-      addShape(F, yParaboloid, ySlab);
+      // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
+      // addShape(D, xCylinder, xSlab);
+      // addShape(E, xSlab, ySlab, zSlab);
+      // addShape(F, yParaboloid, ySlab);
 
-/*
-      let C1 = translation(0, 0, -20);
-      addShape(C1, sphere);
 
-      let C2 = translation(5 * Math.sin(time), 0, -20 + 5 * Math.cos(time));
-      addShape(C2, sphere);
-*/
+      // let C1 = translation(0, 0, -20);
+      // addShape(C1, sphere);
+
+      // let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
+      // addShape(C2, sphere);
+
 
       // SEND QUADRIC DATA TO THE FRAGMENT SHADER
-
       gl.uniformMatrix4fv(uA, false, MA.flat());
       gl.uniformMatrix4fv(uB, false, MB.flat());
       gl.uniformMatrix4fv(uC, false, MC.flat());
