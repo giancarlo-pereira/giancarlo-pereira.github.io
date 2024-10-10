@@ -108,6 +108,11 @@ let V  = [0, 0, 0, 1],
     up = [0, 1, 0, 1],
     right = [1, 0, 0, 1];
 
+let speed = 0,
+    omegaUp = 0,
+    omegaW = 0,
+    omegaRight = 0;
+
 let rotateUp = (theta) => {
    let matrix = multiply(rotationZ(up[2]*theta),
                      multiply(rotationY(up[1]*theta),
@@ -146,17 +151,37 @@ let originView = () => {
    right = [1, 0, 0, 1];
 }
 
+let cameraAction = (dt) => {
+   moveV(speed*dt);
+   rotateRight(omegaRight*dt);
+   rotateUp(omegaUp*dt);
+   rotateW(omegaW*dt);
+}
+
 canvas1.keyDown     = c => {
     switch(c) {
-        case 'KeyA':        rotateUp(0.17);     break;
-        case 'KeyS':        moveV(-0.1);        break;
-        case 'KeyD':        rotateUp(-0.17);    break;
-        case 'KeyW':        moveV(0.1);         break;
-        case 'ArrowUp':     rotateRight(-0.17); break;
-        case 'ArrowDown':   rotateRight(0.17);  break;
-        case 'ArrowRight':  rotateW(0.17);      break;
-        case 'ArrowLeft':   rotateW(-0.17);     break;
-        case 'Enter':      originView();       break;
+        case 'KeyA':        omegaUp=0.17;     break;
+        case 'KeyS':        speed=-0.1;       break;
+        case 'KeyD':        omegaUp=-0.17;    break;
+        case 'KeyW':        speed=0.1;        break;
+        case 'ArrowUp':     omegaRight=-0.17; break;
+        case 'ArrowDown':   omegaRight=0.17;  break;
+        case 'ArrowRight':  omegaW=0.17;      break;
+        case 'ArrowLeft':   omegaW=-0.17;     break;
+        case 'Enter':       originView();     break;
+    }
+}
+
+canvas1.keyUp     = c => {
+    switch(c) {
+        case 'KeyA':        omegaUp=0;       break;
+        case 'KeyS':        speed=0;         break;
+        case 'KeyD':        omegaUp=0;       break;
+        case 'KeyW':        speed=0;         break;
+        case 'ArrowUp':     omegaRight=0;    break;
+        case 'ArrowDown':   omegaRight=0;    break;
+        case 'ArrowRight':  omegaW=0;        break;
+        case 'ArrowLeft':   omegaW=0;        break;
     }
 }
 
@@ -202,6 +227,8 @@ setTimeout(() => {
 
    let startTime = Date.now() / 1000;
    setInterval(() => {
+      // MOVE CAMERA VIEW
+      cameraAction(0.5);
       
       // SET UNIFORM VARIABLES
 
