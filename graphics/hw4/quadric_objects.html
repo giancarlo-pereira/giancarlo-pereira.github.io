@@ -1,5 +1,5 @@
 <script>
-const NQ = 3;
+const NQ = 4;
 const MAX_BOUNCES = 5;
 </script>
 
@@ -104,15 +104,16 @@ canvas1.onmouseup   = e => setCursor(e, 0);
 // LOGIC TO CHANGE CAMERA VIEW
 
 let focalLength = 2;
-let V  = [0, 0, 0, 1],
-    W  = [0, 0, -focalLength, 1],
-    up = [0, 1, 0, 1],
+let V     = [0, 0, 0, 1],
+    W     = [0, 0, -focalLength, 1],
+    up    = [0, 1, 0, 1],
     right = [1, 0, 0, 1];
 
-let speedW = 0,
+let speedW     = 0,
     speedRight = 0,
-    omegaUp = 0,
-    omegaW = 0,
+    speedUp    = 0,
+    omegaUp    = 0,
+    omegaW     = 0,
     omegaRight = 0;
 
 let rotateUp = (theta) => {
@@ -153,6 +154,13 @@ let moveRight = (delta) => {
    V=matvec(translation(x, y, z), V);
 }
 
+let moveUp = (delta) => {
+   let x = delta*up[0],
+       y = delta*up[1],
+       z = delta*up[2];
+   V=matvec(translation(x, y, z), V);
+}
+
 let originView = () => {
    V  = [0, 0, 0, 1],
    W  = [0, 0, -focalLength, 1],
@@ -162,7 +170,8 @@ let originView = () => {
 
 let cameraAction = (dt) => {
    moveW(speedW*dt);
-   moveRight(speedRight*dt)
+   moveRight(speedRight*dt);
+   moveUp(speedUp*dt);
    rotateRight(omegaRight*dt);
    rotateUp(omegaUp*dt);
    rotateW(omegaW*dt);
@@ -170,28 +179,34 @@ let cameraAction = (dt) => {
 
 canvas1.keyDown     = c => {
     switch(c) {
-        case 'KeyA':        speedRight=-0.17;     break;
-        case 'KeyS':        speedW=-0.17;       break;
-        case 'KeyD':        speedRight=0.17;    break;
-        case 'KeyW':        speedW=0.17;        break;
-        case 'ArrowUp':     omegaRight=0.1; break;
+        case 'KeyA':        speedRight=-0.17; break;
+        case 'KeyS':        speedW=-0.17;     break;
+        case 'KeyD':        speedRight=0.17;  break;
+        case 'KeyW':        speedW=0.17;      break;
+        case 'ArrowUp':     omegaRight=0.1;   break;
         case 'ArrowDown':   omegaRight=-0.1;  break;
-        case 'ArrowRight':  omegaUp=-0.1;      break;
-        case 'ArrowLeft':   omegaUp=0.1;     break;
+        case 'ArrowRight':  omegaUp=-0.1;     break;
+        case 'ArrowLeft':   omegaUp=0.1;      break;
+        case 'ShiftLeft':   speedUp=-0.17;    break;
+        case 'ShiftRight':  speedUp=-0.17;    break;
+        case 'Space':       speedUp=0.17;     break;
         case 'Enter':       originView();     break;
     }
 }
 
 canvas1.keyUp     = c => {
     switch(c) {
-        case 'KeyA':        speedRight=0;       break;
-        case 'KeyS':        speedW=0;         break;
-        case 'KeyD':        speedRight=0;       break;
-        case 'KeyW':        speedW=0;         break;
-        case 'ArrowUp':     omegaRight=0;    break;
-        case 'ArrowDown':   omegaRight=0;    break;
-        case 'ArrowRight':  omegaUp=0;        break;
-        case 'ArrowLeft':   omegaUp=0;        break;
+        case 'KeyA':        speedRight=0;  break;
+        case 'KeyS':        speedW=0;      break;
+        case 'KeyD':        speedRight=0;  break;
+        case 'KeyW':        speedW=0;      break;
+        case 'ArrowUp':     omegaRight=0;  break;
+        case 'ArrowDown':   omegaRight=0;  break;
+        case 'ArrowRight':  omegaUp=0;     break;
+        case 'ShiftLeft':   speedUp=0;     break;
+        case 'ShiftRight':  speedUp=0;     break;
+        case 'Space':       speedUp=0;     break;
+        case 'ArrowLeft':   omegaUp=0;     break;
     }
 }
 
@@ -328,12 +343,13 @@ setTimeout(() => {
       // addShape(F, yParaboloid, ySlab);
 
 
-      let C1 = translation(0, -1, 0);
-      addShape(C1, 1, 1, [.1, 0, 0], zSlab);
+      let C1 = translation(0, 0, -10);
+      addShape(C1, 1, 1, [.1, 0, 0], sphere);
 
       let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
       addShape(C2, 1, 1, [0, .5, 0], sphere);
 
+      addShape(translation(0, 0, -15,), 1, 1, [.1, .1, .1], zSlab);
 
       // SEND QUADRIC DATA TO THE FRAGMENT SHADER
       gl.uniformMatrix4fv(uA, false, MA.flat());

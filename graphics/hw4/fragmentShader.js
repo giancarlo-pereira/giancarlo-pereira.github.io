@@ -55,14 +55,19 @@ let fragmentShader =`
     }
 
     vec3 shootRay(vec3 V, vec3 W, float current_n, float tMin) {
-        vec3 color = vec3(0.);
+        vec3 finalColor = vec3(0.),
+             localColor = vec3(0.),
+             N          = vec3(0.),   
+             P          = V       ;
+        float n = current_n;
+        float frac=1.;
+        int ref = 0, hit = 0;
         for (int bounces=0; bounces<`+MAX_BOUNCES+`; bounces++) {
+            // TODO: put this object loop in a separate function?
             for (int obj = 0 ; obj < `+NQ+` ; obj++) {
                 mat4 Q1 = uA[obj],
                      Q2 = uB[obj],
                      Q3 = uC[obj];
-                float n = uRefractive[obj];
-                int ref = uReflective[obj];
 
                 float a = Q1[0].x,
                     b = Q1[1].y,
@@ -102,35 +107,43 @@ let fragmentShader =`
                       tout = min(t1.y, min(t2.y, t3.y));
 
                 if (tin < tout && tin > 0. && tin < tMin) {
+                    hit = 1;                            // ray hit an object
+                    n = uRefractive[obj];
+                    ref = uReflective[obj];
                     tMin = tin;
-                    vec3 P = V + tin * W;
+                    P = V + tin * W;
                     float x = P.x,
                           y = P.y,
                           z = P.z;
-                    vec3 N = normalize(vec3( 2.*a*x + e*z + f*y + g,
+                    // TODO: this normal is incorrect
+                    N = normalize(vec3( 2.*a*x + e*z + f*y + g,
                                             2.*b*y + d*z + f*x + h,
                                             2.*c*z + d*y + e*x + i ) );
-                    color += uColors[obj] + max(0., dot(N, uL[0]));
-
-                    if (n != current_n) {
-                        vec3 C = dot(N, W) * N,
-                             S = W - C,
-                             Sp = current_n/n * S,
-                             Cp = (-1.)*sqrt(1.-Sp*Sp) * N,
-                             Wp = Cp + Sp;
-                        P = P + EPS*Wp;
-                        W = normalize(Wp);
-                        current_n = n;
-                    }
-                    else if (ref == 1) {
-                        W = normalize(W - 2.*dot(N,W)*N);
-                        P = P + EPS*W;
-                    }
-                    else {break;}
+                    localColor = uColors[obj];
                 }
             }
+            
+            if (hit == 1) {
+                finalColor += frac*(localColor + max(0., dot(N, uL[0])));
+                frac *= 0.5;
+                if ( abs(n - current_n) > EPS) {        // refraction happening
+                    vec3 C = dot(N, W) * N,
+                        S = W - C,
+                        Sp = current_n/n * S,
+                        Cp = (-1.)*sqrt(1.-Sp*Sp) * N,
+                        Wp = Cp + Sp;
+                    V = P + EPS*Wp;
+                    W = normalize(Wp);
+                    current_n = n;
+                }
+                else if (ref == 1) {                    // reflection happening
+                    W = normalize(W - 2.*dot(N,W)*N);
+                    V = P + EPS*W;
+                }
+                else {break;}                           // solid object hit
+            }
         }
-        return color;
+        return finalColor;
     }
 
     void main() {
