@@ -1,5 +1,6 @@
 <script>
 const NQ = 1;
+const MAX_BOUNCES = 5;
 </script>
 
 <script src=fragmentShader.js></script>
@@ -211,17 +212,20 @@ setTimeout(() => {
 
    // FIND LOCATIONS IN GPU PROGRAM OF UNIFORM VARIABLES
 
-   let uFL       = gl.getUniformLocation(gl.program, "uFL"    );
-   let uUp       = gl.getUniformLocation(gl.program, "uUp"    );
-   let uRight    = gl.getUniformLocation(gl.program, "uRight" );
-   let uW        = gl.getUniformLocation(gl.program, "uW"     );
-   let uV        = gl.getUniformLocation(gl.program, "uV"     );
-   let uTime     = gl.getUniformLocation(gl.program, "uTime"  );
-   let uCursor   = gl.getUniformLocation(gl.program, "uCursor"); 
-   let uL        = gl.getUniformLocation(gl.program, "uL"     ); 
-   let uA        = gl.getUniformLocation(gl.program, "uA"     ); 
-   let uB        = gl.getUniformLocation(gl.program, "uB"     ); 
-   let uC        = gl.getUniformLocation(gl.program, "uC"     );
+   let uFL           = gl.getUniformLocation(gl.program, "uFL"        );
+   let uUp           = gl.getUniformLocation(gl.program, "uUp"        );
+   let uRight        = gl.getUniformLocation(gl.program, "uRight"     );
+   let uW            = gl.getUniformLocation(gl.program, "uW"         );
+   let uV            = gl.getUniformLocation(gl.program, "uV"         );
+   let uTime         = gl.getUniformLocation(gl.program, "uTime"      );
+   let uCursor       = gl.getUniformLocation(gl.program, "uCursor"    ); 
+   let uL            = gl.getUniformLocation(gl.program, "uL"         ); 
+   let uA            = gl.getUniformLocation(gl.program, "uA"         ); 
+   let uB            = gl.getUniformLocation(gl.program, "uB"         ); 
+   let uC            = gl.getUniformLocation(gl.program, "uC"         );
+   let uRefractive   = gl.getUniformLocation(gl.program, "uRefractive"); 
+   let uReflective   = gl.getUniformLocation(gl.program, "uReflective"); 
+   let uMedium       = gl.getUniformLocation(gl.program, "uMedium"    ); 
 
    // ANIMATE AND RENDER EACH ANIMATION FRAME
 
@@ -238,11 +242,13 @@ setTimeout(() => {
       gl.uniform3fv(uL, [-.57,-.57,-.57, .57,.57,.57]);
 
       // DEFINE CAMERA VIEW
+
       gl.uniform1f(uFL, focalLength);
       gl.uniform3fv(uV, [V[0], V[1], V[2]]);
       gl.uniform3fv(uW, [W[0], W[1], W[2]]);
       gl.uniform3fv(uUp, [up[0], up[1], up[2]]);
       gl.uniform3fv(uRight, [right[0], right[1], right[2]]);
+      gl.uniform1f(uMedium, 1);
 
       // DEFINE ANIMATION MATRICES
 
@@ -291,16 +297,19 @@ setTimeout(() => {
       }
 
       let MA = [], MB = [], MC = [];
+      let reflections = [], refractions = [];
 
-      let addShape = (M,a,b,c) => {
+      let addShape = (M,reflection, refraction, a,b,c) => {
          MA.push(transform(a, M));
+         reflections.push(reflection);
+         refractions.push(refraction);
          MB.push(transform(b===undefined ? everywhere : b, M));
          MC.push(transform(c===undefined ? everywhere : c, M));
       }
 
       // addShape(A, transform(sphere, translation(0,-.35,0)),
       //             transform(sphere, translation(0, .35,0)));
-      addShape(B, xCylinder, yCylinder, zCylinder);
+      addShape(B, 0, 1., xCylinder, yCylinder, zCylinder);
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
       // addShape(D, xCylinder, xSlab);
       // addShape(E, xSlab, ySlab, zSlab);
@@ -318,6 +327,10 @@ setTimeout(() => {
       gl.uniformMatrix4fv(uA, false, MA.flat());
       gl.uniformMatrix4fv(uB, false, MB.flat());
       gl.uniformMatrix4fv(uC, false, MC.flat());
+
+      // SEND MATERIAL DATA TO THE FRAGMENT SHADER
+      gl.uniform1i(uReflective, reflections);
+      gl.uniform1f(uRefractive, refractions);
 
       // RENDER THE FRAME
 
