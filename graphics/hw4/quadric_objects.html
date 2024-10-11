@@ -344,12 +344,12 @@ setTimeout(() => {
 
 
       let C1 = translation(0, 0, -10);
-      addShape(C1, 1, 1, [.1, 0, 0], sphere);
+      addShape(C1, 1, 1, [.1, 0, 0], sphere, sphere, sphere);
 
       let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
-      addShape(C2, 1, 1, [0, .5, 0], sphere);
+      addShape(C2, 0, 1.5, [0, .5, 0], sphere);
 
-      addShape(translation(0, 0, -15,), 1, 1, [.1, .1, .1], zSlab);
+      addShape(translation(0, 0, -15,), 1, 1, [.1, .1, .1], zSlab, zSlab, zSlab);
 
       // SEND QUADRIC DATA TO THE FRAGMENT SHADER
       gl.uniformMatrix4fv(uA, false, MA.flat());

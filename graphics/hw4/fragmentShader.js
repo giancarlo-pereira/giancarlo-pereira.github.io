@@ -1,9 +1,11 @@
 let fragmentShader =`
     precision highp float;
 
+    // DEFINE CONSTANTS
     const float EPS = 0.0000000001;
     const float INF = 10000000000.;
 
+    // NOISE FUNCTIONS
     float noise(vec3 point) { float r = 0.; for (int i=0;i<16;i++) {
     vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
         1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
@@ -21,6 +23,7 @@ let fragmentShader =`
        }
        return f;
     }
+
     // OBJECT DATA
     uniform mat4 uA[`+NQ+`], uB[`+NQ+`], uC[`+NQ+`];
     uniform int uReflective[`+NQ+`];
@@ -34,9 +37,38 @@ let fragmentShader =`
 
     vec3 bgColor = vec3(0.,0.,.05);
 
-    vec2 rayTrace(vec3 V, vec3 W, float a, float b, float c,
-                float d, float e, float f, float g, float h,
-                float i, float j) {
+    // LOGIC FOR RAY TRACING
+    vec3 surfacePoint(mat4 Q, vec3 P) {
+        float a = Q[0].x,
+              b = Q[1].y,
+              c = Q[2].z,
+              d = Q[2].y+Q[1].z,
+              e = Q[2].x+Q[0].z,
+              f = Q[1].x+Q[0].y,
+              g = Q[3].x+Q[0].w,
+              h = Q[3].y+Q[1].w,
+              i = Q[3].z+Q[2].w,
+              j = Q[3].w;
+        float x = P.x,
+              y = P.y,
+              z = P.z;
+        
+        return vec3( 2.*a*x + e*z + f*y + g,
+                     2.*b*y + d*z + f*x + h,
+                     2.*c*z + d*y + e*x + i);
+    }
+
+    vec2 rayTrace(vec3 V, vec3 W, mat4 Q) {
+        float a = Q[0].x,
+              b = Q[1].y,
+              c = Q[2].z,
+              d = Q[2].y+Q[1].z,
+              e = Q[2].x+Q[0].z,
+              f = Q[1].x+Q[0].y,
+              g = Q[3].x+Q[0].w,
+              h = Q[3].y+Q[1].w,
+              i = Q[3].z+Q[2].w,
+              j = Q[3].w;
         float Vx = V.x,
               Vy = V.y,
               Vz = V.z,
@@ -50,18 +82,20 @@ let fragmentShader =`
         float C = a*Vx*Vx + b*Vy*Vy + c*Vz*Vz + d*Vy*Vz + e*Vz*Vx + f*Vx*Vy + g*Vx + h*Vy + i*Vz + j;
         float temp = - B / (2.*A);
         float rad = temp*temp - C/A;
-        if (rad > 0.) return vec2(temp - sqrt(rad), temp + sqrt(rad));
-        return vec2(-1., -1.);
+        if (rad > 0.) return vec2(temp - sqrt(rad), temp + sqrt(rad)); // intersections
+        return vec2(-1., -1.); // no intersection
     }
 
-    vec3 shootRay(vec3 V, vec3 W, float current_n, float tMin) {
+    vec3 shootRay(vec3 V, vec3 W) {
         vec3 finalColor = vec3(0.),
              localColor = vec3(0.),
              N          = vec3(0.),   
-             P          = V       ;
-        float n = current_n;
-        float frac=1.;
-        int ref = 0, hit = 0;
+             P          = V       ,
+             Wp         = W       ;
+        float tMin = INF;
+        float current_n = uMedium,
+              n         = uMedium;
+        int ref = 0, hit = 0, inside = -1;
         for (int bounces=0; bounces<`+MAX_BOUNCES+`; bounces++) {
             // TODO: put this object loop in a separate function?
             for (int obj = 0 ; obj < `+NQ+` ; obj++) {
@@ -69,94 +103,70 @@ let fragmentShader =`
                      Q2 = uB[obj],
                      Q3 = uC[obj];
 
-                float a = Q1[0].x,
-                    b = Q1[1].y,
-                    c = Q1[2].z,
-                    d = Q1[2].y+Q1[1].z,
-                    e = Q1[2].x+Q1[0].z,
-                    f = Q1[1].x+Q1[0].y,
-                    g = Q1[3].x+Q1[0].w,
-                    h = Q1[3].y+Q1[1].w,
-                    i = Q1[3].z+Q1[2].w,
-                    j = Q1[3].w;
-                vec2 t1 = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
-                a = Q2[0].x,
-                b = Q2[1].y,
-                c = Q2[2].z,
-                d = Q2[2].y+Q2[1].z,
-                e = Q2[2].x+Q2[0].z,
-                f = Q2[1].x+Q2[0].y,
-                g = Q2[3].x+Q2[0].w,
-                h = Q2[3].y+Q2[1].w,
-                i = Q2[3].z+Q2[2].w,
-                j = Q2[3].w;
-                vec2 t2 = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
-                a = Q3[0].x,
-                b = Q3[1].y,
-                c = Q3[2].z,
-                d = Q3[2].y+Q3[1].z,
-                e = Q3[2].x+Q3[0].z,
-                f = Q3[1].x+Q3[0].y,
-                g = Q3[3].x+Q3[0].w,
-                h = Q3[3].y+Q3[1].w,
-                i = Q3[3].z+Q3[2].w,
-                j = Q3[3].w;
-                vec2 t3 = rayTrace(V, W, a, b, c, d, e, f, g, h, i, j);
+                vec2 t1 = rayTrace(V, W, Q1);
+                vec2 t2 = rayTrace(V, W, Q2);
+                vec2 t3 = rayTrace(V, W, Q3);
 
                 float tin  = max(t1.x, max(t2.x, t3.x)),
                       tout = min(t1.y, min(t2.y, t3.y));
 
                 if (tin < tout && tin > 0. && tin < tMin) {
-                    hit = 1;                            // ray hit an object
+                    hit = 1;                                        // ray hit an object
                     n = uRefractive[obj];
                     ref = uReflective[obj];
                     tMin = tin;
                     P = V + tin * W;
-                    float x = P.x,
-                          y = P.y,
-                          z = P.z;
                     // TODO: this normal is incorrect
-                    N = normalize(vec3( 2.*a*x + e*z + f*y + g,
-                                            2.*b*y + d*z + f*x + h,
-                                            2.*c*z + d*y + e*x + i ) );
+                    N = normalize(surfacePoint(Q1, P));
                     localColor = uColors[obj];
                 }
             }
             
             if (hit == 1) {
-                finalColor += frac*(localColor + max(0., dot(N, uL[0])));
-                frac *= 0.5;
-                if ( abs(n - current_n) > EPS) {        // refraction happening
+                if ( abs(n - current_n) > EPS ) {                   // refraction happening
                     vec3 C = dot(N, W) * N,
-                        S = W - C,
-                        Sp = current_n/n * S,
-                        Cp = (-1.)*sqrt(1.-Sp*Sp) * N,
-                        Wp = Cp + Sp;
-                    V = P + EPS*Wp;
-                    W = normalize(Wp);
-                    current_n = n;
+                         S = W - C, 
+                         Sp = current_n/n * S;
+                    if (dot(Sp,Sp) > 1.) {                          // total internal reflection
+                        Wp = W - 2.*dot(N,W)*N;
+                        finalColor += 0.1*(localColor); // + max(0., dot(N, uL[0])));
+                    }                          
+                    else {
+                        float factor = -1.;                         // entering object
+                        if (inside == 1) factor = 1.;               // leaving object
+                        Wp = factor*sqrt(1.-dot(Sp,Sp)) * N + Sp;
+                        current_n = n;
+                        inside = (-1)*inside;
+                        finalColor += 0.5*(localColor); // + max(0., dot(N, uL[0])));   
+                    }
                 }
-                else if (ref == 1) {                    // reflection happening
-                    W = normalize(W - 2.*dot(N,W)*N);
-                    V = P + EPS*W;
+                else if (ref == 1) {                                // reflection happening
+                    Wp = W - 2.*dot(N,W)*N;
+                    finalColor += 0.1*(localColor); // + max(0., dot(N, uL[0])));   
                 }
-                else {break;}                           // solid object hit
+                else {                                              // solid object hit
+                    finalColor += localColor; // + max(0., dot(N, uL[0])));
+                    break;
+                }                                       
+
+                W = normalize(Wp);
+                V = P + EPS*W;
             }
         }
         return finalColor;
     }
 
+    // MAIN FUNCTION
     void main() {
 
         vec3 V = uV.xyz;
         vec3 W = normalize(vPos.x * uRight + vPos.y * uUp + uW);
-        float tMin = INF;
         vec3 color = bgColor; 
         if (uCursor.z > 0.) {
             color += vec3(.5,.5,.5);
         }
 
-        color += shootRay(V, W, uMedium, tMin);
+        color += shootRay(V, W);
         
         gl_FragColor = vec4(sqrt(color), 1.0);
     }
