@@ -21,11 +21,13 @@ let fragmentShader =`
        }
        return f;
     }
-
+    // OBJECT DATA
     uniform mat4 uA[`+NQ+`], uB[`+NQ+`], uC[`+NQ+`];
-    uniform float uTime, uFL, uMedium;
     uniform int uReflective[`+NQ+`];
     uniform float uRefractive[`+NQ+`];
+    uniform vec3 uColors[`+NQ+`];
+
+    uniform float uTime, uFL, uMedium;
     uniform vec3 uV, uW, uUp, uRight, uCursor;
     uniform vec3 uL[2];
     varying vec3 vPos;
@@ -108,7 +110,7 @@ let fragmentShader =`
                     vec3 N = normalize(vec3( 2.*a*x + e*z + f*y + g,
                                             2.*b*y + d*z + f*x + h,
                                             2.*c*z + d*y + e*x + i ) );
-                    color += vec3(.2, .2, .8) + max(0., dot(N, uL[0]));
+                    color += uColors[obj] + max(0., dot(N, uL[0]));
 
                     if (n != current_n) {
                         vec3 C = dot(N, W) * N,

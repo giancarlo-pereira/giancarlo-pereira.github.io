@@ -1,5 +1,5 @@
 <script>
-const NQ = 1;
+const NQ = 3;
 const MAX_BOUNCES = 5;
 </script>
 
@@ -109,7 +109,8 @@ let V  = [0, 0, 0, 1],
     up = [0, 1, 0, 1],
     right = [1, 0, 0, 1];
 
-let speed = 0,
+let speedW = 0,
+    speedRight = 0,
     omegaUp = 0,
     omegaW = 0,
     omegaRight = 0;
@@ -138,10 +139,17 @@ let rotateRight = (theta) => {
    up=matvec(matrix, up);
 }
 
-let moveV = (delta) => {
+let moveW = (delta) => {
    let x = delta*W[0],
        y = delta*W[1],
        z = delta*W[2];
+   V=matvec(translation(x, y, z), V);
+}
+
+let moveRight = (delta) => {
+   let x = delta*right[0],
+       y = delta*right[1],
+       z = delta*right[2];
    V=matvec(translation(x, y, z), V);
 }
 
@@ -153,7 +161,8 @@ let originView = () => {
 }
 
 let cameraAction = (dt) => {
-   moveV(speed*dt);
+   moveW(speedW*dt);
+   moveRight(speedRight*dt)
    rotateRight(omegaRight*dt);
    rotateUp(omegaUp*dt);
    rotateW(omegaW*dt);
@@ -161,28 +170,28 @@ let cameraAction = (dt) => {
 
 canvas1.keyDown     = c => {
     switch(c) {
-        case 'KeyA':        omegaUp=0.17;     break;
-        case 'KeyS':        speed=-0.1;       break;
-        case 'KeyD':        omegaUp=-0.17;    break;
-        case 'KeyW':        speed=0.1;        break;
-        case 'ArrowUp':     omegaRight=-0.17; break;
-        case 'ArrowDown':   omegaRight=0.17;  break;
-        case 'ArrowRight':  omegaW=0.17;      break;
-        case 'ArrowLeft':   omegaW=-0.17;     break;
+        case 'KeyA':        speedRight=-0.17;     break;
+        case 'KeyS':        speedW=-0.17;       break;
+        case 'KeyD':        speedRight=0.17;    break;
+        case 'KeyW':        speedW=0.17;        break;
+        case 'ArrowUp':     omegaRight=0.1; break;
+        case 'ArrowDown':   omegaRight=-0.1;  break;
+        case 'ArrowRight':  omegaUp=-0.1;      break;
+        case 'ArrowLeft':   omegaUp=0.1;     break;
         case 'Enter':       originView();     break;
     }
 }
 
 canvas1.keyUp     = c => {
     switch(c) {
-        case 'KeyA':        omegaUp=0;       break;
-        case 'KeyS':        speed=0;         break;
-        case 'KeyD':        omegaUp=0;       break;
-        case 'KeyW':        speed=0;         break;
+        case 'KeyA':        speedRight=0;       break;
+        case 'KeyS':        speedW=0;         break;
+        case 'KeyD':        speedRight=0;       break;
+        case 'KeyW':        speedW=0;         break;
         case 'ArrowUp':     omegaRight=0;    break;
         case 'ArrowDown':   omegaRight=0;    break;
-        case 'ArrowRight':  omegaW=0;        break;
-        case 'ArrowLeft':   omegaW=0;        break;
+        case 'ArrowRight':  omegaUp=0;        break;
+        case 'ArrowLeft':   omegaUp=0;        break;
     }
 }
 
@@ -225,6 +234,7 @@ setTimeout(() => {
    let uC            = gl.getUniformLocation(gl.program, "uC"         );
    let uRefractive   = gl.getUniformLocation(gl.program, "uRefractive"); 
    let uReflective   = gl.getUniformLocation(gl.program, "uReflective"); 
+   let uColors       = gl.getUniformLocation(gl.program, "uColors"    ); 
    let uMedium       = gl.getUniformLocation(gl.program, "uMedium"    ); 
 
    // ANIMATE AND RENDER EACH ANIMATION FRAME
@@ -298,29 +308,31 @@ setTimeout(() => {
 
       let MA = [], MB = [], MC = [];
       let reflections = [], refractions = [];
+      let colors = [];
 
-      let addShape = (M,reflection, refraction, a,b,c) => {
+      let addShape = (M, reflection, refraction, color, a,b,c) => {
          MA.push(transform(a, M));
          reflections.push(reflection);
          refractions.push(refraction);
+         colors.push(color);
          MB.push(transform(b===undefined ? everywhere : b, M));
          MC.push(transform(c===undefined ? everywhere : c, M));
       }
 
       // addShape(A, transform(sphere, translation(0,-.35,0)),
       //             transform(sphere, translation(0, .35,0)));
-      addShape(B, 0, 1., xCylinder, yCylinder, zCylinder);
+      addShape(B, 0, 1., [0, 0, .6], xCylinder, yCylinder, zCylinder);
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
       // addShape(D, xCylinder, xSlab);
       // addShape(E, xSlab, ySlab, zSlab);
       // addShape(F, yParaboloid, ySlab);
 
 
-      // let C1 = translation(0, 0, -20);
-      // addShape(C1, sphere);
+      let C1 = translation(0, -1, 0);
+      addShape(C1, 1, 1, [.1, 0, 0], zSlab);
 
-      // let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
-      // addShape(C2, sphere);
+      let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
+      addShape(C2, 1, 1, [0, .5, 0], sphere);
 
 
       // SEND QUADRIC DATA TO THE FRAGMENT SHADER
@@ -331,6 +343,7 @@ setTimeout(() => {
       // SEND MATERIAL DATA TO THE FRAGMENT SHADER
       gl.uniform1i(uReflective, reflections);
       gl.uniform1f(uRefractive, refractions);
+      gl.uniform3fv(uColors, colors.flat());
 
       // RENDER THE FRAME
 
