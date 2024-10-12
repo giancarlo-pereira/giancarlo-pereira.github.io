@@ -2,8 +2,8 @@ let fragmentShader =`
     precision highp float;
 
     // DEFINE CONSTANTS
-    const float EPS = 0.0000000001;
-    const float INF = 10000000000.;
+    const float EPS = pow(.1, 8.);
+    const float INF = pow(10., 8.);
 
     // NOISE FUNCTIONS
     float noise(vec3 point) { float r = 0.; for (int i=0;i<16;i++) {
@@ -26,8 +26,7 @@ let fragmentShader =`
 
     // OBJECT DATA
     uniform mat4 uA[`+NQ+`], uB[`+NQ+`], uC[`+NQ+`];
-    uniform int uReflective[`+NQ+`];
-    uniform float uRefractive[`+NQ+`];
+    uniform float uReflective[`+NQ+`], uRefractive[`+NQ+`];
     uniform vec3 uColors[`+NQ+`];
 
     uniform float uTime, uFL, uMedium;
@@ -38,7 +37,11 @@ let fragmentShader =`
     vec3 bgColor = vec3(0.,0.,.05);
 
     // LOGIC FOR RAY TRACING
-    vec3 surfacePoint(mat4 Q, vec3 P) {
+    vec3 reflection(vec3 W, vec3 N) {
+        return W - 2. * dot(N, W) * N;    
+    }
+        
+    vec3 surfaceNormal(mat4 Q, vec3 P) {
         float a = Q[0].x,
               b = Q[1].y,
               c = Q[2].z,
@@ -93,12 +96,17 @@ let fragmentShader =`
              P          = V       ,
              Wp         = W       ;
         float tMin = INF;
-        float current_n = uMedium,
-              n         = uMedium;
-        int ref = 0, hit = 0, inside = -1;
+        float frac = 1.;
+        float currentMedium = uMedium,
+              objMedium     = uMedium,
+              objRef        = 0.     ;
+        int hit = 0, inside = -1;
         for (int bounces=0; bounces<`+MAX_BOUNCES+`; bounces++) {
+            hit = 0;
+            objRef = 0.;
+            if (frac < 0.05) { break; }
             // TODO: put this object loop in a separate function?
-            for (int obj = 0 ; obj < `+NQ+` ; obj++) {
+            for (int obj = 0; obj < `+NQ+`; obj++) {
                 mat4 Q1 = uA[obj],
                      Q2 = uB[obj],
                      Q3 = uC[obj];
@@ -110,42 +118,47 @@ let fragmentShader =`
                 float tin  = max(t1.x, max(t2.x, t3.x)),
                       tout = min(t1.y, min(t2.y, t3.y));
 
-                if (tin < tout && tin > 0. && tin < tMin) {
+                float t = tin;
+                if (inside == 1) {
+                    t = tout;
+                }
+
+                if (tin < tout && t > 0. && t < tMin) {
                     hit = 1;                                        // ray hit an object
-                    n = uRefractive[obj];
-                    ref = uReflective[obj];
-                    tMin = tin;
-                    P = V + tin * W;
+                    tMin = t;
+                    objMedium = uRefractive[obj];
+                    objRef = uReflective[obj];
+                    P = V + t * W;
                     // TODO: this normal is incorrect
-                    N = normalize(surfacePoint(Q1, P));
+                    N = normalize(surfaceNormal(Q1, P));
                     localColor = uColors[obj];
                 }
             }
             
-            if (hit == 1) {
-                if ( abs(n - current_n) > EPS ) {                   // refraction happening
-                    vec3 C = dot(N, W) * N,
-                         S = W - C, 
-                         Sp = current_n/n * S;
+            if (hit == 1) {                                         // ray hit an object
+                if ( abs(objMedium - currentMedium) > EPS ) {       // refraction happening
+                    vec3 S = W - dot(N, W) * N, 
+                         Sp = currentMedium/objMedium * S;
                     if (dot(Sp,Sp) > 1.) {                          // total internal reflection
-                        Wp = W - 2.*dot(N,W)*N;
-                        finalColor += 0.1*(localColor); // + max(0., dot(N, uL[0])));
+                        Wp = reflection(W, N);
+                        finalColor = frac*mix(finalColor, localColor, 1.-objRef);   
+                        frac *= objRef;
                     }                          
                     else {
-                        float factor = -1.;                         // entering object
-                        if (inside == 1) factor = 1.;               // leaving object
-                        Wp = factor*sqrt(1.-dot(Sp,Sp)) * N + Sp;
-                        current_n = n;
+                        Wp = float(inside)*sqrt(1.-dot(Sp,Sp)) * N + Sp;
+                        currentMedium = objMedium;
                         inside = (-1)*inside;
-                        finalColor += 0.5*(localColor); // + max(0., dot(N, uL[0])));   
+                        finalColor = frac*mix(finalColor, localColor, 0.05);
+                        frac *= 0.95;   
                     }
                 }
-                else if (ref == 1) {                                // reflection happening
-                    Wp = W - 2.*dot(N,W)*N;
-                    finalColor += 0.1*(localColor); // + max(0., dot(N, uL[0])));   
+                else if (objRef > EPS) {                            // reflection happening
+                    Wp = reflection(W, N);
+                    finalColor = frac*mix(finalColor, localColor, 1.-objRef);   
+                    frac *= objRef;
                 }
                 else {                                              // solid object hit
-                    finalColor += localColor; // + max(0., dot(N, uL[0])));
+                    finalColor = frac*mix(finalColor, localColor + max(0., dot(N, uL[0])) , 0.9);
                     break;
                 }                                       
 

@@ -1,5 +1,5 @@
 <script>
-const NQ = 4;
+const NQ = 3;
 const MAX_BOUNCES = 5;
 </script>
 
@@ -326,10 +326,10 @@ setTimeout(() => {
       let colors = [];
 
       let addShape = (M, reflection, refraction, color, a,b,c) => {
-         MA.push(transform(a, M));
          reflections.push(reflection);
          refractions.push(refraction);
          colors.push(color);
+         MA.push(transform(a, M));
          MB.push(transform(b===undefined ? everywhere : b, M));
          MC.push(transform(c===undefined ? everywhere : c, M));
       }
@@ -343,22 +343,25 @@ setTimeout(() => {
       // addShape(F, yParaboloid, ySlab);
 
 
-      let C1 = translation(0, 0, -10);
-      addShape(C1, 1, 1, [.1, 0, 0], sphere, sphere, sphere);
+      let C1 = translation(0, 0, -2);
+      addShape(C1, .3, 1, [.1, 0, 0], sphere, sphere, sphere);
 
-      let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
-      addShape(C2, 0, 1.5, [0, .5, 0], sphere);
+      // let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
+      let C2 = translation(0, 0, 0);
+      addShape(C2, .7, 1, [0, .5, 0], sphere, sphere, sphere);
 
-      addShape(translation(0, 0, -15,), 1, 1, [.1, .1, .1], zSlab, zSlab, zSlab);
+      // addShape(translation(0, 0, -15,), 1, 1, [.1, .1, .1], zSlab, zSlab, zSlab);
 
-      // SEND QUADRIC DATA TO THE FRAGMENT SHADER
+      // SEND QUADRIC DATA TO TwHE FRAGMENT SHADER
+
       gl.uniformMatrix4fv(uA, false, MA.flat());
       gl.uniformMatrix4fv(uB, false, MB.flat());
       gl.uniformMatrix4fv(uC, false, MC.flat());
 
       // SEND MATERIAL DATA TO THE FRAGMENT SHADER
-      gl.uniform1i(uReflective, reflections);
-      gl.uniform1f(uRefractive, refractions);
+
+      gl.uniform1fv(uReflective, reflections);
+      gl.uniform1fv(uRefractive, refractions);
       gl.uniform3fv(uColors, colors.flat());
 
       // RENDER THE FRAME
