@@ -1,6 +1,7 @@
 <script>
 const NQ = 3;
 const MAX_BOUNCES = 5;
+const numPixel = 800;
 </script>
 
 <script src=fragmentShader.js></script>
@@ -9,7 +10,7 @@ const MAX_BOUNCES = 5;
 
 <body bgcolor=white text=black link=black alink=black vlink=black>
    <center>
-      <canvas id='canvas1' width=800 height=800></canvas>
+      <canvas id='canvas1'></canvas>
    </center>
 </body>
 
@@ -26,6 +27,8 @@ Still figuring it out.
 </script>
 
 <script>
+canvas1.width=numPixel;
+canvas1.height=numPixel;
 document.body.innerHTML = [''
 ,'<center>'
 ,'<b><font size=6 color=#000000>' + my_title.innerHTML + '</b>'

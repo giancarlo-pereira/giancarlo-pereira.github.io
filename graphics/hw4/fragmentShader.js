@@ -173,13 +173,20 @@ let fragmentShader =`
     void main() {
 
         vec3 V = uV.xyz;
-        vec3 W = normalize(vPos.x * uRight + vPos.y * uUp + uW);
+        vec3 W = vPos.x * uRight + vPos.y * uUp + uW;
         vec3 color = bgColor; 
         if (uCursor.z > 0.) {
             color += vec3(.5,.5,.5);
         }
 
-        color += shootRay(V, W);
+        // ANTIALIASING
+        color += shootRay(V, normalize(W));
+        color += shootRay(V, normalize(W+uRight/float(`+numPixel+`)));
+        color += shootRay(V, normalize(W-uRight/float(`+numPixel+`)));
+        color += shootRay(V, normalize(W+uUp/float(`+numPixel+`)));
+        color += shootRay(V, normalize(W-uUp/float(`+numPixel+`)));
+
+        color /= 5.;
         
         gl_FragColor = vec4(sqrt(color), 1.0);
     }
