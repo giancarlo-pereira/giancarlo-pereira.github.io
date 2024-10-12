@@ -339,7 +339,7 @@ setTimeout(() => {
 
       // addShape(A, transform(sphere, translation(0,-.35,0)),
       //             transform(sphere, translation(0, .35,0)));
-      addShape(B, 0, 1., [0, 0, .6], xCylinder, yCylinder, zCylinder);
+      // addShape(B, 0, 1., [0, 0, .6], xCylinder, yCylinder, zCylinder);
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
       // addShape(D, xCylinder, xSlab);
       // addShape(E, xSlab, ySlab, zSlab);
@@ -353,7 +353,7 @@ setTimeout(() => {
       let C2 = translation(0, 0, 0);
       addShape(C2, .7, 1, [0, .5, 0], sphere, sphere, sphere);
 
-      // addShape(translation(0, 0, -15,), 1, 1, [.1, .1, .1], zSlab, zSlab, zSlab);
+      addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 1.4, [.8, .8, .8], sphere);
 
       // SEND QUADRIC DATA TO TwHE FRAGMENT SHADER
 

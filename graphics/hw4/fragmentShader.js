@@ -98,7 +98,7 @@ let fragmentShader =`
         float tMin = INF;
         float frac = 1.;
         float currentMedium = uMedium,
-              objMedium     = uMedium,
+              newMedium     = uMedium,
               objRef        = 0.     ;
         int hit = 0, inside = -1;
         for (int bounces=0; bounces<`+MAX_BOUNCES+`; bounces++) {
@@ -126,7 +126,8 @@ let fragmentShader =`
                 if (tin < tout && t > 0. && t < tMin) {
                     hit = 1;                                        // ray hit an object
                     tMin = t;
-                    objMedium = uRefractive[obj];
+                    newMedium = uRefractive[obj];
+                    if (inside == 1) newMedium = uMedium;
                     objRef = uReflective[obj];
                     P = V + t * W;
                     // TODO: this normal is incorrect
@@ -136,29 +137,29 @@ let fragmentShader =`
             }
             
             if (hit == 1) {                                         // ray hit an object
-                if ( abs(objMedium - currentMedium) > EPS ) {       // refraction happening
+                if ( abs(newMedium - currentMedium) > EPS ) {       // refraction happening
                     vec3 S = W - dot(N, W) * N, 
-                         Sp = currentMedium/objMedium * S;
-                    if (dot(Sp,Sp) > 1.) {                          // total internal reflection
-                        Wp = reflection(W, N);
-                        finalColor = frac*mix(finalColor, localColor, 1.-objRef);   
-                        frac *= objRef;
-                    }                          
-                    else {
+                         Sp = currentMedium/newMedium * S;
+                    // if (dot(Sp,Sp) > 1.) {                          // total internal reflection
+                    //     Wp = reflection(W, N);
+                    //     finalColor = mix(finalColor, frac*localColor, 1.-objRef);   
+                    //     frac *= objRef;
+                    // }                          
+                    // else {
                         Wp = float(inside)*sqrt(1.-dot(Sp,Sp)) * N + Sp;
-                        currentMedium = objMedium;
+                        currentMedium = newMedium;
                         inside = (-1)*inside;
-                        finalColor = frac*mix(finalColor, localColor, 0.05);
+                        finalColor = mix(finalColor, frac*localColor, 0.05);
                         frac *= 0.95;   
-                    }
+                    // }
                 }
                 else if (objRef > EPS) {                            // reflection happening
                     Wp = reflection(W, N);
-                    finalColor = frac*mix(finalColor, localColor, 1.-objRef);   
+                    finalColor = mix(finalColor, frac*localColor, 1.-objRef);   
                     frac *= objRef;
                 }
                 else {                                              // solid object hit
-                    finalColor = frac*mix(finalColor, localColor + max(0., dot(N, uL[0])) , 0.9);
+                    finalColor = mix(finalColor, frac*(localColor + max(0., dot(N, uL[0]))) , 0.9);
                     break;
                 }                                       
 
