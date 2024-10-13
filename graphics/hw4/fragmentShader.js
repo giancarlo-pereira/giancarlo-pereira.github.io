@@ -105,8 +105,8 @@ let fragmentShader =`
             hit = 0;
             objRef = 0.;
             if (frac < 0.05) { break; }
-            // TODO: put this object loop in a separate function?
             for (int obj = 0; obj < `+NQ+`; obj++) {
+                mat4 Q;
                 mat4 Q1 = uA[obj],
                      Q2 = uB[obj],
                      Q3 = uC[obj];
@@ -119,8 +119,15 @@ let fragmentShader =`
                       tout = min(t1.y, min(t2.y, t3.y));
 
                 float t = tin;
+                if      (abs(t1.x - tin) < EPS) Q = Q1;
+                else if (abs(t2.x - tin) < EPS) Q = Q2;
+                else                         Q = Q3;
+        
                 if (inside == 1) {
                     t = tout;
+                    if      (abs(t1.y - tout) < EPS) Q = Q1;
+                    else if (abs(t2.y - tout) < EPS) Q = Q2;
+                    else                          Q = Q3;
                 }
 
                 if (tin < tout && t > 0. && t < tMin) {
@@ -130,8 +137,7 @@ let fragmentShader =`
                     if (inside == 1) newMedium = uMedium;
                     objRef = uReflective[obj];
                     P = V + t * W;
-                    // TODO: this normal is incorrect
-                    N = normalize(surfaceNormal(Q1, P));
+                    N = normalize(surfaceNormal(Q, P));
                     localColor = uColors[obj];
                 }
             }
@@ -140,18 +146,16 @@ let fragmentShader =`
                 if ( abs(newMedium - currentMedium) > EPS ) {       // refraction happening
                     vec3 S = W - dot(N, W) * N, 
                          Sp = currentMedium/newMedium * S;
-                    // if (dot(Sp,Sp) > 1.) {                          // total internal reflection
-                    //     Wp = reflection(W, N);
-                    //     finalColor = mix(finalColor, frac*localColor, 1.-objRef);   
-                    //     frac *= objRef;
-                    // }                          
-                    // else {
+                    if (dot(Sp,Sp) > 1.) {                          // total internal reflection
+                        Wp = reflection(W, N);
+                    }                          
+                    else {
                         Wp = float(inside)*sqrt(1.-dot(Sp,Sp)) * N + Sp;
                         currentMedium = newMedium;
                         inside = (-1)*inside;
-                        finalColor = mix(finalColor, frac*localColor, 0.05);
-                        frac *= 0.95;   
-                    // }
+                        // finalColor = mix(finalColor, frac*localColor, 0.01);
+                        // frac *= 0.99;   
+                    }
                 }
                 else if (objRef > EPS) {                            // reflection happening
                     Wp = reflection(W, N);

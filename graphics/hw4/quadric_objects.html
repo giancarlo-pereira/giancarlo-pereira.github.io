@@ -1,6 +1,6 @@
 <script>
-const NQ = 3;
-const MAX_BOUNCES = 5;
+const NQ = 4;
+const MAX_BOUNCES = 8;
 const numPixel = 800;
 </script>
 
@@ -276,7 +276,7 @@ setTimeout(() => {
       gl.uniform3fv(uW, [W[0], W[1], W[2]]);
       gl.uniform3fv(uUp, [up[0], up[1], up[2]]);
       gl.uniform3fv(uRight, [right[0], right[1], right[2]]);
-      gl.uniform1f(uMedium, 1);
+      gl.uniform1f(uMedium, 10);
 
       // DEFINE ANIMATION MATRICES
 
@@ -339,21 +339,21 @@ setTimeout(() => {
 
       // addShape(A, transform(sphere, translation(0,-.35,0)),
       //             transform(sphere, translation(0, .35,0)));
-      // addShape(B, 0, 1., [0, 0, .6], xCylinder, yCylinder, zCylinder);
+      addShape(B, 0, 10, [0, 0, 0.6], xCylinder, yCylinder, zCylinder);
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
       // addShape(D, xCylinder, xSlab);
-      // addShape(E, xSlab, ySlab, zSlab);
+      // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 2, [.8, .8, .8], xSlab, ySlab, zSlab);
       // addShape(F, yParaboloid, ySlab);
 
 
       let C1 = translation(0, 0, -2);
-      addShape(C1, .3, 1, [.1, 0, 0], sphere, sphere, sphere);
+      addShape(C1, .3, 10, [.1, 0, 0], sphere );
 
       // let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
       let C2 = translation(0, 0, 0);
-      addShape(C2, .7, 1, [0, .5, 0], sphere, sphere, sphere);
+      addShape(C2, .7, 10, [0, .5, 0], sphere);
 
-      addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 1.4, [.8, .8, .8], sphere);
+      // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 1.4, [.8, .8, .8], sphere);
 
       // SEND QUADRIC DATA TO TwHE FRAGMENT SHADER
 
