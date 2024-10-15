@@ -1,6 +1,6 @@
 <script>
-const NQ = 4;
-const MAX_BOUNCES = 8;
+const NQ = 9;
+const MAX_BOUNCES = 2;
 const numPixel = 800;
 </script>
 
@@ -178,6 +178,7 @@ let cameraAction = (dt) => {
    rotateRight(omegaRight*dt);
    rotateUp(omegaUp*dt);
    rotateW(omegaW*dt);
+   V=[Math.min(Math.max(V[0], -9), 9), Math.min(Math.max(V[1], -9), 9), Math.min(Math.max(V[2], -9), 9), 1]
 }
 
 canvas1.keyDown     = c => {
@@ -288,7 +289,7 @@ setTimeout(() => {
                                 multiply(rotationZ(s1),
 					 scale(1.5,1,1.5))));
 
-      let B = multiply(translation(0,-3.5,-20),
+      let B = multiply(translation(0,-3.5,-5),
                        multiply(rotationY(s2),
                                 multiply(rotationZ(s1),
 					 scale(1,1,1))));
@@ -317,6 +318,8 @@ setTimeout(() => {
                        multiply(rotationY(s2),
                                 rotationZ(s1)));
 
+      let I = identity();
+
       // ANIMATE ALL QUADRICS FOR THIS FRAME
 
       let transform = (Q,M) => {
@@ -340,6 +343,13 @@ setTimeout(() => {
       // addShape(A, transform(sphere, translation(0,-.35,0)),
       //             transform(sphere, translation(0, .35,0)));
       addShape(B, 0, 10, [0, 0, 0.6], xCylinder, yCylinder, zCylinder);
+
+      addShape(translation(0, 0, 10), 0, 10, [0.5, 0.5, 0.5], zSlab);
+      addShape(translation(0, 0, -10), 0, 10, [0.5, 0.5, 0.5], zSlab);
+      addShape(translation(0, 10, 0), 0, 10, [0.5, 0.5, 0.5], ySlab);
+      addShape(translation(0, -10, 0), 0, 10, [0.5, 0.5, 0.5], ySlab);
+      addShape(translation(10, 0, 0), 0, 10, [0.5, 0.5, 0.5], xSlab);
+      addShape(translation(10, 0, 0), 0, 10, [0.5, 0.5, 0.5], xSlab);
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
       // addShape(D, xCylinder, xSlab);
       // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 2, [.8, .8, .8], xSlab, ySlab, zSlab);

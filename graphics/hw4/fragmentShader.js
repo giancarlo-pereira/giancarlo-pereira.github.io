@@ -24,6 +24,26 @@ let fragmentShader =`
        return f;
     }
 
+    // LIGHTING
+    float attenuation(vec3 P, vec3 uLight) {
+        vec3 dist = uLight - P;
+        return 1. / dot(dist, dist); 
+    }
+
+    vec3 diffuse(vec3 N, vec3 P, vec3 uLight, vec3 uLColor) {
+        vec3 surfToLight = normalize(uLight - P);
+        return uLColor * max(0., dot(N, surfToLight));
+    }
+                    
+                    // float angle = dot(lightDirection, -surfToLight);
+                    // float spot = smoothstep(uLightOuter, uLightInner, angle);
+
+    vec3 specular(vec3 W, vec3 N, vec3 P, vec3 uLight, vec3 uLColor) {
+        vec3 surfToLight = normalize(uLight - P);
+        vec3 R = W - 2. * N * dot(N, W);
+        return uLColor * pow(max(0., dot(R, surfToLight)), 20.);
+    }
+
     // OBJECT DATA
     uniform mat4 uA[`+NQ+`], uB[`+NQ+`], uC[`+NQ+`];
     uniform float uReflective[`+NQ+`], uRefractive[`+NQ+`];
@@ -121,13 +141,13 @@ let fragmentShader =`
                 float t = tin;
                 if      (abs(t1.x - tin) < EPS) Q = Q1;
                 else if (abs(t2.x - tin) < EPS) Q = Q2;
-                else                         Q = Q3;
+                else                            Q = Q3;
         
                 if (inside == 1) {
                     t = tout;
                     if      (abs(t1.y - tout) < EPS) Q = Q1;
                     else if (abs(t2.y - tout) < EPS) Q = Q2;
-                    else                          Q = Q3;
+                    else                             Q = Q3;
                 }
 
                 if (tin < tout && t > 0. && t < tMin) {
@@ -163,7 +183,10 @@ let fragmentShader =`
                     frac *= objRef;
                 }
                 else {                                              // solid object hit
-                    finalColor = mix(finalColor, frac*(localColor + max(0., dot(N, uL[0]))) , 0.9);
+                    float att = attenuation(P, uL[0]);
+                    vec3 spec = specular(W, N, P, uL[0], vec3(1.));
+                    vec3 diff = diffuse(N, P, uL[0], vec3(1.));
+                    finalColor = mix(finalColor, att*frac*(localColor + diff + spec), 0.9);
                     break;
                 }                                       
 

@@ -1,3 +1,4 @@
+let identity    = ()      => [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
 let translation = (x,y,z) => [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1];
 let rotationX   = t       => {
     let c = Math.cos(t),
