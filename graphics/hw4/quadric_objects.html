@@ -1,6 +1,6 @@
 <script>
 const NQ = 11;
-const numPixel = 800;
+const numPixel = 600;
 const MAX_BOUNCES = 8;
 </script>
 
@@ -10,16 +10,28 @@ const MAX_BOUNCES = 8;
          <b>ASDW</b> for moving around
          &nbsp; &nbsp; &nbsp;
          <b>Space bar and Shift</b> for moving up and down
-         &nbsp; &nbsp; &nbsp;
+      </p>
+      <p>
          <b>Arrow keys</b> to look around
          &nbsp; &nbsp; &nbsp;
          <b>Return key</b> to add refractive cylinder-shape in front of view
-         <br>
       </p>
-      <canvas id='canvas1'></canvas>
-      <p>
-         <button id='refractButton' onclick=refractButton() ><font size=10><big>REFRACT</button>
-     </p>
+      <table cellspacing=10 cellpadding=10><TR>
+         <tr>
+            <td>
+               <button id='refractButton' onclick=refractButton() ><font size=6><big>REFRACT</button>
+            </td>
+            <td>
+               <canvas id='canvas1'></canvas>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+         </tr>
+      </table>
    </center>
 </body>
 
@@ -348,10 +360,10 @@ setTimeout(() => {
       if (R > 0) {
          refr = translation(V[0]+1*W[0], V[1]+1*W[1], V[2]+1*W[2]);
       }
-      addShape(multiply(refr, scale(.8,.8,.8)), 0.2, 1.4, [.8, .8, .8], xCylinder, yCylinder, zCylinder );
+      addShape(multiply(refr, scale(.8,.8,.8)), 0.2, 14, [.8, .8, .8], xCylinder, yCylinder, zCylinder );
 
       // FUN SHAPES
-      let C1 = multiply(translation(-2, 4*Math.sin(2*time), -5),
+      let C1 = multiply(translation(0, 2*Math.sin(2*time), 0),
                         scale(2+Math.cos(time), 2+Math.cos(time), 2+Math.cos(time)));
       addShape(C1, .2, 10, [.1, 0, 0], zParaboloid, transform(zParaboloid, multiply(translation(0, 0, -1), scale(1, 1, -1))) );
 
