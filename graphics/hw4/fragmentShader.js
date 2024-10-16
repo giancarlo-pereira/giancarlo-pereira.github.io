@@ -164,7 +164,7 @@ let fragmentShader =`
             }
             
             if (hit == 1) {                                         // ray hit an object
-                float att = attenuation(P, uL[0]) + attenuation(P, uL[1]) + attenuation(P, uL[2]) + attenuation(P, uL[3]);
+                float att = 10.*attenuation(P, uL[0]) + attenuation(P, uL[1]) + attenuation(P, uL[2]) + attenuation(P, uL[3]);
                 vec3 spec = specular(W, N, P, uL[0], vec3(1.)) + specular(W, N, P, uL[1], vec3(1.)) + specular(W, N, P, uL[2], vec3(1.)) + specular(W, N, P, uL[3], vec3(1.));
                 vec3 diff = diffuse(N, P, uL[0], vec3(1.)) + diffuse(N, P, uL[1], vec3(1.)) + diffuse(N, P, uL[2], vec3(1.)) + diffuse(N, P, uL[3], vec3(1.));
                 if ( abs(newMedium - currentMedium) > EPS ) {       // refraction happening

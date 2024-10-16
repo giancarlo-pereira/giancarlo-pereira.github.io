@@ -1,16 +1,25 @@
 <script>
-const NQ = 9;
-const MAX_BOUNCES = 8;
+const NQ = 11;
 const numPixel = 800;
+const MAX_BOUNCES = 8;
 </script>
-
-<script src=fragmentShader.js></script>
-<script src=matrix.js></script>
-<script src=quadric.js></script>
 
 <body bgcolor=white text=black link=black alink=black vlink=black>
    <center>
+      <p>
+         <b>ASDW</b> for moving around
+         &nbsp; &nbsp; &nbsp;
+         <b>Space bar and Shift</b> for moving up and down
+         &nbsp; &nbsp; &nbsp;
+         <b>Arrow keys</b> to look around
+         &nbsp; &nbsp; &nbsp;
+         <b>Return key</b> to add refractive cylinder-shape in front of view
+         <br>
+      </p>
       <canvas id='canvas1'></canvas>
+      <p>
+         <button id='refractButton' onclick=refractButton() ><font size=10><big>REFRACT</button>
+     </p>
    </center>
 </body>
 
@@ -23,8 +32,12 @@ GIANCARLO PEREIRA HW4 -- REFLECTION AND REFRACTION
 <!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
 
 <script id='my_instructions' type='text/html'><font color=#000000>
-This reminded me of Interstellar.
+This reminded me of the Interstellar scene inside the Black Hole.
 </script>
+
+<script src=fragmentShader.js></script>
+<script src=matrix.js></script>
+<script src=quadric.js></script>
 
 <script>
 canvas1.width=numPixel;
@@ -52,7 +65,7 @@ let vertexShader = `
 let initEventHandlers = canvas => {
  
  window.addEventListener("keydown", e => {
-    if (['Space', 'Return', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'S', 'D', 'W'].indexOf(e.code) >= 0)
+    if (['Space', 'Return', 'ShiftLeft', 'ShiftRight', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'S', 'D', 'W'].indexOf(e.code) >= 0)
        e.preventDefault();
  });
  window.addEventListener('keydown', e => canvas.keyDown(e.code));
@@ -111,6 +124,9 @@ let V     = [0, 0, 0, 1],
     W     = [0, 0, -focalLength, 1],
     up    = [0, 1, 0, 1],
     right = [1, 0, 0, 1];
+
+let R = 0;
+let refractButton   = () => R = Math.abs(R - 1);
 
 let speedW     = 0,
     speedRight = 0,
@@ -178,9 +194,10 @@ let cameraAction = (dt) => {
    rotateRight(omegaRight*dt);
    rotateUp(omegaUp*dt);
    rotateW(omegaW*dt);
-   V=[Math.min(Math.max(V[0], -8), 8), Math.min(Math.max(V[1], -8), 8), Math.min(Math.max(V[2], -8), 8), 1]
+   V=[Math.min(Math.max(V[0], -7), 7), Math.min(Math.max(V[1], -7), 7), Math.min(Math.max(V[2], -7), 7), 1]
 }
 
+// HANDLE CANVAS KEY EVENTS
 canvas1.keyDown     = c => {
     switch(c) {
         case 'KeyA':        speedRight=-0.17; break;
@@ -194,7 +211,7 @@ canvas1.keyDown     = c => {
         case 'ShiftLeft':   speedUp=-0.17;    break;
         case 'ShiftRight':  speedUp=-0.17;    break;
         case 'Space':       speedUp=0.17;     break;
-        case 'Enter':       originView();     break;
+        case 'Enter':       R=Math.abs(R-1);  break;
     }
 }
 
@@ -284,42 +301,10 @@ setTimeout(() => {
 
       // DEFINE ANIMATION MATRICES
 
-      let s1 = Math.sin(time);
-      let s2 = Math.sin(2 * time);
-
-      let A = multiply(translation(-4,-3.5,-20),
-                       multiply(rotationY(s2),
-                                multiply(rotationZ(s1),
-					 scale(1.5,1,1.5))));
-
-      let B = multiply(translation(0,-3.5,-5),
-                       multiply(rotationY(s2),
-                                multiply(rotationZ(s1),
-					 scale(1,1,1))));
-
-      let C = multiply(translation(4,-3.5,-20),
-                       multiply(rotationY(s2),
-                                multiply(rotationZ(s1),
-					 scale(.7,1.4,1))));
-
-      let D = multiply(translation(-2,0,-20),
-                       multiply(rotationY(s2),
-                                multiply(rotationZ(s1),
-				         scale(.5,1,1))));
-
-      let E = multiply(translation(2,0,-20),
-                       multiply(rotationY(s2),
-                                multiply(rotationZ(s1),
-					 scale(1,.7,1.3))));
-/*
-      let E = multiply(translation(2,0,-20),
-                       multiply(scale(1,.5,1.5),
-                                multiply(rotationZ(s1),
-					 rotationY(s2))));
-*/
-      let F = multiply(translation(0,3.5,-20),
-                       multiply(rotationY(s2),
-                                rotationZ(s1)));
+      let A = multiply(translation(-5,-3.5,+5),
+                       multiply(rotationY( Math.sin(time/4)),
+                                multiply(rotationZ(Math.sin(12 * time)),
+					 scale(1.5,1,6))));
 
       let I = identity();
 
@@ -343,9 +328,7 @@ setTimeout(() => {
          MC.push(transform(c===undefined ? everywhere : c, M));
       }
 
-      // addShape(A, transform(sphere, translation(0,-.35,0)),
-      //             transform(sphere, translation(0, .35,0)));
-      // addShape(B, 0, 10, [0, 0, 0.6], xCylinder, yCylinder, zCylinder);
+      // CUBE RESTRAINING MOVEMENT
 
       addShape(translation(0, 0, 10), 0.8, 10, [0.5, 0.5, 0.5], zSlab);
       addShape(translation(0, 0, -10), 0.8, 10, [0.5, 0.5, 0.5], zSlab);
@@ -353,18 +336,36 @@ setTimeout(() => {
       addShape(translation(0, -10, 0), 0.8, 10, [0.5, 0.5, 0.5], ySlab);
       addShape(translation(-10, 0, 0), 0.8, 10, [0.5, 0.5, 0.5], xSlab);
       addShape(translation(10, 0, 0), 0.8, 10, [0.5, 0.5, 0.5], xSlab);
+
+      // addShape(B, 0, 10, [0, 0, 0.6], xCylinder, yCylinder, zCylinder);
+
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
-      // addShape(D, xCylinder, xSlab);
       // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 2, [.8, .8, .8], xSlab, ySlab, zSlab);
       // addShape(F, yParaboloid, ySlab);
 
+      // REFRACTIVE CYLINDRICAL SHAPE (or not)
+      refr = translation(-1000, -1000, -1000);
+      if (R > 0) {
+         refr = translation(V[0]+1*W[0], V[1]+1*W[1], V[2]+1*W[2]);
+      }
+      addShape(multiply(refr, scale(.8,.8,.8)), 0.2, 1.4, [.8, .8, .8], xCylinder, yCylinder, zCylinder );
 
-      let C1 = translation(0, 0, -2);
-      addShape(C1, .2, 10, [.1, 0, 0], sphere );
+      // FUN SHAPES
+      let C1 = multiply(translation(-2, 4*Math.sin(2*time), -5),
+                        scale(2+Math.cos(time), 2+Math.cos(time), 2+Math.cos(time)));
+      addShape(C1, .2, 10, [.1, 0, 0], zParaboloid, transform(zParaboloid, multiply(translation(0, 0, -1), scale(1, 1, -1))) );
 
-      // let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
-      let C2 = translation(0, 0, 0);
-      addShape(C2, .2, 10, [0, .5, 0], sphere);
+      let C2 = translation(5 * Math.sin(4*time), 0, 5 * Math.cos(4*time));
+      addShape(C2, 0, 10, [0, .5, 0], xCylinder, yParaboloid, zCylinder);
+
+      addShape(A, .1, 10, [.4, .9, .4], xParaboloid, sphere, yCylinder);
+
+      let D = multiply(translation(-2,0,2),
+                       multiply(rotationY(Math.sin(3*time)),
+                                multiply(rotationZ(Math.cos(time/3)),
+				         scale(.5,1,1))));
+
+      addShape(D, 0, 10, [1, .2, 0], xCylinder, xSlab);
 
       // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 1.4, [.8, .8, .8], sphere);
 
