@@ -1,6 +1,6 @@
 <script>
 const NQ = 9;
-const MAX_BOUNCES = 2;
+const MAX_BOUNCES = 8;
 const numPixel = 800;
 </script>
 
@@ -23,7 +23,7 @@ GIANCARLO PEREIRA HW4 -- REFLECTION AND REFRACTION
 <!!-------- HERE IS WHERE YOU CAN PROVIDE A LONGER TEXT DESCRIPTION -------->
 
 <script id='my_instructions' type='text/html'><font color=#000000>
-Still figuring it out.
+This reminded me of Interstellar.
 </script>
 
 <script>
@@ -178,7 +178,7 @@ let cameraAction = (dt) => {
    rotateRight(omegaRight*dt);
    rotateUp(omegaUp*dt);
    rotateW(omegaW*dt);
-   V=[Math.min(Math.max(V[0], -9), 9), Math.min(Math.max(V[1], -9), 9), Math.min(Math.max(V[2], -9), 9), 1]
+   V=[Math.min(Math.max(V[0], -8), 8), Math.min(Math.max(V[1], -8), 8), Math.min(Math.max(V[2], -8), 8), 1]
 }
 
 canvas1.keyDown     = c => {
@@ -240,21 +240,23 @@ setTimeout(() => {
 
    // FIND LOCATIONS IN GPU PROGRAM OF UNIFORM VARIABLES
 
-   let uFL           = gl.getUniformLocation(gl.program, "uFL"        );
-   let uUp           = gl.getUniformLocation(gl.program, "uUp"        );
-   let uRight        = gl.getUniformLocation(gl.program, "uRight"     );
-   let uW            = gl.getUniformLocation(gl.program, "uW"         );
-   let uV            = gl.getUniformLocation(gl.program, "uV"         );
-   let uTime         = gl.getUniformLocation(gl.program, "uTime"      );
-   let uCursor       = gl.getUniformLocation(gl.program, "uCursor"    ); 
-   let uL            = gl.getUniformLocation(gl.program, "uL"         ); 
-   let uA            = gl.getUniformLocation(gl.program, "uA"         ); 
-   let uB            = gl.getUniformLocation(gl.program, "uB"         ); 
-   let uC            = gl.getUniformLocation(gl.program, "uC"         );
-   let uRefractive   = gl.getUniformLocation(gl.program, "uRefractive"); 
-   let uReflective   = gl.getUniformLocation(gl.program, "uReflective"); 
-   let uColors       = gl.getUniformLocation(gl.program, "uColors"    ); 
-   let uMedium       = gl.getUniformLocation(gl.program, "uMedium"    ); 
+   let uFL           = gl.getUniformLocation(gl.program, "uFL"         );
+   let uUp           = gl.getUniformLocation(gl.program, "uUp"         );
+   let uRight        = gl.getUniformLocation(gl.program, "uRight"      );
+   let uW            = gl.getUniformLocation(gl.program, "uW"          );
+   let uV            = gl.getUniformLocation(gl.program, "uV"          );
+   let uTime         = gl.getUniformLocation(gl.program, "uTime"       );
+   let uCursor       = gl.getUniformLocation(gl.program, "uCursor"     ); 
+   let uL            = gl.getUniformLocation(gl.program, "uL"          ); 
+   let uLColor       = gl.getUniformLocation(gl.program, "uLColor"     ); 
+   let uA            = gl.getUniformLocation(gl.program, "uA"          ); 
+   let uB            = gl.getUniformLocation(gl.program, "uB"          ); 
+   let uC            = gl.getUniformLocation(gl.program, "uC"          );
+   let uRefractive   = gl.getUniformLocation(gl.program, "uRefractive" ); 
+   let uReflective   = gl.getUniformLocation(gl.program, "uReflective" ); 
+   let uColors       = gl.getUniformLocation(gl.program, "uColors"     );
+   let uSpecularty   = gl.getUniformLocation(gl.program, "uSpecularity");
+   let uMedium       = gl.getUniformLocation(gl.program, "uMedium"     ); 
 
    // ANIMATE AND RENDER EACH ANIMATION FRAME
 
@@ -268,7 +270,8 @@ setTimeout(() => {
       let time = Date.now() / 1000 - startTime;
       gl.uniform1f(uTime, time);
       gl.uniform3fv(uCursor, cursor);
-      gl.uniform3fv(uL, [-.57,-.57,-.57, .57,.57,.57]);
+      gl.uniform3fv(uL, [9,9,9, -9,9,9, 9,9,-9, -9,9,-9]);
+      gl.uniform3fv(uLColor, [1,0.77,0.56, 1,0.77,0.56, 1,0.77,0.56, 1,0.77,0.56]);
 
       // DEFINE CAMERA VIEW
 
@@ -342,14 +345,14 @@ setTimeout(() => {
 
       // addShape(A, transform(sphere, translation(0,-.35,0)),
       //             transform(sphere, translation(0, .35,0)));
-      addShape(B, 0, 10, [0, 0, 0.6], xCylinder, yCylinder, zCylinder);
+      // addShape(B, 0, 10, [0, 0, 0.6], xCylinder, yCylinder, zCylinder);
 
-      addShape(translation(0, 0, 10), 0, 10, [0.5, 0.5, 0.5], zSlab);
-      addShape(translation(0, 0, -10), 0, 10, [0.5, 0.5, 0.5], zSlab);
-      addShape(translation(0, 10, 0), 0, 10, [0.5, 0.5, 0.5], ySlab);
-      addShape(translation(0, -10, 0), 0, 10, [0.5, 0.5, 0.5], ySlab);
-      addShape(translation(10, 0, 0), 0, 10, [0.5, 0.5, 0.5], xSlab);
-      addShape(translation(10, 0, 0), 0, 10, [0.5, 0.5, 0.5], xSlab);
+      addShape(translation(0, 0, 10), 0.8, 10, [0.5, 0.5, 0.5], zSlab);
+      addShape(translation(0, 0, -10), 0.8, 10, [0.5, 0.5, 0.5], zSlab);
+      addShape(translation(0, 10, 0), 0.8, 10, [0.5, 0.5, 0.5], ySlab);
+      addShape(translation(0, -10, 0), 0.8, 10, [0.5, 0.5, 0.5], ySlab);
+      addShape(translation(-10, 0, 0), 0.8, 10, [0.5, 0.5, 0.5], xSlab);
+      addShape(translation(10, 0, 0), 0.8, 10, [0.5, 0.5, 0.5], xSlab);
       // addShape(C, sphere, transform(xSlab, scale(.5,.5,.5)));
       // addShape(D, xCylinder, xSlab);
       // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 2, [.8, .8, .8], xSlab, ySlab, zSlab);
@@ -357,11 +360,11 @@ setTimeout(() => {
 
 
       let C1 = translation(0, 0, -2);
-      addShape(C1, .3, 10, [.1, 0, 0], sphere );
+      addShape(C1, .2, 10, [.1, 0, 0], sphere );
 
       // let C2 = translation(5 * Math.sin(time), 0, 5 * Math.cos(time));
       let C2 = translation(0, 0, 0);
-      addShape(C2, .7, 10, [0, .5, 0], sphere);
+      addShape(C2, .2, 10, [0, .5, 0], sphere);
 
       // addShape(multiply(translation(0, 0, 10,), scale(5, 5, 5,)), 0.2, 1.4, [.8, .8, .8], sphere);
 

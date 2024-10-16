@@ -51,7 +51,7 @@ let fragmentShader =`
 
     uniform float uTime, uFL, uMedium;
     uniform vec3 uV, uW, uUp, uRight, uCursor;
-    uniform vec3 uL[2];
+    uniform vec3 uL[4];
     varying vec3 vPos;
 
     vec3 bgColor = vec3(0.,0.,.05);
@@ -122,6 +122,7 @@ let fragmentShader =`
               objRef        = 0.     ;
         int hit = 0, inside = -1;
         for (int bounces=0; bounces<`+MAX_BOUNCES+`; bounces++) {
+            tMin = INF;
             hit = 0;
             objRef = 0.;
             if (frac < 0.05) { break; }
@@ -163,6 +164,9 @@ let fragmentShader =`
             }
             
             if (hit == 1) {                                         // ray hit an object
+                float att = attenuation(P, uL[0]) + attenuation(P, uL[1]) + attenuation(P, uL[2]) + attenuation(P, uL[3]);
+                vec3 spec = specular(W, N, P, uL[0], vec3(1.)) + specular(W, N, P, uL[1], vec3(1.)) + specular(W, N, P, uL[2], vec3(1.)) + specular(W, N, P, uL[3], vec3(1.));
+                vec3 diff = diffuse(N, P, uL[0], vec3(1.)) + diffuse(N, P, uL[1], vec3(1.)) + diffuse(N, P, uL[2], vec3(1.)) + diffuse(N, P, uL[3], vec3(1.));
                 if ( abs(newMedium - currentMedium) > EPS ) {       // refraction happening
                     vec3 S = W - dot(N, W) * N, 
                          Sp = currentMedium/newMedium * S;
@@ -173,20 +177,17 @@ let fragmentShader =`
                         Wp = float(inside)*sqrt(1.-dot(Sp,Sp)) * N + Sp;
                         currentMedium = newMedium;
                         inside = (-1)*inside;
-                        // finalColor = mix(finalColor, frac*localColor, 0.01);
+                        // finalColor = mix(finalColor, localColor, frac*0.01);
                         // frac *= 0.99;   
                     }
                 }
                 else if (objRef > EPS) {                            // reflection happening
                     Wp = reflection(W, N);
-                    finalColor = mix(finalColor, frac*localColor, 1.-objRef);   
+                    finalColor = mix(finalColor, att*(localColor + diff + spec), frac*(1.-objRef));   
                     frac *= objRef;
                 }
                 else {                                              // solid object hit
-                    float att = attenuation(P, uL[0]);
-                    vec3 spec = specular(W, N, P, uL[0], vec3(1.));
-                    vec3 diff = diffuse(N, P, uL[0], vec3(1.));
-                    finalColor = mix(finalColor, att*frac*(localColor + diff + spec), 0.9);
+                    finalColor = mix(finalColor, att*(localColor + diff + spec), frac);
                     break;
                 }                                       
 
@@ -209,10 +210,10 @@ let fragmentShader =`
 
         // ANTIALIASING
         color += shootRay(V, normalize(W));
-        color += shootRay(V, normalize(W+uRight/float(`+numPixel+`)));
-        color += shootRay(V, normalize(W-uRight/float(`+numPixel+`)));
-        color += shootRay(V, normalize(W+uUp/float(`+numPixel+`)));
-        color += shootRay(V, normalize(W-uUp/float(`+numPixel+`)));
+        // color += shootRay(V, normalize(W+uRight/float(`+numPixel+`)));
+        // color += shootRay(V, normalize(W-uRight/float(`+numPixel+`)));
+        // color += shootRay(V, normalize(W+uUp/float(`+numPixel+`)));
+        // color += shootRay(V, normalize(W-uUp/float(`+numPixel+`)));
 
         color /= 5.;
         
