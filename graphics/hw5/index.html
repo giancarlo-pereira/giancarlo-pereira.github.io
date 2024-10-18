@@ -1,0 +1,251 @@
+<body bgcolor=black text=white>
+   <center>
+   <p><font size = 16>
+      GIANCARLO PEREIRA HW5 -- PARAMETRIC SURFACES
+   </p>
+   <p><font size = 16>
+      Still figuring it out.
+   </p>
+   <canvas id='canvas1' width=800 height=800></canvas>
+</center>
+
+<script>
+
+// A TINY MATRIX LIBRARY
+
+let mInverse = m => {
+   let dst = [], det = 0, cofactor = (c, r) => {
+      let s = (i, j) => m[c+i & 3 | (r+j & 3) << 2];
+      return (c+r & 1 ? -1 : 1) * ( (s(1,1) * (s(2,2) * s(3,3) - s(3,2) * s(2,3)))
+                                  - (s(2,1) * (s(1,2) * s(3,3) - s(3,2) * s(1,3)))
+                                  + (s(3,1) * (s(1,2) * s(2,3) - s(2,2) * s(1,3))) );
+   }
+   for (let n = 0 ; n < 16 ; n++) dst.push(cofactor(n >> 2, n & 3));
+   for (let n = 0 ; n <  4 ; n++) det += m[n] * dst[n << 2]; 
+   for (let n = 0 ; n < 16 ; n++) dst[n] /= det;
+   return dst;
+}
+let matrixMultiply = (a, b) => {
+   let dst = [];
+   for (let n = 0 ; n < 16 ; n++)
+      dst.push(a[n&3]*b[n&12] + a[n&3|4]*b[n&12|1] + a[n&3|8]*b[n&12|2] + a[n&3|12]*b[n&12|3]);
+   return dst;
+}
+let C = t => Math.cos(t);
+let S = t => Math.sin(t);
+let mIdentity = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
+let mPerspective = (fl, m) => matrixMultiply(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
+let mRotateX = (t, m) => matrixMultiply(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
+let mRotateY = (t, m) => matrixMultiply(m, [C(t),0,-S(t),0, 0,1,0,0, S(t),0,C(t),0, 0,0,0,1]);
+let mRotateZ = (t, m) => matrixMultiply(m, [C(t),S(t),0,0, -S(t),C(t),0,0, 0,0,1,0, 0,0,0,1]);
+let mScale = (x,y,z, m) => matrixMultiply(m, [x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1]);
+let mTranslate = (x,y,z, m) => matrixMultiply(m, [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
+
+// INITIALIZE GL
+
+let start_gl = (canvas, meshData, vertexSize, vertexShader, fragmentShader) => {
+   let gl = canvas.getContext("webgl");
+   let program = gl.createProgram();
+   gl.program = program;
+   let addshader = (type, src) => {
+      let shader = gl.createShader(type);
+      gl.shaderSource(shader, src);
+      gl.compileShader(shader);
+      if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+         throw "Cannot compile shader:\n\n" + gl.getShaderInfoLog(shader);
+      gl.attachShader(program, shader);
+   };
+   addshader(gl.VERTEX_SHADER  , vertexShader  );
+   addshader(gl.FRAGMENT_SHADER, fragmentShader);
+   gl.linkProgram(program);
+   if (! gl.getProgramParameter(program, gl.LINK_STATUS))
+      throw "Could not link the shader program!";
+   gl.useProgram(program);
+   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+   gl.enable(gl.DEPTH_TEST);
+   gl.depthFunc(gl.LEQUAL);
+   let vertexAttribute = (name, size, position) => {
+      let attr = gl.getAttribLocation(program, name);
+      gl.enableVertexAttribArray(attr);
+      gl.vertexAttribPointer(attr, size, gl.FLOAT, false, vertexSize * 4, position * 4);
+   }
+   vertexAttribute('aPos', 3, 0);
+   vertexAttribute('aNor', 3, 3);
+   return gl;
+}
+
+//CREATE A TRIANGLE_STRIP MESH
+
+let createMesh = (nu, nv, p) => {
+   let mesh = [];
+   for (let j = nv-1 ; j >= 0 ; j--) {
+      for (let i = 0 ; i <= nu ; i++)
+         mesh.push(p(i/nu,(j+1)/nv), p(i/nu,j/nv));
+      mesh.push(p(1,j/nv), p(0,j/nv));
+   }
+   return mesh.flat();
+}
+
+// DEFINE VARIOUS KINDS OF TRIANGLE_STRIP MESHES
+
+let sphere = (nu, nv) => createMesh(nu, nv, (u,v) => {
+   let theta = 2 * Math.PI * u;
+   let phi = Math.PI * (v - .5);
+   let x = C(phi) * C(theta),
+       y = C(phi) * S(theta),
+       z = S(phi);
+   return [ x,y,z, x,y,z ];
+});
+
+let tube = (nu, nv) => createMesh(nu, nv, (u,v) => {
+   let x = C(2 * Math.PI * u),
+       y = S(2 * Math.PI * u),
+       z = 2 * v - 1;
+   return [ x,y,z, x,y,0 ];
+});
+
+let disk = (nu, nv) => createMesh(nu, nv, (u,v) => {
+   let x = v * C(2 * Math.PI * u),
+       y = v * S(2 * Math.PI * u);
+   return [ x,y,0, 0,0,1 ];
+});
+
+let cylinder = (nu, nv) => createMesh(nu, nv, (u,v) => {
+   let x = C(2 * Math.PI * u),
+       y = S(2 * Math.PI * u);
+   switch (5 * v >> 0) {
+   case 0: return [ 0,0,-1, 0,0,-1 ];
+   case 1: return [ x,y,-1, 0,0,-1 ];
+   case 2: return [ x,y,-1, x,y, 0 ];
+   case 3: return [ x,y, 1, x,y, 0 ];
+   case 4: return [ x,y, 1, 0,0, 1 ];
+   case 5: return [ 0,0, 1, 0,0, 1 ];
+   }
+});
+
+let torus = (nu, nv) => createMesh(nu, nv, (u,v) => {
+   let ct = C(2 * Math.PI * u);
+   let st = S(2 * Math.PI * u);
+   let cp = C(2 * Math.PI * v);
+   let sp = S(2 * Math.PI * v);
+   let x = (1 + .5 * cp) * ct,
+       y = (1 + .5 * cp) * st,
+       z =      .5 * sp;
+   return [ x,y,z, cp*ct,cp*st,sp ];
+});
+
+// SHORTCUT TO MAKE IT EASIER TO DEFINE CUBE AND OCTAHEDRON
+
+let strToTris = str => {
+   let tris = [];
+   for (let n = 0 ; n < str.length ; n++)
+      switch (str.charAt(n)) {
+      case 'N': tris.push(-1    ); break;
+      case 'n': tris.push(-0.577); break;
+      case '0': tris.push( 0    ); break;
+      case 'p': tris.push( 0.577); break;
+      case 'P': tris.push( 1    ); break;
+      }
+   return tris;
+}
+
+// DEFINE SOME MESHES MADE FROM TRIANGLES
+
+let cube = strToTris(`PNP00P PPP00P NPP00P  NPP00P NNP00P PNP00P
+                      NPN00N PPN00N PNN00N  PNN00N NNN00N NPN00N
+                      PPNP00 PPPP00 PNPP00  PNPP00 PNNP00 PPNP00
+                      NNPN00 NPPN00 NPNN00  NPNN00 NNNN00 NNPN00
+                      NPP0P0 PPP0P0 PPN0P0  PPN0P0 NPN0P0 NPP0P0
+                      PNN0N0 PNP0N0 NNP0N0  NNP0N0 NNN0N0 PNN0N0`);
+
+let octahedron = strToTris(`00Nnnn 0N0nnn N00nnn  P00pnn 0N0pnn 00Npnn
+                            N00npn 0P0npn 00Nnpn  00Nppn 0P0ppn P00ppn
+                            00Pnnp 0N0nnp N00nnp  00Ppnp 0N0pnp P00pnp
+                            N00npp 0P0npp 00Pnpp  P00ppp 0P0ppp 00Pppp`);
+
+// DEFINE ALL THE OBJECT COLORS AND SHAPES
+
+let meshData = [
+   { type: 1, color: [1.,.1,.1], mesh: new Float32Array(sphere  (20, 10)) },
+   { type: 1, color: [.1,1.,.1], mesh: new Float32Array(tube    (20,  1)) },
+   { type: 1, color: [.1,.1,1.], mesh: new Float32Array(disk    (20,  1)) },
+   { type: 1, color: [1.,1.,.1], mesh: new Float32Array(cylinder( 4,  6)) },
+   { type: 1, color: [1.,.1,1.], mesh: new Float32Array(torus   (30, 30)) },
+   { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
+   { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
+];
+
+// VERY SIMPLE VERTEX AND FRAGMENT SHADERS
+
+let vertexSize = 6;
+let vertexShader = `
+   attribute vec3 aPos, aNor;
+   uniform mat4 uMatrix, uInvMatrix;
+   varying vec3 vPos, vNor;
+   void main() {
+      vec4 pos = uMatrix * vec4(aPos, 1.0);
+      vec4 nor = vec4(aNor, 0.0) * uInvMatrix;
+      vPos = pos.xyz;
+      vNor = nor.xyz;
+      gl_Position = pos * vec4(1.,1.,-.1,1.);
+   }
+`;
+
+let fragmentShader = `
+   precision mediump float;
+   uniform vec3 uColor;
+   varying vec3 vPos, vNor;
+   void main(void) {
+      float c = .05 + max(0., dot(normalize(vNor), vec3(.57)));
+      gl_FragColor = vec4(sqrt(c * uColor), 1.);
+   }
+`;
+
+// INITIALIZE GL AND GET UNIFORM NAMES
+
+let gl = start_gl(canvas1, meshData, vertexSize, vertexShader, fragmentShader);
+
+let uColor     = gl.getUniformLocation(gl.program, "uColor"    );
+let uInvMatrix = gl.getUniformLocation(gl.program, "uInvMatrix");
+let uMatrix    = gl.getUniformLocation(gl.program, "uMatrix"   );
+
+// THE ANIMATION LOOP
+
+let startTime = Date.now() / 1000;
+function renderFrame() {
+   requestAnimationFrame(renderFrame);
+   let time = Date.now() / 1000 - startTime, m;
+
+   // LOOP THROUGH ALL OBJECTS
+
+   for (let n = 0 ; n < meshData.length ; n++) {
+
+      // SET OBJECT MATRIX FOR THIS ANIMATION FRAME
+
+      let c = .5 * C(2 * Math.PI * n / meshData.length);
+      let s = .5 * S(2 * Math.PI * n / meshData.length);
+
+      m = mIdentity   ();
+      m = mPerspective(3, m);
+      m = mRotateY    (time, m);
+      m = mTranslate  (c,s,0, m);
+      m = mScale      (.16,.16,.16, m);
+
+      // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
+
+      gl.uniform3fv      (uColor    , meshData[n].color );
+      gl.uniformMatrix4fv(uInvMatrix, false, mInverse(m));
+      gl.uniformMatrix4fv(uMatrix   , false, m          );
+
+      // RENDER THIS OBJECT
+
+      let mesh = meshData[n].mesh;
+      gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+      gl.drawArrays(meshData[n].type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
+   }
+}
+requestAnimationFrame(renderFrame);
+
+</script>
+
+
