@@ -148,9 +148,17 @@ let strToTris = str => {
       case 'm': tris.push( 1.618); break;
       case 'p': tris.push( 0.577); break;
       case 'P': tris.push( 1    ); break;
+      
+      case 'K': tris.push( 0.873); break;
+      case 'k': tris.push(-0.873); break;
+      case 'L': tris.push( 0.539); break;
+      case 'l': tris.push(-0.539); break;
+      case 'A': tris.push( 1.412); break;
+      case 'a': tris.push(-1.412); break;
       }
    return tris;
 }
+// 0, 0.932847, 0.360272
 
 // DEFINE SOME MESHES MADE FROM TRIANGLES
 
@@ -166,16 +174,16 @@ let octahedron = strToTris(`00Nnnn 0N0nnn N00nnn  P00pnn 0N0pnn 00Npnn
                             00Pnnp 0N0nnp N00nnp  00Ppnp 0N0pnp P00pnp
                             N00npp 0P0npp 00Pnpp  P00ppp 0P0ppp 00Pppp`);
 
-let icosahedron = strToTris(`Nm0000 M0P000 0Pm000 0Pm000 Nm0000 Pm0000
-                             Pm0000 0Pm000 m0P000 Nm0000 M0N000 0PM000
-                             0PM000 Nm0000 Pm0000 Pm0000 0PM000 m0N000
-                             Nm0000 M0N000 M0P000 m0N000 Pm0000 m0P000
-                             M0P000 0Pm000 0Nm000 0Nm000 0Pm000 m0P000
-                             M0N000 0PM000 0NM000 0NM000 0PM000 m0N000
-                             NM0000 M0P000 0Nm000 0Nm000 NM0000 PM0000
-                             PM0000 0Nm000 m0P000 NM0000 M0N000 0NM000
-                             0NM000 NM0000 PM0000 PM0000 0NM000 m0N000
-                             NM0000 M0N000 M0P000 m0N000 PM0000 m0P000`);
+let icosahedron = strToTris(`NM0kkK M0PkkK 0NmkkK 0Nm0aL NM00aL PM00aL
+                             PM0K0K 0NmK0K m0PK0K NM0kkk M0Nkkk 0NMkkk
+                             0NM0al NM00al PM00al PM0Kkk 0NMKkk m0NKkk
+                             NM0al0 M0Nal0 M0Pal0 m0NAl0 PM0Al0 m0PAl0
+                             M0Pl0A 0Nml0A 0Pml0A 0PmL0A 0NmL0A m0PL0A
+                             M0Nl0a 0NMl0a 0PMl0a 0PML0a 0NML0a m0NL0a
+                             Nm0kKK M0PkKK 0PmkKK 0Pm0AL Nm00AL Pm00AL
+                             Pm0KKK 0PmKKK m0PKKK Nm0kKk M0NkKk 0PMkKk
+                             0PM0Al Nm00Al Pm00Al Pm0KKk 0PMKKk m0NKKk
+                             Nm0aL0 M0NaL0 M0PaL0 m0NAL0 Pm0AL0 m0PAL0`);
 
 // DEFINE ALL THE OBJECT COLORS AND SHAPES
 
