@@ -134,6 +134,7 @@ let torus = (nu, nv) => createMesh(nu, nv, (u,v) => {
    return [ x,y,z, cp*ct,cp*st,sp ];
 });
 
+
 // SHORTCUT TO MAKE IT EASIER TO DEFINE CUBE AND OCTAHEDRON
 
 let strToTris = str => {
@@ -141,8 +142,10 @@ let strToTris = str => {
    for (let n = 0 ; n < str.length ; n++)
       switch (str.charAt(n)) {
       case 'N': tris.push(-1    ); break;
+      case 'M': tris.push(-1.618); break;
       case 'n': tris.push(-0.577); break;
       case '0': tris.push( 0    ); break;
+      case 'm': tris.push( 1.618); break;
       case 'p': tris.push( 0.577); break;
       case 'P': tris.push( 1    ); break;
       }
@@ -163,16 +166,28 @@ let octahedron = strToTris(`00Nnnn 0N0nnn N00nnn  P00pnn 0N0pnn 00Npnn
                             00Pnnp 0N0nnp N00nnp  00Ppnp 0N0pnp P00pnp
                             N00npp 0P0npp 00Pnpp  P00ppp 0P0ppp 00Pppp`);
 
+let icosahedron = strToTris(`Nm0000 M0P000 0Pm000 0Pm000 Nm0000 Pm0000
+                             Pm0000 0Pm000 m0P000 Nm0000 M0N000 0PM000
+                             0PM000 Nm0000 Pm0000 Pm0000 0PM000 m0N000
+                             Nm0000 M0N000 M0P000 m0N000 Pm0000 m0P000
+                             M0P000 0Pm000 0Nm000 0Nm000 0Pm000 m0P000
+                             M0N000 0PM000 0NM000 0NM000 0PM000 m0N000
+                             NM0000 M0P000 0Nm000 0Nm000 NM0000 PM0000
+                             PM0000 0Nm000 m0P000 NM0000 M0N000 0NM000
+                             0NM000 NM0000 PM0000 PM0000 0NM000 m0N000
+                             NM0000 M0N000 M0P000 m0N000 PM0000 m0P000`);
+
 // DEFINE ALL THE OBJECT COLORS AND SHAPES
 
 let meshData = [
-   { type: 1, color: [1.,.1,.1], mesh: new Float32Array(sphere  (20, 10)) },
+   { type: 1, color: [1.,.1,.1], mesh: new Float32Array(sphere  (40, 20)) },
    { type: 1, color: [.1,1.,.1], mesh: new Float32Array(tube    (20,  1)) },
    { type: 1, color: [.1,.1,1.], mesh: new Float32Array(disk    (20,  1)) },
-   { type: 1, color: [1.,1.,.1], mesh: new Float32Array(cylinder( 4,  6)) },
+   { type: 1, color: [1.,1.,.1], mesh: new Float32Array(cylinder(20,  6)) },
    { type: 1, color: [1.,.1,1.], mesh: new Float32Array(torus   (30, 30)) },
    { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
    { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
+   { type: 0, color: [1.,.1,.1], mesh: new Float32Array(icosahedron) },
 ];
 
 // VERY SIMPLE VERTEX AND FRAGMENT SHADERS
