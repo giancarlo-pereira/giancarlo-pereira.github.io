@@ -155,6 +155,11 @@ let strToTris = str => {
       case 'l': tris.push(-0.539); break;
       case 'A': tris.push( 1.412); break;
       case 'a': tris.push(-1.412); break;
+
+      case 'D': tris.push( 1.732); break;
+      case 'd': tris.push(-1.732); break;
+      case 'B': tris.push( 2.309); break;
+      case 'b': tris.push(-2.309); break;
       }
    return tris;
 }
@@ -168,6 +173,9 @@ let cube = strToTris(`PNP00P PPP00P NPP00P  NPP00P NNP00P PNP00P
                       NNPN00 NPPN00 NPNN00  NPNN00 NNNN00 NNPN00
                       NPP0P0 PPP0P0 PPN0P0  PPN0P0 NPN0P0 NPP0P0
                       PNN0N0 PNP0N0 NNP0N0  NNP0N0 NNN0N0 PNN0N0`);
+
+let tetrahedron = strToTris(`N0000N P0000N 0D000N  N000pm P000pm 0pm0pm
+                             P00PBm 0D0PBm 0pmPBm  N00NBm 0D0NBm 0pmNBm`);
 
 let octahedron = strToTris(`00Nnnn 0N0nnn N00nnn  P00pnn 0N0pnn 00Npnn
                             N00npn 0P0npn 00Nnpn  00Nppn 0P0ppn P00ppn
@@ -196,6 +204,7 @@ let meshData = [
    { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
    { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
    { type: 0, color: [1.,.1,.1], mesh: new Float32Array(icosahedron) },
+   { type: 0, color: [1.,1.,.1], mesh: new Float32Array(tetrahedron) },
 ];
 
 // VERY SIMPLE VERTEX AND FRAGMENT SHADERS
