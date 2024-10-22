@@ -196,15 +196,19 @@ let icosahedron = strToTris(`NM0kkK M0PkkK 0NmkkK 0Nm0aL NM00aL PM00aL
 // DEFINE ALL THE OBJECT COLORS AND SHAPES
 
 let meshData = [
-   { type: 1, color: [1.,.1,.1], mesh: new Float32Array(sphere  (40, 20)) },
-   { type: 1, color: [.1,1.,.1], mesh: new Float32Array(tube    (20,  1)) },
-   { type: 1, color: [.1,.1,1.], mesh: new Float32Array(disk    (20,  1)) },
-   { type: 1, color: [1.,1.,.1], mesh: new Float32Array(cylinder(20,  6)) },
-   { type: 1, color: [1.,.1,1.], mesh: new Float32Array(torus   (30, 30)) },
-   { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
-   { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
-   { type: 0, color: [1.,.1,.1], mesh: new Float32Array(icosahedron) },
-   { type: 0, color: [1.,1.,.1], mesh: new Float32Array(tetrahedron) },
+   // { type: 1, color: [1.,.1,.1], mesh: new Float32Array(sphere  (40, 20)) },
+   // { type: 1, color: [.1,1.,.1], mesh: new Float32Array(tube    (20,  1)) },
+   // { type: 1, color: [.1,.1,1.], mesh: new Float32Array(disk    (20,  1)) },
+   // { type: 1, color: [1.,1.,.1], mesh: new Float32Array(cylinder(20,  6)) },
+   // { type: 1, color: [1.,.1,1.], mesh: new Float32Array(torus   (30, 30)) },
+   // { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
+   // { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
+   // { type: 0, color: [1.,.1,.1], mesh: new Float32Array(icosahedron) },
+   { type: 0, color: [1.,1.,1.], mesh: new Float32Array(tetrahedron) },
+   // { type: 0, color: [1.,1.,.1], mesh: new Float32Array(tetrahedron) },
+   // { type: 0, color: [1.,.1,.1], mesh: new Float32Array(tetrahedron) },
+   // { type: 0, color: [.1,.1,1.], mesh: new Float32Array(tetrahedron) },
+   // { type: 0, color: [.1,1.,.1], mesh: new Float32Array(tetrahedron) },
 ];
 
 // VERY SIMPLE VERTEX AND FRAGMENT SHADERS
@@ -248,20 +252,35 @@ function renderFrame() {
    requestAnimationFrame(renderFrame);
    let time = Date.now() / 1000 - startTime, m;
 
+   m = mIdentity();
+   m = mPerspective(3, m);
+   m = mTranslate  (0,-0.577, 0.405, m);
+   // m = mRotateX    (-Math.PI / 180 * 18, m);
+   m = mRotateY    (time, m);
+
+   m = mScale      (.5,.5,.5, m);
+
    // LOOP THROUGH ALL OBJECTS
 
    for (let n = 0 ; n < meshData.length ; n++) {
 
+      let cos = C(Math.PI / 180 * 36);
+      let sin = S(Math.PI / 180 * 36);
+
+      // m = mTranslate  (0.587*cos,0,-0.587*sin,m);
+      // m = mRotateY    (Math.PI / 180 * 72, m);
+      // m = mRotateX    (Math.PI / 180 * 18, m);
       // SET OBJECT MATRIX FOR THIS ANIMATION FRAME
 
-      let c = .5 * C(2 * Math.PI * n / meshData.length);
-      let s = .5 * S(2 * Math.PI * n / meshData.length);
 
-      m = mIdentity   ();
-      m = mPerspective(3, m);
-      m = mRotateY    (time, m);
-      m = mTranslate  (c,s,0, m);
-      m = mScale      (.16,.16,.16, m);
+      // let c = .5 * C(2 * Math.PI * n / meshData.length);
+      // let s = .5 * S(2 * Math.PI * n / meshData.length);
+
+      // m = mIdentity   ();
+      // m = mPerspective(3, m);
+      // m = mRotateY    (time, m);
+      // m = mTranslate  (c,s,0, m);
+      // m = mScale      (.16,.16,.16, m);
 
       // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
 
