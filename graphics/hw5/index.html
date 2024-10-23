@@ -1,12 +1,13 @@
 <body bgcolor=black text=white>
    <center>
    <p><font size = 16>
-      GIANCARLO PEREIRA HW5 -- PARAMETRIC SURFACES
+      GIANCARLO PEREIRA HW5 -- VERTEX SHADER.
    </p>
-   <p><font size = 16>
-      Still figuring it out.
+   <p><font size = 6>
+      5 tetrahedra make a star! <br>
+      This is making me dizzy.
    </p>
-   <canvas id='canvas1' width=800 height=800></canvas>
+   <canvas id='canvas1' width=600 height=600></canvas>
 </center>
 
 <script>
@@ -203,12 +204,12 @@ let meshData = [
    // { type: 1, color: [1.,.1,1.], mesh: new Float32Array(torus   (30, 30)) },
    // { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
    // { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
-   // { type: 0, color: [1.,.1,.1], mesh: new Float32Array(icosahedron) },
-   { type: 0, color: [1.,1.,1.], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [1.,1.,.1], mesh: new Float32Array(tetrahedron) },
+   { type: 0, color: [120/255,150/255,238/255], mesh: new Float32Array(tetrahedron) },
+   { type: 0, color: [1.,150/255,90/255], mesh: new Float32Array(tetrahedron) },
    { type: 0, color: [1.,.1,.1], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [.1,.1,1.], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [.1,1.,.1], mesh: new Float32Array(tetrahedron) },
+   { type: 0, color: [50/255,117/255,150/255], mesh: new Float32Array(tetrahedron) },
+   { type: 0, color: [0.,220/255,.1], mesh: new Float32Array(tetrahedron) },
+   { type: 0, color: [50/255,150/255,50/255], mesh: new Float32Array(icosahedron) },
 ];
 
 // VERY SIMPLE VERTEX AND FRAGMENT SHADERS
@@ -250,13 +251,11 @@ let fragmentShader = `
    }
 
    void main(void) {
-      vec3 uL = vec3(-5.,-5.,5.);
+      vec3 uL = vec3(2,-2,-2);
 
-      float att = .5*attenuation(vPos, uL),
+      float att = 1.*attenuation(vPos, uL),
             spec = specular(vec3(0.,0.,1.), vNor, vPos, uL),
             diff = diffuse(vNor, vPos, uL);
-                  
-      // float c = .05 + max(0., dot(normalize(vNor), vec3(.57)));
       
       gl_FragColor = vec4(sqrt(att*uColor*(.05 + diff + spec)), 1.);
    }
@@ -284,10 +283,11 @@ function renderFrame() {
    m = mRotateY    (time, m);
 
    m = mScale      (.5,.5,.5, m);
+   m = mTranslate  (2.,-20.,0.,m);
 
    // LOOP THROUGH ALL OBJECTS
 
-   for (let n = 0 ; n < meshData.length ; n++) {
+   for (let n = 0 ; n < meshData.length - 1 ; n++) {
 
       let cos = C(Math.PI / 180 * 36);
       let sin = S(Math.PI / 180 * 36);
@@ -318,6 +318,27 @@ function renderFrame() {
       let mesh = meshData[n].mesh;
       gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
       gl.drawArrays(meshData[n].type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
+   }
+   for (let n = meshData.length - 1; n < meshData.length; n++) {
+
+      m = mRotateZ      (time, m);
+      m = mRotateY      (2*time, m);
+      m = mScale        (2-S(time), 2-S(time), 2-S(time), m);
+
+      m = mTranslate    (0,-5,0,m);
+
+      // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
+
+      gl.uniform3fv      (uColor    , meshData[n].color );
+      gl.uniformMatrix4fv(uInvMatrix, false, mInverse(m));
+      gl.uniformMatrix4fv(uMatrix   , false, m          );
+
+      // RENDER THIS OBJECT
+
+      let mesh = meshData[n].mesh;
+      gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+      gl.drawArrays(meshData[n].type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
+   
    }
 }
 requestAnimationFrame(renderFrame);
