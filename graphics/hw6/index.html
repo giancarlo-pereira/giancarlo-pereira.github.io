@@ -230,9 +230,10 @@ let meshData = [
 
 let Cube        = { type: 0, mesh: new Float32Array(cube            ) };
 let Cylinder    = { type: 1, mesh: new Float32Array(cylinder(20,  6)) };
-let Disk        = { type: 1, mesh: new Float32Array(disk    (20,  1)) }
+let Disk        = { type: 1, mesh: new Float32Array(disk    (20,  1)) };
 let Icosahedron = { type: 0, mesh: new Float32Array(icosahedron     ) };
-let Octahedron  = { type: 0, mesh: new Float32Array(octahedron      ) }
+let Octahedron  = { type: 0, mesh: new Float32Array(octahedron      ) };
+let Sphere      = { type: 1, mesh: new Float32Array(sphere  (40, 20)) };
 let Tetrahedron = { type: 0, mesh: new Float32Array(tetrahedron     ) };
 let Torus       = { type: 1, mesh: new Float32Array(torus   (30, 30)) };
 let Tube        = { type: 1, mesh: new Float32Array(tube    (20, 10)) };
@@ -286,6 +287,22 @@ let fragmentShader = `
    }
 `;
 
+// HANDLE 
+let noseLength = 1,
+    noseGrowthRate = 0;
+canvas1.onmousedown = e => noseGrowthRate=0.01;
+canvas1.onmouseup   = e => noseGrowthRate=0;
+
+let noseAction = () => noseLength=noseLength*(1+noseGrowthRate);
+
+function logMousePos() {
+    console.log(`nose length is ${noseLength}`);
+}
+
+setInterval(function() {
+    logMousePos();
+}, 100);
+
 // INITIALIZE GL AND GET UNIFORM NAMES
 
 let gl = start_gl(canvas1, meshData, vertexSize, vertexShader, fragmentShader);
@@ -317,10 +334,26 @@ function renderFrame() {
    requestAnimationFrame(renderFrame);
    let time = Date.now() / 1000 - startTime;
 
+   let headSize = 0.5;
+   let eyeSize = headSize/10;
+   noseAction();
+   let headSway = .5*S(time);
+   let woodColor = [1.,1.,1.];   
+
    M.identity().perspective(3);
+   M.translate(0,0,-headSize/2);
    M.save();
-      M.rotateY(time).scale(.5,.5,.5);
-      render(Torus, [1.,1.,1.]);
+      // M.rotateY(headSway);
+      // M.save();
+         M.scale(headSize,1.4*headSize,headSize);
+         render(Sphere, woodColor);
+      // M.restore();
+      //    M.translate().scale(eyeSize, eyeSize, eyeSize);
+      //    render(Sphere, (.1,.1,.1));
+      M.restore();
+         M.translate(headSize*(1+noseLength/10),0,0).rotateY(Math.PI/2)
+         M.scale(headSize/10, headSize/10, headSize/10*noseLength);
+         render(Cylinder, woodColor);
    M.restore();
 }
 requestAnimationFrame(renderFrame);
