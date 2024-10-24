@@ -6,7 +6,7 @@
    <p><font size = 6>
       Click to make Pinocchio's nose grow.
    </p>
-   <canvas id='canvas1' width=600 height=600></canvas>
+   <canvas id='canvas1' width=800 height=800></canvas>
 </center>
 
 <script>
@@ -46,8 +46,8 @@ function Matrix() {
    let set = arg => { stack[top] = arg; return this; }
    let get = ()  =>  stack[top];
 
-   this.identity = ()       => set(mIdentity); 
-   this.perspective = FL    => set(mPerspective(fL, get())); 
+   this.identity = ()       => set(mIdentity()); 
+   this.perspective = FL    => set(mPerspective(FL, get())); 
    this.rotateX = t         => set(mRotateX(t, get())); 
    this.rotateY = t         => set(mRotateY(t, get())); 
    this.rotateZ = t         => set(mRotateZ(t, get())); 
@@ -181,7 +181,6 @@ let strToTris = str => {
       }
    return tris;
 }
-// 0, 0.932847, 0.360272
 
 // DEFINE SOME MESHES MADE FROM TRIANGLES
 
@@ -229,6 +228,15 @@ let meshData = [
    { type: 0, color: [50/255,150/255,50/255], mesh: new Float32Array(icosahedron) },
 ];
 
+let Cube        = { type: 0, mesh: new Float32Array(cube            ) };
+let Cylinder    = { type: 1, mesh: new Float32Array(cylinder(20,  6)) };
+let Disk        = { type: 1, mesh: new Float32Array(disk    (20,  1)) }
+let Icosahedron = { type: 0, mesh: new Float32Array(icosahedron     ) };
+let Octahedron  = { type: 0, mesh: new Float32Array(octahedron      ) }
+let Tetrahedron = { type: 0, mesh: new Float32Array(tetrahedron     ) };
+let Torus       = { type: 1, mesh: new Float32Array(torus   (30, 30)) };
+let Tube        = { type: 1, mesh: new Float32Array(tube    (20, 10)) };
+
 // VERY SIMPLE VERTEX AND FRAGMENT SHADERS
 
 let vertexSize = 6;
@@ -268,13 +276,13 @@ let fragmentShader = `
    }
 
    void main(void) {
-      vec3 uL = vec3(2,-2,-2);
+      vec3 uL = vec3(.57);
 
       float att = 1.*attenuation(vPos, uL),
             spec = specular(vec3(0.,0.,1.), vNor, vPos, uL),
             diff = diffuse(vNor, vPos, uL);
       
-      gl_FragColor = vec4(sqrt(att*uColor*(.05 + diff + spec)), 1.);
+      gl_FragColor = vec4(sqrt(uColor*(.05 + diff)), 1.);
    }
 `;
 
@@ -288,75 +296,32 @@ let uMatrix    = gl.getUniformLocation(gl.program, "uMatrix"   );
 
 // THE ANIMATION LOOP
 
+let M = new Matrix();
+
+let render = (Shape, color) => {
+   // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
+
+   gl.uniform3fv      (uColor    , color );
+   gl.uniformMatrix4fv(uInvMatrix, false, mInverse(M.get()));
+   gl.uniformMatrix4fv(uMatrix   , false, M.get()          );
+
+   // RENDER THIS OBJECT
+
+   let mesh = Shape.mesh;
+   gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+   gl.drawArrays(Shape.type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
+}
+
 let startTime = Date.now() / 1000;
 function renderFrame() {
    requestAnimationFrame(renderFrame);
-   let time = Date.now() / 1000 - startTime, m;
+   let time = Date.now() / 1000 - startTime;
 
-   m = mIdentity();
-   m = mPerspective(3, m);
-   m = mTranslate  (0,-0.577, 0.405, m);
-   m = mRotateX    (Math.PI / 180 * 72, m);
-   m = mRotateY    (time, m);
-
-   m = mScale      (.5,.5,.5, m);
-   m = mTranslate  (2.,-20.,0.,m);
-
-   // LOOP THROUGH ALL OBJECTS
-
-   for (let n = 0 ; n < meshData.length - 1 ; n++) {
-
-      let cos = C(Math.PI / 180 * 36);
-      let sin = S(Math.PI / 180 * 36);
-
-      m = mTranslate  (0.587*cos,0,-0.587*sin,m);
-      m = mRotateY    (Math.PI / 180 * 72, m);
-      // m = mRotateX    (Math.PI / 180 * 18, m);
-      // SET OBJECT MATRIX FOR THIS ANIMATION FRAME
-
-
-      // let c = .5 * C(2 * Math.PI * n / meshData.length);
-      // let s = .5 * S(2 * Math.PI * n / meshData.length);
-
-      // m = mIdentity   ();
-      // m = mPerspective(3, m);
-      // m = mRotateY    (time, m);
-      // m = mTranslate  (c,s,0, m);
-      // m = mScale      (.16,.16,.16, m);
-
-      // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
-
-      gl.uniform3fv      (uColor    , meshData[n].color );
-      gl.uniformMatrix4fv(uInvMatrix, false, mInverse(m));
-      gl.uniformMatrix4fv(uMatrix   , false, m          );
-
-      // RENDER THIS OBJECT
-
-      let mesh = meshData[n].mesh;
-      gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
-      gl.drawArrays(meshData[n].type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
-   }
-   for (let n = meshData.length - 1; n < meshData.length; n++) {
-
-      m = mRotateZ      (time, m);
-      m = mRotateY      (2*time, m);
-      m = mScale        (2-S(time), 2-S(time), 2-S(time), m);
-
-      m = mTranslate    (0,-5,0,m);
-
-      // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
-
-      gl.uniform3fv      (uColor    , meshData[n].color );
-      gl.uniformMatrix4fv(uInvMatrix, false, mInverse(m));
-      gl.uniformMatrix4fv(uMatrix   , false, m          );
-
-      // RENDER THIS OBJECT
-
-      let mesh = meshData[n].mesh;
-      gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
-      gl.drawArrays(meshData[n].type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
-   
-   }
+   M.identity().perspective(3);
+   M.save();
+      M.rotateY(time).scale(.5,.5,.5);
+      render(Torus, [1.,1.,1.]);
+   M.restore();
 }
 requestAnimationFrame(renderFrame);
 
