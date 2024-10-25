@@ -11,6 +11,12 @@
 
 <script>
 
+// MATH CONSTANTS
+
+let pi = Math.PI;
+let C = t => Math.cos(t);
+let S = t => Math.sin(t);
+
 // A TINY MATRIX LIBRARY
 
 let mInverse = m => {
@@ -31,8 +37,7 @@ let matrixMultiply = (a, b) => {
       dst.push(a[n&3]*b[n&12] + a[n&3|4]*b[n&12|1] + a[n&3|8]*b[n&12|2] + a[n&3|12]*b[n&12|3]);
    return dst;
 }
-let C = t => Math.cos(t);
-let S = t => Math.sin(t);
+
 let mIdentity = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
 let mPerspective = (fl, m) => matrixMultiply(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
 let mRotateX = (t, m) => matrixMultiply(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
@@ -55,8 +60,8 @@ function Matrix() {
    this.translate = (x,y,z) => set(mTranslate(x,y,z, get())); 
    this.get = ()            => get();
 
-   this.save = ()           => { stack[top+1] = stack[top].slice(); top++; }
-   this.restore = ()        => --top;
+   this.save = () => set(stack[top++].slice());
+   this.restore = () => --top;
 }
 
 // INITIALIZE GL
@@ -107,8 +112,8 @@ let createMesh = (nu, nv, p) => {
 // DEFINE VARIOUS KINDS OF TRIANGLE_STRIP MESHES
 
 let sphere = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let theta = 2 * Math.PI * u;
-   let phi = Math.PI * (v - .5);
+   let theta = 2 * pi * u;
+   let phi = pi * (v - .5);
    let x = C(phi) * C(theta),
        y = C(phi) * S(theta),
        z = S(phi);
@@ -116,21 +121,21 @@ let sphere = (nu, nv) => createMesh(nu, nv, (u,v) => {
 });
 
 let tube = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = C(2 * Math.PI * u),
-       y = S(2 * Math.PI * u),
+   let x = C(2 * pi * u),
+       y = S(2 * pi * u),
        z = 2 * v - 1;
    return [ x,y,z, x,y,0 ];
 });
 
 let disk = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = v * C(2 * Math.PI * u),
-       y = v * S(2 * Math.PI * u);
+   let x = v * C(2 * pi * u),
+       y = v * S(2 * pi * u);
    return [ x,y,0, 0,0,1 ];
 });
 
 let cylinder = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = C(2 * Math.PI * u),
-       y = S(2 * Math.PI * u);
+   let x = C(2 * pi * u),
+       y = S(2 * pi * u);
    switch (5 * v >> 0) {
    case 0: return [ 0,0,-1, 0,0,-1 ];
    case 1: return [ x,y,-1, 0,0,-1 ];
@@ -142,10 +147,10 @@ let cylinder = (nu, nv) => createMesh(nu, nv, (u,v) => {
 });
 
 let torus = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let ct = C(2 * Math.PI * u);
-   let st = S(2 * Math.PI * u);
-   let cp = C(2 * Math.PI * v);
-   let sp = S(2 * Math.PI * v);
+   let ct = C(2 * pi * u);
+   let st = S(2 * pi * u);
+   let cp = C(2 * pi * v);
+   let sp = S(2 * pi * v);
    let x = (1 + .5 * cp) * ct,
        y = (1 + .5 * cp) * st,
        z =      .5 * sp;
@@ -236,7 +241,7 @@ let Octahedron  = { type: 0, mesh: new Float32Array(octahedron      ) };
 let Sphere      = { type: 1, mesh: new Float32Array(sphere  (40, 20)) };
 let Tetrahedron = { type: 0, mesh: new Float32Array(tetrahedron     ) };
 let Torus       = { type: 1, mesh: new Float32Array(torus   (30, 30)) };
-let Tube        = { type: 1, mesh: new Float32Array(tube    (20, 10)) };
+let Tube        = { type: 1, mesh: new Float32Array(tube    (20, 1)) };
 
 // VERY SIMPLE VERTEX AND FRAGMENT SHADERS
 
@@ -256,6 +261,32 @@ let vertexShader = `
 
 let fragmentShader = `
    precision mediump float;
+
+   // NOISE FUNCTIONS
+   float noise(vec3 point) { float r = 0.; for (int i=0;i<16;i++) {
+   vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
+      1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
+   C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
+   D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
+   r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
+   } return .5 * sin(r); }
+   
+   float turbulence(vec3 P) {
+      float f = 0., s = 1.;
+      for (int i = 0 ; i < 4 ; i++) {
+         f += abs(noise(s * P)) / s;
+         s *= 2.;
+         P = vec3(.866*P.x + .5*P.z, P.y + 100., -.5*P.x + .866*P.z);
+      }
+      return f;
+   }
+
+   vec3 marble(vec3 pos) {
+   float v = turbulence(pos);
+   float s = sqrt(.5 + .5 * sin(20. * pos.y + 8. * v));
+   return vec3(132./255.,36./255.,12./255.)*vec3(s,s*s,s*s*s);
+   }
+
    uniform vec3 uColor;
    varying vec3 vPos, vNor;
 
@@ -273,17 +304,17 @@ let fragmentShader = `
    float specular(vec3 W, vec3 N, vec3 P, vec3 uLight) {
       vec3 surfToLight = normalize(uLight - P);
       vec3 R = W - 2. * N * dot(N, W);
-      return pow(max(0., dot(R, surfToLight)), 2.);
+      return pow(max(0., dot(R, surfToLight)), 1.);
    }
 
    void main(void) {
-      vec3 uL = vec3(.57);
+      vec3 uL = vec3(-.57, 1., 1.);
 
-      float att = 1.*attenuation(vPos, uL),
+      float att = 3.*attenuation(vPos, uL),
             spec = specular(vec3(0.,0.,1.), vNor, vPos, uL),
             diff = diffuse(vNor, vPos, uL);
       
-      gl_FragColor = vec4(sqrt(uColor*(.05 + diff)), 1.);
+      gl_FragColor = vec4(sqrt(att*uColor*((.05 + diff)*turbulence(marble(vPos.yxz)))), 1.);
    }
 `;
 
@@ -338,22 +369,41 @@ function renderFrame() {
    let eyeSize = headSize/10;
    noseAction();
    let headSway = .5*S(time);
-   let woodColor = [1.,1.,1.];   
+   let woodColor = [205/255,170/255,125/255];
+   let eyeColor = [.05,.05,.1];
+   let hairLength = headSize/5;
 
+   // camera perspective
    M.identity().perspective(3);
+
    M.translate(0,0,-headSize/2);
    M.save();
-      // M.rotateY(headSway);
-      // M.save();
+      M.rotateY(headSway);
+      M.save();
+         // build head
          M.scale(headSize,1.4*headSize,headSize);
          render(Sphere, woodColor);
-      // M.restore();
-      //    M.translate().scale(eyeSize, eyeSize, eyeSize);
-      //    render(Sphere, (.1,.1,.1));
       M.restore();
-         M.translate(headSize*(1+noseLength/10),0,0).rotateY(Math.PI/2)
+
+      // move to front of face
+      M.translate(headSize,0,0);
+      M.save();
+         // build nose
+         M.translate(headSize/10*noseLength,0,0);
+         M.rotateY(pi/2);
          M.scale(headSize/10, headSize/10, headSize/10*noseLength);
          render(Cylinder, woodColor);
+      M.restore();
+         // build eyes
+         M.translate(-.1,.2,0);
+         M.save();
+            M.translate(0,0, -.2);
+            M.scale(headSize/8,2*headSize/8,headSize/8);
+            render(Sphere, eyeColor);
+         M.restore();
+            M.translate(0,0, .2);
+            M.scale(headSize/8,2*headSize/8,headSize/8);
+            render(Sphere, eyeColor);
    M.restore();
 }
 requestAnimationFrame(renderFrame);
