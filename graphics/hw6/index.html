@@ -319,7 +319,7 @@ let fragmentShader = `
 `;
 
 // HANDLE 
-let noseLength = 1,
+let noseLength = 0.01,
     noseGrowthRate = 0;
 canvas1.onmousedown = e => noseGrowthRate=0.01;
 canvas1.onmouseup   = e => noseGrowthRate=0;
@@ -372,7 +372,7 @@ function renderFrame() {
    let phaseDiff = 1;//.5 + .5 * S(time);
    let skinColor = [0,.5,1];
    let backLength = limbLength;
-   let armLength = 1.2 * backLength;
+   let armLength = 1 * backLength;
    let neckLength = backLength / 8;
    
    let headSize = 2 * neckLength;
@@ -404,7 +404,6 @@ function renderFrame() {
          M.scale(.05,.02,hipWidth);
          render(Sphere, skinColor);            // SHOULDERS
       M.restore();
-      // ADD ARMS HERE
       for (let side = -1 ; side <= 1 ; side += 2) {
          let elbow = -.5 - .5 * S(t + side * Math.PI/2 * phaseDiff);
          M.save();
@@ -427,8 +426,8 @@ function renderFrame() {
                M.translate(0,-armLength,0);
                M.save();
                   M.translate(armLength/12,0,0);
-                  M.scale(armLength/12,armLength/4,armLength/4);
-                  render(Sphere, skinColor);     // HAND
+                  M.scale(armLength/12,armLength/12,armLength/12);
+                  render(Icosahedron, skinColor);     // HAND
                M.restore();
             M.restore();
          M.restore();
@@ -442,23 +441,23 @@ function renderFrame() {
       M.save();
          // M.rotateY(headSway);
          M.save();
+            M.scale(hipWidth,headSize/2,hipWidth);
             M.rotateX(pi/2);
-            M.scale(0.1,0.1,headSize/2);
-            render(Cylinder, woodColor);      // HEAD
+            render(Cylinder, skinColor);      // HEAD
          M.restore();
-         M.translate(headSize/2,headSize/2,headSize/2);
+         M.translate(hipWidth,headSize/4,0);
          M.save();
-            // M.translate(0.1,0.1,0);
             M.rotateY(pi/2);
-            M.scale(headSize/10, headSize/10, headSize/10*noseLength);
-            render(Cylinder, woodColor);     // NOSE
+            M.translate(0, 0, noseLength/2);
+            M.scale(0.01, 0.01, noseLength/2);
+            render(Cylinder, skinColor);     // NOSE
          M.restore();
          M.save();
-            M.translate(0,0, -headSize/4);
+            M.translate(0,0,-1*hipWidth/2);
             M.scale(headSize/8,2*headSize/8,headSize/8);
             render(Sphere, eyeColor);        // LEFT EYE
          M.restore();
-            M.translate(0,0, headSize/4);
+            M.translate(0,0,+1*hipWidth/2);
             M.scale(headSize/8,2*headSize/8,headSize/8);
             render(Sphere, eyeColor);        // RIGHT EYE  
       M.restore();
@@ -493,36 +492,6 @@ function renderFrame() {
          M.restore();
       M.restore();
    }
-
-   // M.translate(0,0,-headSize/2);
-   // M.save();
-   //    M.rotateY(headSway);
-   //    M.save();
-   //       // build head
-   //       M.scale(headSize,1.4*headSize,headSize);
-   //       render(Sphere, woodColor);
-   //    M.restore();
-
-   //    // move to front of face
-   //    M.translate(headSize,0,0);
-   //    M.save();
-   //       // build nose
-   //       M.translate(headSize/10*noseLength,0,0);
-   //       M.rotateY(pi/2);
-   //       M.scale(headSize/10, headSize/10, headSize/10*noseLength);
-   //       render(Cylinder, woodColor);
-   //    M.restore();
-   //       // build eyes
-   //       M.translate(-.1,.2,0);
-   //       M.save();
-   //          M.translate(0,0, -.2);
-   //          M.scale(headSize/8,2*headSize/8,headSize/8);
-   //          render(Sphere, eyeColor);
-   //       M.restore();
-   //          M.translate(0,0, .2);
-   //          M.scale(headSize/8,2*headSize/8,headSize/8);
-   //          render(Sphere, eyeColor);
-   // M.restore();
 }
 requestAnimationFrame(renderFrame);
 
