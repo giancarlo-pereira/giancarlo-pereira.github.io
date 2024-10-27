@@ -31,7 +31,7 @@
                  </a>
                  <a href="" action="cool">
                    <i class="bx bx-cool"></i>
-                   Walking confidently
+                   Walking Confidently
                  </a>
                  <a href="" action="dance">
                    <i class="bx bx-party"></i>
@@ -41,6 +41,10 @@
                    <i class="bx bx-body bx-tada" ></i>
                    Jumping jacks
                  </a>
+                 <a href="" action="coffee">
+                  <i class='bx bx-coffee bx-flashing' ></i>
+                  Drinking Cofee
+                </a>
                </div>
              </div>
          </td>
@@ -460,115 +464,254 @@ function renderFrame() {
    let eyeColor = [.05,.05,.1];
    let hairLength = headSize/5;
 
-   // camera perspective
-   M.identity().perspective(3);
+   // POSSIBLE ACTIONS
+   let clap     = () => {
 
-   M.translate(0,0.2,0).rotateY(-pi/3);
+   }
 
-   M.rotateX(hipSway);
-   M.save();
-      M.scale(.05,.05,hipWidth);
-      render(Sphere, skinColor);               // PELVIS
-   M.restore();
-   M.save();
-      M.translate(0,backLength/2,0);
+   let sad      = () => {
+
+   }
+
+   let cool     = () => {
+      M.rotateX(hipSway);
       M.save();
-         M.scale(.05, backLength/2, hipWidth/8);
-         M.rotateX(pi/2);
-         render(Cylinder, skinColor);          // SPINE
+         M.scale(.05,.05,hipWidth);
+         render(Sphere, skinColor);               // PELVIS
       M.restore();
-      M.translate(0,backLength/2,0);
       M.save();
-         M.scale(.05,.02,shoulderWdith);
-         render(Sphere, skinColor);            // SHOULDERS
-      M.restore();
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         let elbow = -.5 - .5 * S(t + side * pi/2 * phaseDiff);
+         M.translate(0,backLength/2,0);
          M.save();
-            M.translate(0,0,side * shoulderWdith);
-            M.rotateX(-hipSway);
-            M.rotateZ(elbow);
+            M.scale(.05, backLength/2, hipWidth/8);
+            M.rotateX(pi/2);
+            render(Cylinder, skinColor);          // SPINE
+         M.restore();
+         M.translate(0,backLength/2,0);
+         M.save();
+            M.scale(.05,.02,shoulderWdith);
+            render(Sphere, skinColor);            // SHOULDERS
+         M.restore();
+         for (let side = -1 ; side <= 1 ; side += 2) {
+            let elbow = -.5 - .5 * S(t + side * pi/2 * phaseDiff);
             M.save();
-               M.translate(0,-armLength/2,0);
-               M.scale(.05,armLength/2,.05);
-               render(Sphere, skinColor);        // BICEP
-            M.restore();
-            M.translate(0,-armLength,0);
-            M.save();
-               M.rotateZ(-2 * elbow);
+               M.translate(0,0,side * shoulderWdith);
+               M.rotateX(-hipSway);
+               M.rotateZ(elbow);
                M.save();
                   M.translate(0,-armLength/2,0);
                   M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);     // FOREARM
+                  render(Sphere, skinColor);        // BICEP
                M.restore();
                M.translate(0,-armLength,0);
                M.save();
-                  M.translate(armLength/12,0,0);
-                  M.scale(armLength/12,armLength/12,armLength/12);
-                  render(Icosahedron, skinColor);     // HAND
+                  M.rotateZ(-2 * elbow);
+                  M.save();
+                     M.translate(0,-armLength/2,0);
+                     M.scale(.05,armLength/2,.05);
+                     render(Sphere, skinColor);     // FOREARM
+                  M.restore();
+                  M.translate(0,-armLength,0);
+                  M.save();
+                     M.translate(armLength/12,0,0);
+                     M.scale(armLength/12,armLength/12,armLength/12);
+                     render(Icosahedron, skinColor);     // HAND
+                  M.restore();
+               M.restore();
+            M.restore();
+         }
+         M.translate(0,neckLength/2,0);
+         M.save();
+            M.scale(0.01,neckLength/2,0.01);
+            render(Sphere, skinColor);            // NECK
+         M.restore();
+         M.translate(0,headSize/2,0);
+         M.save();
+            // M.rotateY(headSway);
+            M.save();
+               M.scale(hipWidth,headSize/2,hipWidth);
+               M.rotateX(pi/2);
+               render(Cylinder, skinColor);      // HEAD
+            M.restore();
+            M.translate(hipWidth,headSize/4,0);
+            M.save();
+               M.rotateY(pi/2);
+               M.translate(0, 0, noseLength/2);
+               M.scale(0.01, 0.01, noseLength/2);
+               render(Cylinder, skinColor);     // NOSE
+            M.restore();
+            M.save();
+               M.translate(0,0,-1*hipWidth/2);
+               M.scale(headSize/8,2*headSize/8,headSize/8);
+               render(Sphere, eyeColor);        // LEFT EYE
+            M.restore();
+               M.translate(0,0,+1*hipWidth/2);
+               M.scale(headSize/8,2*headSize/8,headSize/8);
+               render(Sphere, eyeColor);        // RIGHT EYE  
+         M.restore();
+         
+      M.restore();
+
+      for (let side = -1 ; side <= 1 ; side += 2) {
+         let knee = .5 + .5 * S(t + side * pi/2 * phaseDiff);
+         M.save();
+            M.translate(0,0,side * hipWidth);
+            M.rotateX(-hipSway);
+            M.rotateZ(knee);
+            M.save();
+               M.translate(0,-limbLength/2,0);
+               M.scale(.05,limbLength/2,.05);
+               render(Sphere, skinColor);        // UPPER LEG
+            M.restore();
+            M.translate(0,-limbLength,0);
+            M.save();
+               M.rotateZ(-2 * knee);
+               M.save();
+                  M.translate(0,-limbLength/2,0);
+                  M.scale(.05,limbLength/2,.05);
+                  render(Sphere, skinColor);     // LOWER LEG
+               M.restore();
+               M.translate(0,-limbLength,0);
+               M.save();
+                  M.translate(limbLength/4,0,0);
+            M.scale(limbLength/4,.05,.05);
+                  render(Sphere, skinColor);     // FOOT
                M.restore();
             M.restore();
          M.restore();
       }
-      M.translate(0,neckLength/2,0);
-      M.save();
-         M.scale(0.01,neckLength/2,0.01);
-         render(Sphere, skinColor);            // NECK
-      M.restore();
-      M.translate(0,headSize/2,0);
-      M.save();
-         // M.rotateY(headSway);
-         M.save();
-            M.scale(hipWidth,headSize/2,hipWidth);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);      // HEAD
-         M.restore();
-         M.translate(hipWidth,headSize/4,0);
-         M.save();
-            M.rotateY(pi/2);
-            M.translate(0, 0, noseLength/2);
-            M.scale(0.01, 0.01, noseLength/2);
-            render(Cylinder, skinColor);     // NOSE
-         M.restore();
-         M.save();
-            M.translate(0,0,-1*hipWidth/2);
-            M.scale(headSize/8,2*headSize/8,headSize/8);
-            render(Sphere, eyeColor);        // LEFT EYE
-         M.restore();
-            M.translate(0,0,+1*hipWidth/2);
-            M.scale(headSize/8,2*headSize/8,headSize/8);
-            render(Sphere, eyeColor);        // RIGHT EYE  
-      M.restore();
-      
-   M.restore();
+   }
 
-   for (let side = -1 ; side <= 1 ; side += 2) {
-      let knee = .5 + .5 * S(t + side * pi/2 * phaseDiff);
+   let dance    = () => {
+
+   }
+
+   let exercise = () => {
+
+   }
+
+   let coffee   = () => {
+      let tilt = .5 + .5 * Math.max(-1., Math.min(1., 5*S(time +  pi/2)));
+      M.translate(0,-0.3,0);
       M.save();
-         M.translate(0,0,side * hipWidth);
-         M.rotateX(-hipSway);
-         M.rotateZ(knee);
+         M.scale(.05,.05,hipWidth);
+         render(Sphere, skinColor);               // PELVIS
+      M.restore();
+      M.save();
+         M.translate(0,backLength/2,0);
          M.save();
-            M.translate(0,-limbLength/2,0);
-            M.scale(.05,limbLength/2,.05);
-            render(Sphere, skinColor);        // UPPER LEG
+            M.scale(.05, backLength/2, hipWidth/8);
+            M.rotateX(pi/2);
+            render(Cylinder, skinColor);          // SPINE
          M.restore();
-         M.translate(0,-limbLength,0);
+         M.translate(0,backLength/2,0);
          M.save();
-            M.rotateZ(-2 * knee);
+            M.scale(.05,.02,shoulderWdith);
+            render(Sphere, skinColor);            // SHOULDERS
+         M.restore();
+         for (let side = -1 ; side <= 1 ; side += 2) {
+            M.save();
+               M.translate(0,0,side * shoulderWdith);
+               if (side==1) {
+                  M.rotateZ(tilt + pi/4);
+                  M.rotateY(pi/4);
+               }
+               M.save();
+                  M.translate(0,-armLength/2,0);
+                  M.scale(.05,armLength/2,.05);
+                  render(Sphere, skinColor);        // BICEP
+               M.restore();
+               M.translate(0,-armLength,0);
+               M.rotateZ(pi/2);
+               M.save();
+                  if (side==1) {
+                        M.rotateZ(0.7*tilt);
+                     }
+                  M.save();
+                     M.translate(0,-armLength/2,0);
+                     M.scale(.05,armLength/2,.05);
+                     render(Sphere, skinColor);     // FOREARM
+                  M.restore();
+                  M.translate(0,-armLength,0);
+                  M.save();
+                     M.translate(armLength/12,0,0);
+                     M.scale(armLength/12,armLength/12,armLength/12);
+                     render(Icosahedron, skinColor);     // HAND
+                  M.restore();
+               M.restore();
+            M.restore();
+         }
+         M.translate(0,neckLength/2,0);
+         M.save();
+            M.scale(0.01,neckLength/2,0.01);
+            render(Sphere, skinColor);            // NECK
+         M.restore();
+         M.translate(0,headSize/2,0);
+         M.save();
+            M.rotateZ(tilt);
+            M.save();
+               M.scale(hipWidth,headSize/2,hipWidth);
+               M.rotateX(pi/2);
+               render(Cylinder, skinColor);      // HEAD
+            M.restore();
+            M.translate(hipWidth,headSize/4,0);
+            M.save();
+               M.rotateY(pi/2);
+               M.translate(0, 0, noseLength/2);
+               M.scale(0.01, 0.01, noseLength/2);
+               render(Cylinder, skinColor);     // NOSE
+            M.restore();
+            M.save();
+               M.translate(0,0,-1*hipWidth/2);
+               M.scale(headSize/8,2*headSize/8,headSize/8);
+               render(Sphere, eyeColor);        // LEFT EYE
+            M.restore();
+               M.translate(0,0,+1*hipWidth/2);
+               M.scale(headSize/8,2*headSize/8,headSize/8);
+               render(Sphere, eyeColor);        // RIGHT EYE  
+         M.restore();
+         
+      M.restore();
+
+      for (let side = -1 ; side <= 1 ; side += 2) {
+         let knee = .5 + .5 * S(t + side * pi/2 * phaseDiff);
+         M.save();
+            M.translate(0,0,side * hipWidth);
+            M.rotateZ(pi/2);
             M.save();
                M.translate(0,-limbLength/2,0);
                M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);     // LOWER LEG
+               render(Sphere, skinColor);        // UPPER LEG
             M.restore();
             M.translate(0,-limbLength,0);
             M.save();
-               M.translate(limbLength/4,0,0);
-         M.scale(limbLength/4,.05,.05);
-               render(Sphere, skinColor);     // FOOT
+               M.rotateZ(-pi/2);
+               M.save();
+                  M.translate(0,-limbLength/2,0);
+                  M.scale(.05,limbLength/2,.05);
+                  render(Sphere, skinColor);     // LOWER LEG
+               M.restore();
+               M.translate(0,-limbLength,0);
+               M.save();
+                  M.translate(limbLength/4,0,0);
+            M.scale(limbLength/4,.05,.05);
+                  render(Sphere, skinColor);     // FOOT
+               M.restore();
             M.restore();
          M.restore();
-      M.restore();
+      }
+   }
+   // camera perspective
+   M.identity().perspective(3);
+
+   M.translate(0,0.2,0).rotateY(time-pi/3);
+
+   switch (action) {
+      case 'clap':      clap();      break;
+      case 'sad':       sad();       break;
+      case 'cool':      cool();      break;
+      case 'dance':     dance();     break;
+      case 'exercise':  exercise();  break;
+      case 'coffee':    coffee();    break;
    }
 }
 requestAnimationFrame(renderFrame);
