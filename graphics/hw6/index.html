@@ -1,15 +1,99 @@
-<body bgcolor=black text=white>
+<head>
+   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+   <link rel="stylesheet" type="text/css" href="style.css"
+</head>
+
+<body>
    <center>
-   <p><font size = 16>
+   <p>
       GIANCARLO PEREIRA HW6 -- HIERARCHICAL JOINTS
    </p>
-   <p><font size = 6>
-      Click to make Pinocchio's nose grow.
+   <p>
+      Easter Egg: Click to make avatar's nose grow.
    </p>
-   <canvas id='canvas1' width=800 height=800></canvas>
-</center>
+   <table cellspacing=10 cellpadding=10><TR>
+      <tr>
+         <td>
+            <div class="container">
+               <button class="btn" id="btn">
+                 Avatar Actions
+                 <i class="bx bx-chevron-down" id="arrow"></i>
+               </button>
+             
+               <div class="dropdown" id="dropdown">
+                 <a href="" action="clap">
+                   <i class="bx bxs-hand bx-burst" ></i>
+                   Clapping
+                 </a>
+                 <a href="" action="sad">
+                   <i class="bx bx-confused"></i>
+                   Walking Sad
+                 </a>
+                 <a href="" action="cool">
+                   <i class="bx bx-cool"></i>
+                   Walking confidently
+                 </a>
+                 <a href="" action="dance">
+                   <i class="bx bx-party"></i>
+                   Dancing
+                 </a>
+                 <a href="" action="exercise">
+                   <i class="bx bx-body bx-tada" ></i>
+                   Jumping jacks
+                 </a>
+               </div>
+             </div>
+         </td>
+         <td>
+            <canvas id='canvas1' width=800 height=800></canvas>
+         </td>
+      </tr>
+   </table>
+      
+   </center>
+</body>
 
 <script>
+
+// HANDLING DROPDOWN
+
+const dropdownBtn = document.getElementById("btn");
+const dropdownMenu = document.getElementById("dropdown");
+const toggleArrow = document.getElementById("arrow");
+
+// Toggle dropdown function
+const toggleDropdown = function () {
+  dropdownMenu.classList.toggle("show");
+  toggleArrow.classList.toggle("arrow");
+};
+
+// Toggle dropdown open/close when dropdown button is clicked
+dropdownBtn.addEventListener("click", function (e) {
+  e.stopPropagation();
+  toggleDropdown();
+});
+
+// Close dropdown when dom element is clicked
+document.documentElement.addEventListener("click", function () {
+  if (dropdownMenu.classList.contains("show")) {
+    toggleDropdown();
+  }
+});
+
+// CATCH NEW ACTION FOR AVATAR
+let action = 'clap';
+
+const dropdownLinks = document.querySelectorAll('#dropdown a');
+
+// Add click event listeners to each link
+dropdownLinks.forEach(link => {
+   link.addEventListener('click', e => {
+      e.preventDefault(); // Prevent the default anchor behavior redirecting 
+
+      action = link.getAttribute('action');
+      console.log('Action selected:', action); // Log the action to confirm
+      });
+});
 
 // MATH CONSTANTS
 
@@ -308,7 +392,7 @@ let fragmentShader = `
    }
 
    void main(void) {
-      vec3 uL = vec3(-.57, 1., 1.);
+      vec3 uL = vec3(-1., 2., 2.);
 
       float att = 3.*attenuation(vPos, uL),
             spec = specular(vec3(0.,0.,1.), vNor, vPos, uL),
@@ -325,14 +409,6 @@ canvas1.onmousedown = e => noseGrowthRate=0.01;
 canvas1.onmouseup   = e => noseGrowthRate=0;
 
 let noseAction = () => noseLength=noseLength*(1+noseGrowthRate);
-
-function logMousePos() {
-    console.log(`nose length is ${noseLength}`);
-}
-
-setInterval(function() {
-    logMousePos();
-}, 100);
 
 // INITIALIZE GL AND GET UNIFORM NAMES
 
@@ -370,8 +446,8 @@ function renderFrame() {
    let hipWidth = limbLength / 4;
    let hipSway = .2 * C(t);
    let phaseDiff = 1;//.5 + .5 * S(time);
-   let skinColor = [0,.5,1];
    let backLength = limbLength;
+   let shoulderWdith = 2.5 * hipWidth;
    let armLength = 1 * backLength;
    let neckLength = backLength / 8;
    
@@ -379,6 +455,7 @@ function renderFrame() {
    let eyeSize = headSize / 10;
    noseAction();
    let headSway = .5*S(time);
+   let skinColor = [0,.5,1];
    let woodColor = [205/255,170/255,125/255];
    let eyeColor = [.05,.05,.1];
    let hairLength = headSize/5;
@@ -386,7 +463,7 @@ function renderFrame() {
    // camera perspective
    M.identity().perspective(3);
 
-   M.translate(0,.4,0).rotateY(-Math.PI/3);
+   M.translate(0,0.2,0).rotateY(-pi/3);
 
    M.rotateX(hipSway);
    M.save();
@@ -397,17 +474,18 @@ function renderFrame() {
       M.translate(0,backLength/2,0);
       M.save();
          M.scale(.05, backLength/2, hipWidth/8);
+         M.rotateX(pi/2);
          render(Cylinder, skinColor);          // SPINE
       M.restore();
       M.translate(0,backLength/2,0);
       M.save();
-         M.scale(.05,.02,hipWidth);
+         M.scale(.05,.02,shoulderWdith);
          render(Sphere, skinColor);            // SHOULDERS
       M.restore();
       for (let side = -1 ; side <= 1 ; side += 2) {
-         let elbow = -.5 - .5 * S(t + side * Math.PI/2 * phaseDiff);
+         let elbow = -.5 - .5 * S(t + side * pi/2 * phaseDiff);
          M.save();
-            M.translate(0,0,side * hipWidth);
+            M.translate(0,0,side * shoulderWdith);
             M.rotateX(-hipSway);
             M.rotateZ(elbow);
             M.save();
@@ -465,7 +543,7 @@ function renderFrame() {
    M.restore();
 
    for (let side = -1 ; side <= 1 ; side += 2) {
-      let knee = .5 + .5 * S(t + side * Math.PI/2 * phaseDiff);
+      let knee = .5 + .5 * S(t + side * pi/2 * phaseDiff);
       M.save();
          M.translate(0,0,side * hipWidth);
          M.rotateX(-hipSway);
