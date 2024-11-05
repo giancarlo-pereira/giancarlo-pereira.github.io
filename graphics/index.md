@@ -6,3 +6,4 @@ Below is an updated list of homework assignments:
 - [Homework 4](https://giancarlo-pereira.github.io/graphics/hw4/quadric_objects.html) on Reflection and Refraction.
 - [Homework 5](https://giancarlo-pereira.github.io/graphics/hw5/index.html) on Parametric Surfaces.
 - [Homework 6](https://giancarlo-pereira.github.io/graphics/hw6/index.html) on Skeleton Hierarchy.
+- [Homework 7](https://giancarlo-pereira.github.io/graphics/hw7/index.html) on UI/UX.
