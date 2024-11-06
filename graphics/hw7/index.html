@@ -21,6 +21,8 @@
 
 <script>
 
+// CAMERA VIEW PARAMETERS
+let fl=3;
 
 // MATH CONSTANTS
 
@@ -71,9 +73,9 @@ function Matrix() {
    this.draw = (shape,color,opacity) => draw(shape,color,opacity);
 }
 
-// INITIALIZE GL
+// INITIALIZE WEBGL
 
-let start_gl = (canvas, meshData, vertexSize, vertexShader, fragmentShader) => {
+let start_gl = (canvas, vertexSize, vertexShader, fragmentShader) => {
    let gl = canvas.getContext("webgl");
    let program = gl.createProgram();
    gl.program = program;
@@ -93,9 +95,9 @@ let start_gl = (canvas, meshData, vertexSize, vertexShader, fragmentShader) => {
    gl.useProgram(program);
    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
    gl.enable(gl.DEPTH_TEST);
-   gl.depthFunc(gl.LEQUAL);
    gl.enable(gl.BLEND);
-   gl.blendFund(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+   gl.depthFunc(gl.LEQUAL);
    let vertexAttribute = (name, size, position) => {
       let attr = gl.getAttribLocation(program, name);
       gl.enableVertexAttribArray(attr);
@@ -108,6 +110,8 @@ let start_gl = (canvas, meshData, vertexSize, vertexShader, fragmentShader) => {
 
 //CREATE A TRIANGLE_STRIP MESH
 
+// IMPLEMENT VARIOUS 3D SHAPES
+
 let createMesh = (nu, nv, p) => {
    let mesh = [];
    for (let j = nv-1 ; j >= 0 ; j--) {
@@ -117,55 +121,49 @@ let createMesh = (nu, nv, p) => {
    }
    return new Float32Array(mesh.flat());
 }
-
-// DEFINE VARIOUS KINDS OF TRIANGLE_STRIP MESHES
-
 let sphere = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let theta = 2 * pi * u;
-   let phi = pi * (v - .5);
+   let theta = 2 * Math.PI * u;
+   let phi = Math.PI * (v - .5);
    let x = C(phi) * C(theta),
        y = C(phi) * S(theta),
        z = S(phi);
    return [ x,y,z, x,y,z ];
 });
-
 let tube = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = C(2 * pi * u),
-       y = S(2 * pi * u),
+   let x = C(2 * Math.PI * u),
+       y = S(2 * Math.PI * u),
        z = 2 * v - 1;
    return [ x,y,z, x,y,0 ];
 });
-
 let disk = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = v * C(2 * pi * u),
-       y = v * S(2 * pi * u);
+   let x = v * C(2 * Math.PI * u),
+       y = v * S(2 * Math.PI * u);
    return [ x,y,0, 0,0,1 ];
 });
-
-let cylinder = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = C(2 * pi * u),
-       y = S(2 * pi * u);
+let cylinder = (nu, s) => createMesh(nu, 6, (u,v) => {
+   s = s ? s : 1;
+   let x = C(2 * Math.PI * u),
+       y = S(2 * Math.PI * u);
    switch (5 * v >> 0) {
    case 0: return [ 0,0,-1, 0,0,-1 ];
    case 1: return [ x,y,-1, 0,0,-1 ];
    case 2: return [ x,y,-1, x,y, 0 ];
-   case 3: return [ x,y, 1, x,y, 0 ];
-   case 4: return [ x,y, 1, 0,0, 1 ];
+   case 3: return [ s*x,s*y, 1, x,y, 0 ];
+   case 4: return [ s*x,s*y, 1, 0,0, 1 ];
    case 5: return [ 0,0, 1, 0,0, 1 ];
    }
 });
-
-let torus = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let ct = C(2 * pi * u);
-   let st = S(2 * pi * u);
-   let cp = C(2 * pi * v);
-   let sp = S(2 * pi * v);
-   let x = (1 + .5 * cp) * ct,
-       y = (1 + .5 * cp) * st,
-       z =      .5 * sp;
+let torus = (nu, nv, r) => createMesh(nu, nv, (u,v) => {
+   r = r ? r : .5;
+   let ct = C(2 * Math.PI * u);
+   let st = S(2 * Math.PI * u);
+   let cp = C(2 * Math.PI * v);
+   let sp = S(2 * Math.PI * v);
+   let x = (1 + r * cp) * ct,
+       y = (1 + r * cp) * st,
+       z =      r * sp;
    return [ x,y,z, cp*ct,cp*st,sp ];
 });
-
 
 // SHORTCUT TO MAKE IT EASIER TO DEFINE CUBE AND OCTAHEDRON
 
@@ -226,17 +224,18 @@ let icosahedron = strToTris(`NM0kkK M0PkkK 0NmkkK 0Nm0aL NM00aL PM00aL
 
 // DEFINE ALL THE OBJECT COLORS AND SHAPES
 
-let Cube        = { type: 0, mesh: new Float32Array(cube            ) };
-let Cylinder    = { type: 1, mesh: new Float32Array(cylinder(20,  6)) };
-let Disk        = { type: 1, mesh: new Float32Array(disk    (20,  1)) };
-let Icosahedron = { type: 0, mesh: new Float32Array(icosahedron     ) };
-let Octahedron  = { type: 0, mesh: new Float32Array(octahedron      ) };
-let Sphere      = { type: 1, mesh: new Float32Array(sphere  (40, 20)) };
-let Tetrahedron = { type: 0, mesh: new Float32Array(tetrahedron     ) };
-let Torus       = { type: 1, mesh: new Float32Array(torus   (30, 30)) };
-let Tube        = { type: 1, mesh: new Float32Array(tube    (20, 1)) };
+let Icosahedron = () => { return { type: 0, mesh: new Float32Array(icosahedron     ) }; }
+let Octahedron  = () => { return { type: 0, mesh: new Float32Array(octahedron      ) }; }
+let Tetrahedron = () => { return { type: 0, mesh: new Float32Array(tetrahedron     ) }; }
 
-// VERY SIMPLE VERTEX AND FRAGMENT SHADERS
+let Cube       = ()    => { return { type: 0, mesh: cube }; }
+let Cylinder   = (n,s) => { return { type: 1, mesh: cylinder(n,s) }; }
+let Disk       = n     => { return { type: 1, mesh: disk    (n, 1) }; }
+let Sphere     = n     => { return { type: 1, mesh: sphere  (n, n/2>>0) }; }
+let Torus      = (n,r) => { return { type: 1, mesh: torus   (n, n, r) }; }
+let Tube       = n     => { return { type: 1, mesh: tube    (n, 1) }; }
+
+// GPU SHADERS
 
 let vertexSize = 6;
 let vertexShader = `
@@ -251,7 +250,6 @@ let vertexShader = `
       gl_Position = pos * vec4(1.,1.,-.1,1.);
    }
 `;
-
 let fragmentShader = `
    precision mediump float;
    uniform vec3 uColor;
@@ -283,6 +281,7 @@ let fragmentShader = `
             diff = diffuse(vNor, vPos, uL);
             
       float c = att*(0.05+diff+spec);
+
       gl_FragColor = vec4(sqrt(c * uColor), uOpacity);
    }
 `;
@@ -296,47 +295,22 @@ let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.widt
 
 canvas1.onmousedown = e => {
    setCursor(e, 1);
-   if (balloons.length==0) {
-      balloons.push(new Balloon());
-   } else if (!balloons[balloons.length-1].inflating()) {
-      balloons.push(new Balloon());
-   } else {
-      balloons[balloons.length - 1].inflate(cursor[0], cursor[1]);
-   }
 }
 canvas1.onmousemove = e => setCursor(e,  );
 canvas1.onmouseup   = e => {
    setCursor(e, 0);
-   balloons[balloons.length-1].deflate();
 }
-
-function logMousePos(cursor) {
-    console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
-}
-
-function logBalloons(balloons) {
-   balloons.forEach(balloon =>
-      {
-         console.log(`pos: ${balloon.where()}, size: ${balloon.size()}, speed: ${balloon.speed()}, color: ${balloon.color()}, inflating: ${balloon.inflating()}`);
-      }
-   )
-}
-
-setInterval(function() {
-    logBalloons(balloons);
-    logMousePos(cursor);
-}, 100);
 
 // BALLOONS IN SCENE
 
 let balloons = [];
 
-function Balloon() {
+function Balloon(time) {
    let color = [Math.random(), Math.random(), Math.random()];
-   let size = 0.1;
-   let pos = [0,0,-5], inflating = 1;
-   let a = [0,0,0], v = [0,0,0];
-   let t = 0;
+   let size = 0.11;
+   let pos = [0.,0.,-5.], inflating = 1;
+   let a = [0.,0.,0.], v = [0.,0.,0.];
+   let t = time;
 
    this.speed = () => v;
    this.where = () => pos;
@@ -350,28 +324,28 @@ function Balloon() {
       v[0]=v[0]+a[0]*dt;
       v[1]=v[1]+a[1]*dt;
       v[2]=v[2]+a[2]*dt;
-   }
+   };
 
    this.inflating = () => inflating==1;
 
    this.inflate = (x, y) => {
       if (inflating==1) {
-         size = size*1.01;
-         pos[0] = x;
-         pos[1] = y;
+         size = size + 0.02;
+         pos[0] = fl*x;
+         pos[1] = fl*y;
       }
-   }
+   };
    this.deflate = () => inflating = 0;
 
    this.fly = (time) => {
       if (inflating==0) {
-         a=[Math.random(), Math.random(), Math.random()];
-         size=size/2;
+         a=[Math.random(), Math.random(), Math.random()-1.];
+         size=size/1.01;
          move(time-t);
          t=time;
       }
-   }
-   this.render = () => M.move(pos).scale(size,size,size).draw(Cube,color,1);
+   };
+   this.render = () => M.S().move(pos[0], pos[1], pos[2]).scale(size).draw(Sphere(60),color,.8).R();
 }
 
 // DECLARE GL-RELATED VARIABLES AND MATRIX OBJECT
@@ -400,14 +374,29 @@ function renderFrame() {
    requestAnimationFrame(renderFrame);
    let time = Date.now() / 1000 - startTime;
 
+   if (cursor[2]==1) {
+      if (balloons.length==0) {
+         balloons.push(new Balloon(time));
+      } else if (!balloons[balloons.length-1].inflating()) {
+         balloons.push(new Balloon(time));
+      } else {
+         balloons[balloons.length - 1].inflate(cursor[0], cursor[1]);
+      }
+   } else if (cursor[2]==0) {
+      if (balloons.length!=0) balloons[balloons.length-1].deflate();
+   }
+
    // camera perspective
-   M.identity().perspective(3);
-   M.S();
-   balloons.forEach(balloon => {
-      balloon.inflate(cursor[0], cursor[1]);
-      balloon.fly(time);
-      M.S().balloon.render().R();
-   })
+   M.identity().perspective(fl);
+   M.S().move(0,0,-5).scale(.6).draw(Sphere(60), [1,.05,.05], .8).R();
+   var i;
+   for (i = balloons.length - 1; i >= 0; i -= 1) {
+      console.log(`pos: ${balloons[i].where()}, size: ${balloons[i].size()}, speed: ${balloons[i].speed()}, color: ${balloons[i].color()}, inflating: ${balloons[i].inflating()}`);
+      balloons[i].inflate(cursor[0], cursor[1]);
+      balloons[i].fly(time);
+      if (balloons[i].size() < 0.1) balloons.splice(i,1);
+      else balloons[i].render();
+   }
 }
 requestAnimationFrame(renderFrame);
 
