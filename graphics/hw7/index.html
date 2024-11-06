@@ -1,155 +1,74 @@
 <head>
    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-   <link rel="stylesheet" type="text/css" href="style.css"
+   <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 
 <body>
    <center>
    <p>
-      GIANCARLO PEREIRA HW6 -- SKELETON HIERARCHY
+      GIANCARLO PEREIRA HW7 -- UI/UX
    </p>
    <p>
-      Easter Egg: Click to make avatar's nose grow.
+      This last weekend was my birthday. In the celebratory mood, help me inflate some balloons!
    </p>
-   <table cellspacing=10 cellpadding=10><TR>
-      <tr>
-         <td>
-            <div class="container">
-               <button class="btn" id="btn">
-                 Avatar Actions
-                 <i class="bx bx-chevron-down" id="arrow"></i>
-               </button>
-             
-               <div class="dropdown" id="dropdown">
-                 <a href="" action="clap">
-                   <i class="bx bxs-hand bx-burst" ></i>
-                   Clapping
-                 </a>
-                 <a href="" action="sad">
-                   <i class="bx bx-confused"></i>
-                   Walking Sad
-                 </a>
-                 <a href="" action="cool">
-                   <i class="bx bx-cool"></i>
-                   Walking Confidently
-                 </a>
-                 <a href="" action="dance">
-                   <i class="bx bx-party"></i>
-                   Ballet Dancing
-                 </a>
-                 <a href="" action="exercise">
-                   <i class="bx bx-body bx-tada" ></i>
-                   Jumping jacks
-                 </a>
-                 <a href="" action="coffee">
-                  <i class='bx bx-coffee bx-flashing' ></i>
-                  Drinking Cofee
-                </a>
-               </div>
-             </div>
-         </td>
-         <td>
-            <canvas id='canvas1' width=800 height=800></canvas>
-         </td>
-      </tr>
-   </table>
+   <p>
+      Press down the mouse to inflate the balloon. Let go of it and see what happens!
+   </p>
+   <canvas id='canvas1' width=800 height=800></canvas>
       
    </center>
 </body>
 
 <script>
 
-// HANDLING DROPDOWN
-
-const dropdownBtn = document.getElementById("btn");
-const dropdownMenu = document.getElementById("dropdown");
-const toggleArrow = document.getElementById("arrow");
-
-// Toggle dropdown function
-const toggleDropdown = function () {
-  dropdownMenu.classList.toggle("show");
-  toggleArrow.classList.toggle("arrow");
-};
-
-// Toggle dropdown open/close when dropdown button is clicked
-dropdownBtn.addEventListener("click", function (e) {
-  e.stopPropagation();
-  toggleDropdown();
-});
-
-// Close dropdown when dom element is clicked
-document.documentElement.addEventListener("click", function () {
-  if (dropdownMenu.classList.contains("show")) {
-    toggleDropdown();
-  }
-});
-
-// CATCH NEW ACTION FOR AVATAR
-let action = 'clap';
-
-const dropdownLinks = document.querySelectorAll('#dropdown a');
-
-// Add click event listeners to each link
-dropdownLinks.forEach(link => {
-   link.addEventListener('click', e => {
-      e.preventDefault(); // Prevent the default anchor behavior redirecting 
-
-      action = link.getAttribute('action');
-      console.log('Action selected:', action); // Log the action to confirm
-      });
-});
 
 // MATH CONSTANTS
 
 let pi = Math.PI;
-let C = t => Math.cos(t);
-let S = t => Math.sin(t);
 
-// A TINY MATRIX LIBRARY
+// MATRIX SUPPORT LIBRARY
 
 let mInverse = m => {
-   let dst = [], det = 0, cofactor = (c, r) => {
+   let d = [], de = 0, co = (c, r) => {
       let s = (i, j) => m[c+i & 3 | (r+j & 3) << 2];
       return (c+r & 1 ? -1 : 1) * ( (s(1,1) * (s(2,2) * s(3,3) - s(3,2) * s(2,3)))
                                   - (s(2,1) * (s(1,2) * s(3,3) - s(3,2) * s(1,3)))
                                   + (s(3,1) * (s(1,2) * s(2,3) - s(2,2) * s(1,3))) );
    }
-   for (let n = 0 ; n < 16 ; n++) dst.push(cofactor(n >> 2, n & 3));
-   for (let n = 0 ; n <  4 ; n++) det += m[n] * dst[n << 2]; 
-   for (let n = 0 ; n < 16 ; n++) dst[n] /= det;
-   return dst;
+   for (let n = 0 ; n < 16 ; n++) d.push(co(n >> 2, n & 3));
+   for (let n = 0 ; n <  4 ; n++) de += m[n] * d[n << 2]; 
+   for (let n = 0 ; n < 16 ; n++) d[n] /= de;
+   return d;
 }
-let matrixMultiply = (a, b) => {
-   let dst = [];
+let mxm = (a, b) => {
+   let d = [];
    for (let n = 0 ; n < 16 ; n++)
-      dst.push(a[n&3]*b[n&12] + a[n&3|4]*b[n&12|1] + a[n&3|8]*b[n&12|2] + a[n&3|12]*b[n&12|3]);
-   return dst;
+      d.push(a[n&3]*b[n&12] + a[n&3|4]*b[n&12|1] + a[n&3|8]*b[n&12|2] + a[n&3|12]*b[n&12|3]);
+   return d;
 }
-
-let mIdentity = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
-let mPerspective = (fl, m) => matrixMultiply(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
-let mRotateX = (t, m) => matrixMultiply(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
-let mRotateY = (t, m) => matrixMultiply(m, [C(t),0,-S(t),0, 0,1,0,0, S(t),0,C(t),0, 0,0,0,1]);
-let mRotateZ = (t, m) => matrixMultiply(m, [C(t),S(t),0,0, -S(t),C(t),0,0, 0,0,1,0, 0,0,0,1]);
-let mScale = (x,y,z, m) => matrixMultiply(m, [x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1]);
-let mTranslate = (x,y,z, m) => matrixMultiply(m, [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
-
+let C = t => Math.cos(t), S = t => Math.sin(t);
+let mId = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
+let mPe = (fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
+let mRX = (t, m) => mxm(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
+let mRY = (t, m) => mxm(m, [C(t),0,-S(t),0, 0,1,0,0, S(t),0,C(t),0, 0,0,0,1]);
+let mRZ = (t, m) => mxm(m, [C(t),S(t),0,0, -S(t),C(t),0,0, 0,0,1,0, 0,0,0,1]);
+let mSc = (x,y,z, m) => mxm(m, [x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1]);
+let mTr = (x,y,z, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
 function Matrix() {
-   let stack = [], top = 0;
+   let stack = [mId()], top = 0;
    let set = arg => { stack[top] = arg; return this; }
-   let get = ()  =>  stack[top];
-
-   this.identity = ()       => set(mIdentity()); 
-   this.perspective = FL    => set(mPerspective(FL, get())); 
-   this.rotateX = t         => set(mRotateX(t, get())); 
-   this.rotateY = t         => set(mRotateY(t, get())); 
-   this.rotateZ = t         => set(mRotateZ(t, get())); 
-   this.scale = (x,y,z)     => set(mScale(x,y,z, get())); 
-   this.translate = (x,y,z) => set(mTranslate(x,y,z, get())); 
-   this.get = ()            => get();
-
-   this.save = () => set(stack[top++].slice());
-   this.restore = () => --top;
+   let get = () => stack[top];
+   this.identity = () => set(mId());
+   this.perspective = fl => set(mPe(fl, get()));
+   this.turnX = t => set(mRX(t, get()));
+   this.turnY = t => set(mRY(t, get()));
+   this.turnZ = t => set(mRZ(t, get()));
+   this.scale = (x,y,z) => set(mSc(x,y?y:x,z?z:x, get()));
+   this.move = (x,y,z) => set(mTr(x,y,z, get()));
+   this.get = () => get();
+   this.S = () => set(stack[top++].slice());
+   this.R = () => --top;
+   this.draw = (shape,color,opacity) => draw(shape,color,opacity);
 }
 
 // INITIALIZE GL
@@ -305,22 +224,6 @@ let icosahedron = strToTris(`NM0kkK M0PkkK 0NmkkK 0Nm0aL NM00aL PM00aL
 
 // DEFINE ALL THE OBJECT COLORS AND SHAPES
 
-let meshData = [
-   // { type: 1, color: [1.,.1,.1], mesh: new Float32Array(sphere  (40, 20)) },
-   // { type: 1, color: [.1,1.,.1], mesh: new Float32Array(tube    (20,  1)) },
-   // { type: 1, color: [.1,.1,1.], mesh: new Float32Array(disk    (20,  1)) },
-   // { type: 1, color: [1.,1.,.1], mesh: new Float32Array(cylinder(20,  6)) },
-   // { type: 1, color: [1.,.1,1.], mesh: new Float32Array(torus   (30, 30)) },
-   // { type: 0, color: [.1,1.,1.], mesh: new Float32Array(cube) },
-   // { type: 0, color: [1.,1.,1.], mesh: new Float32Array(octahedron) },
-   { type: 0, color: [120/255,150/255,238/255], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [1.,150/255,90/255], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [1.,.1,.1], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [50/255,117/255,150/255], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [0.,220/255,.1], mesh: new Float32Array(tetrahedron) },
-   { type: 0, color: [50/255,150/255,50/255], mesh: new Float32Array(icosahedron) },
-];
-
 let Cube        = { type: 0, mesh: new Float32Array(cube            ) };
 let Cylinder    = { type: 1, mesh: new Float32Array(cylinder(20,  6)) };
 let Disk        = { type: 1, mesh: new Float32Array(disk    (20,  1)) };
@@ -349,33 +252,8 @@ let vertexShader = `
 
 let fragmentShader = `
    precision mediump float;
-
-   // NOISE FUNCTIONS
-   float noise(vec3 point) { float r = 0.; for (int i=0;i<16;i++) {
-   vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
-      1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
-   C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
-   D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
-   r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
-   } return .5 * sin(r); }
-   
-   float turbulence(vec3 P) {
-      float f = 0., s = 1.;
-      for (int i = 0 ; i < 4 ; i++) {
-         f += abs(noise(s * P)) / s;
-         s *= 2.;
-         P = vec3(.866*P.x + .5*P.z, P.y + 100., -.5*P.x + .866*P.z);
-      }
-      return f;
-   }
-
-   vec3 marble(vec3 pos) {
-   float v = turbulence(pos);
-   float s = sqrt(.5 + .5 * sin(20. * pos.y + 8. * v));
-   return vec3(132./255.,36./255.,12./255.)*vec3(s,s*s,s*s*s);
-   }
-
    uniform vec3 uColor;
+   uniform float uOpacity;
    varying vec3 vPos, vNor;
 
    // LIGHTING
@@ -398,46 +276,121 @@ let fragmentShader = `
    void main(void) {
       vec3 uL = vec3(-1., 2., 2.);
 
-      float att = 3.*attenuation(vPos, uL),
+      float att = 10.*attenuation(vPos, uL),
             spec = specular(vec3(0.,0.,1.), vNor, vPos, uL),
             diff = diffuse(vNor, vPos, uL);
-      
-      gl_FragColor = vec4(sqrt(att*uColor*((.05 + diff)*turbulence(marble(vPos.yxz)))), 1.);
+            
+      float c = att*(0.05+diff+spec);
+      gl_FragColor = vec4(sqrt(c * uColor), uOpacity);
    }
 `;
 
-// HANDLE 
-let noseLength = 0.01,
-    noseGrowthRate = 0;
-canvas1.onmousedown = e => noseGrowthRate=0.01;
-canvas1.onmouseup   = e => noseGrowthRate=0;
+// HANDLE CURSOR
 
-let noseAction = () => noseLength=noseLength*(1+noseGrowthRate);
+let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
+                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
+                                     z !== undefined ? z : cursor[2] ];
 
-// INITIALIZE GL AND GET UNIFORM NAMES
+canvas1.onmousedown = e => {
+   setCursor(e, 1);
+   if (balloons.length==0) {
+      balloons.push(new Balloon());
+   } else if (!balloons[balloons.length-1].inflating()) {
+      balloons.push(new Balloon());
+   }else {
+      balloons[balloons.length - 1].inflate(cursor[0], cursor[1]);
+   }
+}
+canvas1.onmousemove = e => setCursor(e,  );
+canvas1.onmouseup   = e => {
+   setCursor(e, 0);
+   balloons[balloons.length-1].deflate();
+}
 
-let gl = start_gl(canvas1, meshData, vertexSize, vertexShader, fragmentShader);
+function logMousePos(cursor) {
+    console.log(`Cursor is at (${cursor[0]}, ${cursor[1]}) and its press status is ${cursor[2]}`);
+}
 
+function logBalloons(balloons) {
+   balloons.forEach(balloon =>
+      {
+         console.log(`pos: ${balloon.where()}, size: ${balloon.size()}, speed: ${balloon.speed()}, color: ${balloon.color()}`);
+      }
+   )
+}
+
+setInterval(function() {
+    logBalloons(balloons);
+    logMousePos(cursor);
+}, 100);
+
+// BALLOONS IN SCENE
+
+let balloons = [];
+
+function Balloon() {
+   let color = [Math.random(), Math.random(), Math.random()];
+   let size = 0.1;
+   let pos = [0,0,-5], inflating = 1;
+   let a = [0,0,0], v = [0,0,0];
+   let t = 0;
+
+   this.speed = () => v;
+   this.where = () => pos;
+   this.color = () => color;
+   this.size  = () => size;
+
+   let move = (dt) => {
+      pos[0]=pos[0]+v[0]*dt+0.5*a[0]*dt^2;
+      pos[1]=pos[1]+v[1]*dt+0.5*a[1]*dt^2;
+      pos[2]=pos[2]+v[2]*dt+0.5*a[2]*dt^2;
+      v[0]=v[0]+a[0]*dt;
+      v[1]=v[1]+a[1]*dt;
+      v[2]=v[2]+a[2]*dt;
+   }
+
+   this.inflating = () => inflating==1;
+
+   this.inflate = (x, y) => {
+      if (inflating==1) {
+         size = size*1.01;
+         pos[0] = x;
+         pos[1] = y;
+      }
+   }
+   this.deflate = () => inflating = 0;
+
+   this.fly = (time) => {
+      if (inflating==0) {
+         a=[Math.random(), Math.random(), Math.random()];
+         size=size/2;
+         move(time-t);
+         t=time;
+      }
+   }
+   this.render = () => M.move(pos).scale(size,size,size).draw(Cube,color,1);
+}
+
+// DECLARE GL-RELATED VARIABLES AND MATRIX OBJECT
+
+let gl = start_gl(canvas1, vertexSize, vertexShader, fragmentShader);
 let uColor     = gl.getUniformLocation(gl.program, "uColor"    );
+let uOpacity   = gl.getUniformLocation(gl.program, "uOpacity"  );
 let uInvMatrix = gl.getUniformLocation(gl.program, "uInvMatrix");
 let uMatrix    = gl.getUniformLocation(gl.program, "uMatrix"   );
-
-// THE ANIMATION LOOP
-
 let M = new Matrix();
 
-let render = (Shape, color) => {
-   // SET THE VALUES OF VARIOUS UNIFORM VARIABLES
+// DRAW A SINGLE SHAPE TO THE WEBGL CANVAS
 
+let draw = (Shape, color, opacity) => {
+   gl.uniform1f       (uOpacity  , opacity===undefined ? 1 : opacity);
    gl.uniform3fv      (uColor    , color );
    gl.uniformMatrix4fv(uInvMatrix, false, mInverse(M.get()));
    gl.uniformMatrix4fv(uMatrix   , false, M.get()          );
-
-   // RENDER THIS OBJECT
-
-   let mesh = Shape.mesh;
-   gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
-   gl.drawArrays(Shape.type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, mesh.length / vertexSize);
+   gl.bufferData(gl.ARRAY_BUFFER, Shape.mesh, gl.STATIC_DRAW);
+   gl.drawArrays(Shape.type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, Shape.mesh.length / vertexSize);
+   return M;
 }
 
 let startTime = Date.now() / 1000;
@@ -445,687 +398,13 @@ function renderFrame() {
    requestAnimationFrame(renderFrame);
    let time = Date.now() / 1000 - startTime;
 
-   let t = 2 * time;
-   let limbLength = .4;
-   let hipWidth = limbLength / 4;
-   let hipSway = .2 * C(t);
-   let shoulderSway = .1 * hipSway;
-   let backLength = limbLength;
-   let shoulderWdith = 2.5 * hipWidth;
-   let armLength = 1 * backLength;
-   let neckLength = backLength / 8;
-   
-   let headSize = 2 * neckLength;
-   let headSway = .25*S(time);
-   let eyeSize = headSize / 10;
-   noseAction();
-   let hairLength = headSize/5;
-
-   let skinColor = [0,.5,1];
-   let woodColor = [205/255,170/255,125/255];
-   let eyeColor = [.05,.05,.1];
-
-   // POSSIBLE ACTIONS
-   let clap     = () => {
-      M.save();
-         M.scale(.05,.05,hipWidth);
-         render(Sphere, skinColor);               // PELVIS
-      M.restore();
-      M.save();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05, backLength/2, hipWidth/8);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);          // SPINE
-         M.restore();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05,.02,shoulderWdith);
-            render(Sphere, skinColor);            // SHOULDERS
-         M.restore();
-         for (let side = -1 ; side <= 1 ; side += 2) {
-            M.save();
-               M.translate(0,0,side * shoulderWdith);
-               M.rotateZ(pi/8);
-               M.save();
-                  M.translate(0,-armLength/2,0);
-                  M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);        // BICEP
-               M.restore();
-               M.translate(0,-armLength,0);
-               M.save();
-                  M.rotateZ(pi/2);
-                  M.rotateX(0.6*side*S(4*t));
-                  M.save();
-                     M.translate(0,-armLength/2,0);
-                     M.scale(.05,armLength/2,.05);
-                     render(Sphere, skinColor);     // FOREARM
-                  M.restore();
-                  M.translate(0,-armLength,0);
-                  M.save();
-                     M.translate(armLength/12,0,0);
-                     M.scale(armLength/12,armLength/12,armLength/24);
-                     render(Sphere, skinColor);     // HAND
-                  M.restore();
-               M.restore();
-            M.restore();
-         }
-         M.translate(0,neckLength/2,0);
-         M.save();
-            M.scale(0.01,neckLength/2,0.01);
-            render(Sphere, skinColor);            // NECK
-         M.restore();
-         M.translate(0,headSize/2,0);
-         M.save();
-            M.save();
-               M.scale(hipWidth,headSize/2,hipWidth);
-               M.rotateX(pi/2);
-               render(Cylinder, skinColor);      // HEAD
-            M.restore();
-            M.translate(hipWidth,headSize/4,0);
-            M.save();
-               M.rotateY(pi/2);
-               M.translate(0, 0, noseLength/2);
-               M.scale(0.01, 0.01, noseLength/2);
-               render(Cylinder, skinColor);     // NOSE
-            M.restore();
-            M.save();
-               M.translate(0,0,-1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // LEFT EYE
-            M.restore();
-               M.translate(0,0,+1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // RIGHT EYE  
-         M.restore();
-         
-      M.restore();
-
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         M.save();
-            M.translate(0,0,side * hipWidth);
-            M.save();
-               M.translate(0,-limbLength/2,0);
-               M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);        // UPPER LEG
-            M.restore();
-            M.translate(0,-limbLength,0);
-            M.save();
-               M.save();
-                  M.translate(0,-limbLength/2,0);
-                  M.scale(.05,limbLength/2,.05);
-                  render(Sphere, skinColor);     // LOWER LEG
-               M.restore();
-               M.translate(0,-limbLength,0);
-               M.save();
-                  M.translate(limbLength/4,0,0);
-            M.scale(limbLength/4,.05,.05);
-                  render(Sphere, skinColor);     // FOOT
-               M.restore();
-            M.restore();
-         M.restore();
-      }
-
-   }
-
-   let sad      = () => {
-      M.rotateX(hipSway);
-      M.save();
-         M.scale(.05,.05,hipWidth);
-         render(Sphere, skinColor);               // PELVIS
-      M.restore();
-      M.save();
-         M.rotateZ(-pi/8 + Math.abs(hipSway)/2);
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05, backLength/2, hipWidth/8);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);          // SPINE
-         M.restore();
-         M.translate(0,backLength/2,0);
-         M.rotateY(-pi/2*shoulderSway);
-         M.save();
-            M.scale(.05,.02,shoulderWdith);
-            render(Sphere, skinColor);            // SHOULDERS
-         M.restore();
-         for (let side = -1 ; side <= 1 ; side += 2) {
-            // let elbow = -.5 - .5 * S(t - side * pi/2);
-            M.save();
-               M.rotateZ(pi/8);
-               M.translate(0,0,side * shoulderWdith);
-               M.rotateX(-hipSway);
-               // M.rotateZ(elbow);
-               M.save();
-                  M.translate(0,-armLength/2,0);
-                  M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);        // BICEP
-               M.restore();
-               M.translate(0,-armLength,0);
-               M.save();
-                  // M.rotateZ(-2 * elbow);
-                  M.save();
-                     M.translate(0,-armLength/2,0);
-                     M.scale(.05,armLength/2,.05);
-                     render(Sphere, skinColor);     // FOREARM
-                  M.restore();
-                  M.translate(0,-armLength,0);
-                  M.save();
-                     M.translate(armLength/12,0,0);
-                     M.scale(armLength/12,armLength/12,armLength/12);
-                     render(Icosahedron, skinColor);     // HAND
-                  M.restore();
-               M.restore();
-            M.restore();
-         }
-         M.translate(0,neckLength/2,0);
-         M.save();
-            M.scale(0.01,neckLength/2,0.01);
-            render(Sphere, skinColor);            // NECK
-         M.restore();
-         M.translate(0,headSize/2,0);
-         M.save();
-            M.rotateZ(-pi/8);
-            M.save();
-               M.scale(hipWidth,headSize/2,hipWidth);
-               M.rotateX(pi/2);
-               render(Cylinder, skinColor);      // HEAD
-            M.restore();
-            M.translate(hipWidth,headSize/4,0);
-            M.save();
-               M.rotateY(pi/2);
-               M.translate(0, 0, noseLength/2);
-               M.scale(0.01, 0.01, noseLength/2);
-               render(Cylinder, skinColor);     // NOSE
-            M.restore();
-            M.save();
-               M.translate(0,0,-1*hipWidth/2);
-               M.scale(headSize/8,headSize/12,headSize/8);
-               render(Sphere, eyeColor);        // LEFT EYE
-            M.restore();
-               M.translate(0,0,+1*hipWidth/2);
-               M.scale(headSize/8,headSize/12,headSize/8);
-               render(Sphere, eyeColor);        // RIGHT EYE  
-         M.restore();
-         
-      M.restore();
-
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         let knee = .5 + .5 * S(t + side * pi/2);
-         M.save();
-            M.translate(0,0,side * hipWidth);
-            M.rotateX(-hipSway);
-            M.rotateZ(knee);
-            M.save();
-               M.translate(0,-limbLength/2,0);
-               M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);        // UPPER LEG
-            M.restore();
-            M.translate(0,-limbLength,0);
-            M.save();
-               M.rotateZ(-2 * knee);
-               M.save();
-                  M.translate(0,-limbLength/2,0);
-                  M.scale(.05,limbLength/2,.05);
-                  render(Sphere, skinColor);     // LOWER LEG
-               M.restore();
-               M.translate(0,-limbLength,0);
-               M.save();
-                  M.translate(limbLength/4,0,0);
-            M.scale(limbLength/4,.05,.05);
-                  render(Sphere, skinColor);     // FOOT
-               M.restore();
-            M.restore();
-         M.restore();
-      }
-   }
-
-   let cool     = () => {
-      M.rotateX(hipSway);
-      M.save();
-         M.scale(.05,.05,hipWidth);
-         render(Sphere, skinColor);               // PELVIS
-      M.restore();
-      M.save();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05, backLength/2, hipWidth/8);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);          // SPINE
-         M.restore();
-         M.translate(0,backLength/2,0);
-         M.rotateY(-pi/2*shoulderSway);
-         M.save();
-            M.scale(.05,.02,shoulderWdith);
-            render(Sphere, skinColor);            // SHOULDERS
-         M.restore();
-         for (let side = -1 ; side <= 1 ; side += 2) {
-            let elbow = -.5 - .5 * S(t - side * pi/2);
-            M.save();
-               M.translate(0,0,side * shoulderWdith);
-               M.rotateX(-hipSway);
-               M.rotateZ(elbow);
-               M.save();
-                  M.translate(0,-armLength/2,0);
-                  M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);        // BICEP
-               M.restore();
-               M.translate(0,-armLength,0);
-               M.save();
-                  M.rotateZ(-2 * elbow);
-                  M.save();
-                     M.translate(0,-armLength/2,0);
-                     M.scale(.05,armLength/2,.05);
-                     render(Sphere, skinColor);     // FOREARM
-                  M.restore();
-                  M.translate(0,-armLength,0);
-                  M.save();
-                     M.translate(armLength/12,0,0);
-                     M.scale(armLength/12,armLength/12,armLength/12);
-                     render(Icosahedron, skinColor);     // HAND
-                  M.restore();
-               M.restore();
-            M.restore();
-         }
-         M.translate(0,neckLength/2,0);
-         M.save();
-            M.scale(0.01,neckLength/2,0.01);
-            render(Sphere, skinColor);            // NECK
-         M.restore();
-         M.translate(0,headSize/2,0);
-         M.save();
-            M.rotateY(headSway);
-            M.save();
-               M.scale(hipWidth,headSize/2,hipWidth);
-               M.rotateX(pi/2);
-               render(Cylinder, skinColor);      // HEAD
-            M.restore();
-            M.translate(hipWidth,headSize/4,0);
-            M.save();
-               M.rotateY(pi/2);
-               M.translate(0, 0, noseLength/2);
-               M.scale(0.01, 0.01, noseLength/2);
-               render(Cylinder, skinColor);     // NOSE
-            M.restore();
-            M.save();
-               M.translate(0,0,-1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // LEFT EYE
-            M.restore();
-               M.translate(0,0,+1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // RIGHT EYE  
-         M.restore();
-         
-      M.restore();
-
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         let knee = .5 + .5 * S(t + side * pi/2);
-         M.save();
-            M.translate(0,0,side * hipWidth);
-            M.rotateX(-hipSway);
-            M.rotateZ(knee);
-            M.save();
-               M.translate(0,-limbLength/2,0);
-               M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);        // UPPER LEG
-            M.restore();
-            M.translate(0,-limbLength,0);
-            M.save();
-               M.rotateZ(-2 * knee);
-               M.save();
-                  M.translate(0,-limbLength/2,0);
-                  M.scale(.05,limbLength/2,.05);
-                  render(Sphere, skinColor);     // LOWER LEG
-               M.restore();
-               M.translate(0,-limbLength,0);
-               M.save();
-                  M.translate(limbLength/4,0,0);
-            M.scale(limbLength/4,.05,.05);
-                  render(Sphere, skinColor);     // FOOT
-               M.restore();
-            M.restore();
-         M.restore();
-      }
-   }
-
-   let dance    = () => {
-      let head = pi/3 * C(time);
-      M.save();
-         M.scale(.05,.05,hipWidth);
-         render(Sphere, skinColor);               // PELVIS
-      M.restore();
-      M.save();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05, backLength/2, hipWidth/8);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);          // SPINE
-         M.restore();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05,.02,shoulderWdith);
-            render(Sphere, skinColor);            // SHOULDERS
-         M.restore();
-         for (let side = -1 ; side <= 1 ; side += 2) {
-            let handSway = S(time - side*pi/2);
-            M.save();
-               M.translate(0,0,side * shoulderWdith);
-               M.rotateZ(pi/4);
-               M.rotateX(-side*Math.max(0,handSway));
-               M.save();
-                  M.translate(0,-armLength/2,0);
-                  M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);        // BICEP
-               M.restore();
-               M.translate(0,-armLength,0);
-               M.save();
-                  M.rotateX(side*pi/5);
-                  M.save();
-                     M.translate(0,-armLength/2,0);
-                     M.scale(.05,armLength/2,.05);
-                     render(Sphere, skinColor);     // FOREARM
-                  M.restore();
-                  M.translate(0,-armLength,0);
-                  M.save();
-                     M.translate(armLength/12,0,0);
-                     M.scale(armLength/12,armLength/12,armLength/24);
-                     render(Sphere, skinColor);     // HAND
-                  M.restore();
-               M.restore();
-            M.restore();
-         }
-         M.translate(0,neckLength/2,0);
-         M.save();
-            M.scale(0.01,neckLength/2,0.01);
-            render(Sphere, skinColor);            // NECK
-         M.restore();
-         M.translate(0,headSize/2,0);
-         M.save();
-            M.rotateY(head);
-            M.save();
-               M.scale(hipWidth,headSize/2,hipWidth);
-               M.rotateX(pi/2);
-               render(Cylinder, skinColor);      // HEAD
-            M.restore();
-            M.translate(hipWidth,headSize/4,0);
-            M.save();
-               M.rotateY(pi/2);
-               M.translate(0, 0, noseLength/2);
-               M.scale(0.01, 0.01, noseLength/2);
-               render(Cylinder, skinColor);     // NOSE
-            M.restore();
-            M.save();
-               M.translate(0,0,-1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // LEFT EYE
-            M.restore();
-               M.translate(0,0,+1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // RIGHT EYE  
-         M.restore();
-         
-      M.restore();
-
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         let kneeBend = Math.max(0,S(time - side*pi/2));
-         M.save();
-            M.translate(0,0,side * hipWidth);
-            M.rotateY(-side*pi/4);
-            M.rotateZ(pi/8 + pi/8*kneeBend);
-            M.save();
-               M.translate(0,-limbLength/2,0);
-               M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);        // UPPER LEG
-            M.restore();
-            M.translate(0,-limbLength,0);
-            M.save();
-               M.rotateZ(-3*pi/8 + kneeBend);
-               M.save();
-                  M.translate(0,-limbLength/2,0);
-                  M.scale(.05,limbLength/2,.05);
-                  render(Sphere, skinColor);     // LOWER LEG
-               M.restore();
-               M.translate(0,-limbLength,0);
-               M.save();
-                  M.rotateZ(pi/4 - pi/2*kneeBend);
-                  M.translate(limbLength/4,0,0);
-                  M.scale(limbLength/4,.05,.05);
-                  render(Sphere, skinColor);     // FOOT
-               M.restore();
-            M.restore();
-         M.restore();
-      }  
-   }
-
-   let exercise = () => {
-      M.translate(0, 0.1*Math.max(Math.min(1, 5*C(t)*C(t)*C(t)*C(t)), 0),0);
-      M.save();
-         M.scale(.05,.05,hipWidth);
-         render(Sphere, skinColor);               // PELVIS
-      M.restore();
-      M.save();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05, backLength/2, hipWidth/8);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);          // SPINE
-         M.restore();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05,.02,shoulderWdith);
-            render(Sphere, skinColor);            // SHOULDERS
-         M.restore();
-         for (let side = -1 ; side <= 1 ; side += 2) {
-            let bicepSway = -side*(pi/8 + 3*pi/4*S(t)*S(t));
-            let forearmSway = -side*pi/2*S(t)*S(t);
-            M.save();
-               M.translate(0,0,side * shoulderWdith);
-               M.rotateY(pi/2);
-               M.rotateZ(bicepSway);
-               M.save();
-                  M.translate(0,-armLength/2,0);
-                  M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);        // BICEP
-               M.restore();
-               M.translate(0,-armLength,0);
-               M.save();
-                  M.rotateZ(forearmSway);
-                  M.save();
-                     M.translate(0,-armLength/2,0);
-                     M.scale(.05,armLength/2,.05);
-                     render(Sphere, skinColor);     // FOREARM
-                  M.restore();
-                  M.translate(0,-armLength,0);
-                  M.save();
-                     M.translate(armLength/12,0,0);
-                     M.scale(armLength/12,armLength/12,armLength/24);
-                     render(Sphere, skinColor);     // HAND
-                  M.restore();
-               M.restore();
-            M.restore();
-         }
-         M.translate(0,neckLength/2,0);
-         M.save();
-            M.scale(0.01,neckLength/2,0.01);
-            render(Sphere, skinColor);            // NECK
-         M.restore();
-         M.translate(0,headSize/2,0);
-         M.save();
-            M.save();
-               M.scale(hipWidth,headSize/2,hipWidth);
-               M.rotateX(pi/2);
-               render(Cylinder, skinColor);      // HEAD
-            M.restore();
-            M.translate(hipWidth,headSize/4,0);
-            M.save();
-               M.rotateY(pi/2);
-               M.translate(0, 0, noseLength/2);
-               M.scale(0.01, 0.01, noseLength/2);
-               render(Cylinder, skinColor);     // NOSE
-            M.restore();
-            M.save();
-               M.translate(0,0,-1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // LEFT EYE
-            M.restore();
-               M.translate(0,0,+1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // RIGHT EYE  
-         M.restore();
-         
-      M.restore();
-
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         let legSway = -side*(pi/7 - pi/7*C(t)*C(t));
-         M.save();
-            M.translate(0,0,side * hipWidth);
-            M.rotateX(legSway);
-            M.save();
-               M.translate(0,-limbLength/2,0);
-               M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);        // UPPER LEG
-            M.restore();
-            M.translate(0,-limbLength,0);
-            M.save();
-               M.save();
-                  M.translate(0,-limbLength/2,0);
-                  M.scale(.05,limbLength/2,.05);
-                  render(Sphere, skinColor);     // LOWER LEG
-               M.restore();
-               M.translate(0,-limbLength,0);
-               M.save();
-                  M.translate(limbLength/4,0,0);
-            M.scale(limbLength/4,.05,.05);
-                  render(Sphere, skinColor);     // FOOT
-               M.restore();
-            M.restore();
-         M.restore();
-      }
-   }
-
-   let coffee   = () => {
-      let tilt = .5 + .5 * Math.max(-1., Math.min(1., 5*S(time)));
-      M.translate(0,-0.3,0);
-      M.save();
-         M.scale(.05,.05,hipWidth);
-         render(Sphere, skinColor);               // PELVIS
-      M.restore();
-      M.save();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05, backLength/2, hipWidth/8);
-            M.rotateX(pi/2);
-            render(Cylinder, skinColor);          // SPINE
-         M.restore();
-         M.translate(0,backLength/2,0);
-         M.save();
-            M.scale(.05,.02,shoulderWdith);
-            render(Sphere, skinColor);            // SHOULDERS
-         M.restore();
-         for (let side = -1 ; side <= 1 ; side += 2) {
-            M.save();
-               M.translate(0,0,side * shoulderWdith);
-               if (side==1) {
-                  M.rotateZ(tilt + pi/4);
-                  M.rotateY(pi/4);
-               }
-               M.save();
-                  M.translate(0,-armLength/2,0);
-                  M.scale(.05,armLength/2,.05);
-                  render(Sphere, skinColor);        // BICEP
-               M.restore();
-               M.translate(0,-armLength,0);
-               M.rotateZ(pi/2);
-               M.save();
-                  if (side==1) {
-                        M.rotateZ(0.7*tilt);
-                     }
-                  M.save();
-                     M.translate(0,-armLength/2,0);
-                     M.scale(.05,armLength/2,.05);
-                     render(Sphere, skinColor);     // FOREARM
-                  M.restore();
-                  M.translate(0,-armLength,0);
-                  M.save();
-                     M.translate(armLength/12,0,0);
-                     M.scale(armLength/12,armLength/12,armLength/12);
-                     render(Icosahedron, skinColor);     // HAND
-                  M.restore();
-               M.restore();
-            M.restore();
-         }
-         M.translate(0,neckLength/2,0);
-         M.save();
-            M.scale(0.01,neckLength/2,0.01);
-            render(Sphere, skinColor);            // NECK
-         M.restore();
-         M.translate(0,headSize/2,0);
-         M.save();
-            M.rotateZ(tilt);
-            M.save();
-               M.scale(hipWidth,headSize/2,hipWidth);
-               M.rotateX(pi/2);
-               render(Cylinder, skinColor);      // HEAD
-            M.restore();
-            M.translate(hipWidth,headSize/4,0);
-            M.save();
-               M.rotateY(pi/2);
-               M.translate(0, 0, noseLength/2);
-               M.scale(0.01, 0.01, noseLength/2);
-               render(Cylinder, skinColor);     // NOSE
-            M.restore();
-            M.save();
-               M.translate(0,0,-1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // LEFT EYE
-            M.restore();
-               M.translate(0,0,+1*hipWidth/2);
-               M.scale(headSize/8,2*headSize/8,headSize/8);
-               render(Sphere, eyeColor);        // RIGHT EYE  
-         M.restore();
-         
-      M.restore();
-
-      for (let side = -1 ; side <= 1 ; side += 2) {
-         M.save();
-            M.translate(0,0,side * hipWidth);
-            M.rotateZ(pi/2);
-            M.save();
-               M.translate(0,-limbLength/2,0);
-               M.scale(.05,limbLength/2,.05);
-               render(Sphere, skinColor);        // UPPER LEG
-            M.restore();
-            M.translate(0,-limbLength,0);
-            M.save();
-               M.rotateZ(-pi/2);
-               M.save();
-                  M.translate(0,-limbLength/2,0);
-                  M.scale(.05,limbLength/2,.05);
-                  render(Sphere, skinColor);     // LOWER LEG
-               M.restore();
-               M.translate(0,-limbLength,0);
-               M.save();
-                  M.translate(limbLength/4,0,0);
-            M.scale(limbLength/4,.05,.05);
-                  render(Sphere, skinColor);     // FOOT
-               M.restore();
-            M.restore();
-         M.restore();
-      }
-   }
    // camera perspective
    M.identity().perspective(3);
-
-   M.translate(0,0.2,0).rotateY(time/2);
-
-   switch (action) {
-      case 'clap':      clap();      break;
-      case 'sad':       sad();       break;
-      case 'cool':      cool();      break;
-      case 'dance':     dance();     break;
-      case 'exercise':  exercise();  break;
-      case 'coffee':    coffee();    break;
-   }
+   M.S();
+   balloons.forEach(balloon => {
+      balloon.fly(time);
+      M.S().balloon.render().R();
+   })
 }
 requestAnimationFrame(renderFrame);
 
