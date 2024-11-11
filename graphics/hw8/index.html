@@ -1,435 +1,107 @@
-<head>
-   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-   <link rel="stylesheet" type="text/css" href="style.css" />
-</head>
-
-<body>
+<body bgcolor=#ffffff>
+   <canvas id=textureCanvas1 width=512 height=512 style=position:absolute;left:-1000></canvas>
+   <canvas id=textureCanvas2 width=512 height=512 style=position:absolute;left:-1000></canvas>
+   <textarea id=textArea
+         spellcheck=false
+         rows="4"
+         cols="30"
+         minlength="10"
+         maxlength="30"
+         placeholder="Your thoughts here"
+         style="position:absolute;left:-1000;font:16px courier;outline-width:0;border-style:none;resize:none;overflow:scroll;">
+      </textArea>
    <center>
-   <p>
-      GIANCARLO PEREIRA HW8 -- TEXTURE MAPPING
-   </p>
-   <p>
-      Still figuring it out.   
-   </p>
-   <canvas id='canvas1' width=800 height=800></canvas>
-      
+      <p>
+         GIANCARLO PEREIRA HW8 -- TEXTURE MAPPING
+      </p>
+      <p>
+         Type your thoughts into the thought bubble.
+      </p>
+      <p>
+         Press <b>ENTER</b> to release that thought!
+      </p>
+      <p>
+         Once released, you can click on that thought to make it disappear.
+      </p>
+      <canvas id='canvas1' width=800 height=800></canvas>         
    </center>
 </body>
 
+<script src=lib.js></script>
 <script>
 
-// CAMERA VIEW PARAMETERS
-let fl=3;
+texture(0, 'brick.png');
+texture(1, 'polka_dots.png');
+texture(2, textureCanvas1);    // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
+texture(3, 'bumpy.jpg');
+texture(4, 'check-button.png');
+texture(5, textureCanvas2);
 
-// MATH CONSTANTS
+// REPARSE THE TEXT AREA AFTER EVERY KEYSTROKE.
+let lim = 120;
+textArea.style.backgroundColor = '#202020';
+textArea.style.color = 'white';
 
-let pi = Math.PI;
-
-// MATRIX SUPPORT LIBRARY
-
-let mInverse = m => {
-   let d = [], de = 0, co = (c, r) => {
-      let s = (i, j) => m[c+i & 3 | (r+j & 3) << 2];
-      return (c+r & 1 ? -1 : 1) * ( (s(1,1) * (s(2,2) * s(3,3) - s(3,2) * s(2,3)))
-                                  - (s(2,1) * (s(1,2) * s(3,3) - s(3,2) * s(1,3)))
-                                  + (s(3,1) * (s(1,2) * s(2,3) - s(2,2) * s(1,3))) );
+window.addEventListener("keydown", e => {
+   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+   'Delete', 'ShiftRight', 'ShiftLeft', 'Tab', 'ControlRight',
+   'ControlLeft', 'AltLeft', 'AltRight', 'Escape', 'CapsLock'].indexOf(e.code) >= 0)
+      e.preventDefault();
+   else if (['Space', 'Enter'].indexOf(e.code) >= 0) {
+      e.preventDefault();
+      textArea.onkeydown(e);
    }
-   for (let n = 0 ; n < 16 ; n++) d.push(co(n >> 2, n & 3));
-   for (let n = 0 ; n <  4 ; n++) de += m[n] * d[n << 2]; 
-   for (let n = 0 ; n < 16 ; n++) d[n] /= de;
-   return d;
-}
-let mxm = (a, b) => {
-   let d = [];
-   for (let n = 0 ; n < 16 ; n++)
-      d.push(a[n&3]*b[n&12] + a[n&3|4]*b[n&12|1] + a[n&3|8]*b[n&12|2] + a[n&3|12]*b[n&12|3]);
-   return d;
-}
-let C = t => Math.cos(t), S = t => Math.sin(t);
-let mId = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
-let mPe = (fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
-let mRX = (t, m) => mxm(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
-let mRY = (t, m) => mxm(m, [C(t),0,-S(t),0, 0,1,0,0, S(t),0,C(t),0, 0,0,0,1]);
-let mRZ = (t, m) => mxm(m, [C(t),S(t),0,0, -S(t),C(t),0,0, 0,0,1,0, 0,0,0,1]);
-let mSc = (x,y,z, m) => mxm(m, [x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1]);
-let mTr = (x,y,z, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
-function Matrix() {
-   let stack = [mId()], top = 0;
-   let set = arg => { stack[top] = arg; return this; }
-   let get = () => stack[top];
-   this.identity = () => set(mId());
-   this.perspective = fl => set(mPe(fl, get()));
-   this.turnX = t => set(mRX(t, get()));
-   this.turnY = t => set(mRY(t, get()));
-   this.turnZ = t => set(mRZ(t, get()));
-   this.scale = (x,y,z) => set(mSc(x,y?y:x,z?z:x, get()));
-   this.move = (x,y,z) => set(mTr(x,y,z, get()));
-   this.get = () => get();
-   this.S = () => set(stack[top++].slice());
-   this.R = () => --top;
-   this.draw = (shape,color,opacity, texture) => draw(shape,color,opacity, texture);
-}
-
-// INITIALIZE WEBGL
-
-let start_gl = (canvas, vertexSize, vertexShader, fragmentShader) => {
-   let gl = canvas.getContext("webgl");
-   let program = gl.createProgram();
-   gl.program = program;
-   let addshader = (type, src) => {
-      let shader = gl.createShader(type);
-      gl.shaderSource(shader, src);
-      gl.compileShader(shader);
-      if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-         throw "Cannot compile shader:\n\n" + gl.getShaderInfoLog(shader);
-      gl.attachShader(program, shader);
-   };
-   addshader(gl.VERTEX_SHADER  , vertexShader  );
-   addshader(gl.FRAGMENT_SHADER, fragmentShader);
-   gl.linkProgram(program);
-   if (! gl.getProgramParameter(program, gl.LINK_STATUS))
-      throw "Could not link the shader program!";
-   gl.useProgram(program);
-   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-   gl.enable(gl.DEPTH_TEST);
-   gl.enable(gl.BLEND);
-   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-   gl.depthFunc(gl.LEQUAL);
-   let vertexAttribute = (name, size, position) => {
-      let attr = gl.getAttribLocation(program, name);
-      gl.enableVertexAttribArray(attr);
-      gl.vertexAttribPointer(attr, size, gl.FLOAT, false, vertexSize * 4, position * 4);
-   }
-   vertexAttribute('aPos', 3, 0);
-   vertexAttribute('aNor', 3, 3);
-   vertexAttribute('aUV' , 6, 2);
-   vertexAttribute('aTan', 8, 3);
-   return gl;
-}
-
-//CREATE A TRIANGLE_STRIP MESH
-
-// IMPLEMENT VARIOUS 3D SHAPES
-
-let createMesh = (nu, nv, p) => {
-   let V = (u,v) => {
-      let P = p(u,v);
-      let Q = p(u+.001,v);
-      let x = Q[0]-P[0], y = Q[1]-P[1], z = Q[2]-P[2],
-          s = Math.sqrt(x*x + y*y + z*z);
-      return P.concat([u, v, x/s, y/s, z/s]);  
-   }
-   let mesh = [];
-   for (let j = nv-1 ; j >= 0 ; j--) {
-      for (let i = 0 ; i <= nu ; i++)
-         mesh.push(V(i/nu,(j+1)/nv), V(i/nu,j/nv));
-      mesh.push(V(1,j/nv), V(0,j/nv));
-   }
-   return new Float32Array(mesh.flat());
-}
-let sphere = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let theta = 2 * Math.PI * u;
-   let phi = Math.PI * (v - .5);
-   let x = C(phi) * C(theta),
-       y = C(phi) * S(theta),
-       z = S(phi);
-   return [ x,y,z, x,y,z ];
-});
-let tube = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = C(2 * Math.PI * u),
-       y = S(2 * Math.PI * u),
-       z = 2 * v - 1;
-   return [ x,y,z, x,y,0 ];
-});
-let disk = (nu, nv) => createMesh(nu, nv, (u,v) => {
-   let x = v * C(2 * Math.PI * u),
-       y = v * S(2 * Math.PI * u);
-   return [ x,y,0, 0,0,1 ];
-});
-let cylinder = (nu, s) => createMesh(nu, 6, (u,v) => {
-   s = s ? s : 1;
-   let x = C(2 * Math.PI * u),
-       y = S(2 * Math.PI * u);
-   switch (5 * v >> 0) {
-   case 0: return [ 0,0,-1, 0,0,-1 ];
-   case 1: return [ x,y,-1, 0,0,-1 ];
-   case 2: return [ x,y,-1, x,y, 0 ];
-   case 3: return [ s*x,s*y, 1, x,y, 0 ];
-   case 4: return [ s*x,s*y, 1, 0,0, 1 ];
-   case 5: return [ 0,0, 1, 0,0, 1 ];
-   }
-});
-let torus = (nu, nv, r) => createMesh(nu, nv, (u,v) => {
-   r = r ? r : .5;
-   let ct = C(2 * Math.PI * u);
-   let st = S(2 * Math.PI * u);
-   let cp = C(2 * Math.PI * v);
-   let sp = S(2 * Math.PI * v);
-   let x = (1 + r * cp) * ct,
-       y = (1 + r * cp) * st,
-       z =      r * sp;
-   return [ x,y,z, cp*ct,cp*st,sp ];
+   else textArea.onkeydown(e);
 });
 
-// SHORTCUT TO MAKE IT EASIER TO DEFINE CUBE AND OCTAHEDRON
+let sendThought = (text) => {
+   console.log(`sending message... ${text}`);
+} 
 
-let strToTris = str => {
-   let tris = [];
-   for (let n = 0 ; n < str.length ; n++)
-      switch (str.charAt(n)) {
-      case 'N': tris.push(-1    ); break;
-      case 'M': tris.push(-1.618); break;
-      case 'n': tris.push(-0.577); break;
-      case '0': tris.push( 0    ); break;
-      case 'm': tris.push( 1.618); break;
-      case 'p': tris.push( 0.577); break;
-      case 'P': tris.push( 1    ); break;
-      
-      case 'K': tris.push( 0.873); break;
-      case 'k': tris.push(-0.873); break;
-      case 'L': tris.push( 0.539); break;
-      case 'l': tris.push(-0.539); break;
-      case 'A': tris.push( 1.412); break;
-      case 'a': tris.push(-1.412); break;
-
-      case 'D': tris.push( 1.732); break;
-      case 'd': tris.push(-1.732); break;
-      case 'B': tris.push( 2.309); break;
-      case 'b': tris.push(-2.309); break;
+textArea.onkeydown = function(e) {
+   if (e.code === 'Enter')  {
+         if (this.value.length > 0 )  
+         sendThought(this.value);
+         this.value = ``;
       }
-   return tris;
+   else if (e.code === 'Backspace') this.value = this.value.slice(0,-1);
+   else {
+      if (this.value.length < 120)
+      this.value += e.key;
+   }
 }
 
-// DEFINE SOME MESHES MADE FROM TRIANGLES
+function drawFrame() {
+   requestAnimationFrame(drawFrame);
+   let t = Date.now() / 1000;
 
-let cube = strToTris(`PNP00P PPP00P NPP00P  NPP00P NNP00P PNP00P
-                      NPN00N PPN00N PNN00N  PNN00N NNN00N NPN00N
-                      PPNP00 PPPP00 PNPP00  PNPP00 PNNP00 PPNP00
-                      NNPN00 NPPN00 NPNN00  NPNN00 NNNN00 NNPN00
-                      NPP0P0 PPP0P0 PPN0P0  PPN0P0 NPN0P0 NPP0P0
-                      PNN0N0 PNP0N0 NNP0N0  NNP0N0 NNN0N0 PNN0N0`);
+   // CHANGE THE CONTENT OF THE 2D CANVAS EVERY ANIMATION FRAME.
 
-let tetrahedron = strToTris(`N0000N P0000N 0D000N  N000pm P000pm 0pm0pm
-                             P00PBm 0D0PBm 0pmPBm  N00NBm 0D0NBm 0pmNBm`);
+   let ctx = textureCanvas1.getContext('2d');
+   ctx.fillStyle = '#ffd0d0';
+   ctx.fillRect(0, 0, 512, 512);
+   ctx.fillStyle = 'black';
+   ctx.font = '100px Arial';
+   let minutes = (t/60>>0)%60, seconds = t%60>>0;        // FORMAT TIME TO MINUTES & SECONDS.
+   ctx.fillText(minutes + 'm ' + seconds + 's', 60, 280);
 
-let octahedron = strToTris(`00Nnnn 0N0nnn N00nnn  P00pnn 0N0pnn 00Npnn
-                            N00npn 0P0npn 00Nnpn  00Nppn 0P0ppn P00ppn
-                            00Pnnp 0N0nnp N00nnp  00Ppnp 0N0pnp P00pnp
-                            N00npp 0P0npp 00Pnpp  P00ppp 0P0ppp 00Pppp`);
+   ctx = textureCanvas2.getContext('2d');
+   ctx.fillStyle = '#ffd0d0';
+   ctx.fillRect(0, 0, 512, 512);
+   ctx.fillStyle = 'black';
+   ctx.font = '100px Arial';
+   ctx.fillText(textArea.value, 60, 280);
 
-let icosahedron = strToTris(`NM0kkK M0PkkK 0NmkkK 0Nm0aL NM00aL PM00aL
-                             PM0K0K 0NmK0K m0PK0K NM0kkk M0Nkkk 0NMkkk
-                             0NM0al NM00al PM00al PM0Kkk 0NMKkk m0NKkk
-                             NM0al0 M0Nal0 M0Pal0 m0NAl0 PM0Al0 m0PAl0
-                             M0Pl0A 0Nml0A 0Pml0A 0PmL0A 0NmL0A m0PL0A
-                             M0Nl0a 0NMl0a 0PMl0a 0PML0a 0NML0a m0NL0a
-                             Nm0kKK M0PkKK 0PmkKK 0Pm0AL Nm00AL Pm00AL
-                             Pm0KKK 0PmKKK m0PKKK Nm0kKk M0NkKk 0PMkKk
-                             0PM0Al Nm00Al Pm00Al Pm0KKk 0PMKKk m0NKKk
-                             Nm0aL0 M0NaL0 M0PaL0 m0NAL0 Pm0AL0 m0PAL0`);
-
-// DEFINE ALL THE OBJECT COLORS AND SHAPES
-
-let Icosahedron = () => { return { type: 0, mesh: new Float32Array(icosahedron     ) }; }
-let Octahedron  = () => { return { type: 0, mesh: new Float32Array(octahedron      ) }; }
-let Tetrahedron = () => { return { type: 0, mesh: new Float32Array(tetrahedron     ) }; }
-
-let Cube       = ()    => { return { type: 0, mesh: cube }; }
-let Cylinder   = (n,s) => { return { type: 1, mesh: cylinder(n,s) }; }
-let Disk       = n     => { return { type: 1, mesh: disk    (n, 1) }; }
-let Sphere     = n     => { return { type: 1, mesh: sphere  (n, n/2>>0) }; }
-let Torus      = (n,r) => { return { type: 1, mesh: torus   (n, n, r) }; }
-let Tube       = n     => { return { type: 1, mesh: tube    (n, 1) }; }
-
-// TEXTURE
-let texture = (index, fileName) => {
-   let image = new Image();
-   image.onload = () => {
-      gl.activeTexture (gl.TEXTURE0 + index);
-      gl.bindTexture   (gl.TEXTURE_2D, gl.createTexture());
-      gl.texImage2D    (gl.TEXTURE_2D, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
-      gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-      gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-      gl.generateMipMap(gl.TEXTURE_2D);
-   }
-   image.src = fileName;
+   M.S().perspective(3);
+      M.S().move(-.6, .3,0).turnY( t).scale(.2).draw(Tube(30)    , [1,1,1]   , 1,  0   ).R();
+      M.S().move(  0, .3,0).turnY( 0).scale(.2).draw(Sphere(30)  , [1,1,0]   , 1,      ).R();
+      M.S().move( .6, .3,0).turnY( t).scale(.2).draw(Cylinder(30), [1,1,1]   , 1,  0   ).R();
+      M.S().move(-.6,-.3,0).turnX(-t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  1   ).R();
+      M.S().move( .6,-.3,0).turnY(-t).scale(.2).draw(Torus(30)   , [1,.5,.3] , 1, -1, 3).R();
+      M.S().move(  0,-.3,0).turnX( t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  5,-1).R();
+      M.S().move(0,.3,.5).turnY( t).scale(.2).draw(Square()      , [1,1,1]   , 1,  2, -1   ).R();
+   M.R();
 }
-
-// GPU SHADERS
-
-let vertexSize = 11;
-let vertexShader = `
-   attribute vec3 aPos, aNor, aTan;
-   attribute vec2 aUV;
-   uniform mat4 uMatrix, uInvMatrix;
-   varying vec3 vPos, vNor, vTan;
-   varying vec2 vUV;
-   void main() {
-      vec4 pos = uMatrix * vec4(aPos, 1.0);
-      vec4 nor = vec4(aNor, 0.0) * uInvMatrix;
-      vec4 tan = vec4(aTan, 0.0) * uInvMatrix;
-      vPos = pos.xyz;
-      vNor = nor.xyz;
-      vTan = tan.xyz;
-      vUV  = aUV;
-      gl_Position = pos * vec4(1.,1.,-.1,1.);
-   }
-`;
-let fragmentShader = `
-   precision mediump float;
-   
-   uniform sampler2D uSampler[16];
-   uniform vec3 uColor;
-   uniform float uOpacity;
-   uniform int uTexture;
-   uniform int uBumpTexture;
-
-   varying vec3 vPos, vNor, vTan;
-   varying vec2 vUV;
-
-   // LIGHTING
-   float attenuation(vec3 P, vec3 uLight) {
-      vec3 d = uLight - P;
-      return 1. / dot(d, d); 
-   }
-
-   float diffuse(vec3 N, vec3 P, vec3 uLight) {
-      vec3 surfToLight = normalize(uLight - P);
-      return max(0., dot(N, surfToLight));
-   }
-
-   float specular(vec3 W, vec3 N, vec3 P, vec3 uLight) {
-      vec3 surfToLight = normalize(uLight - P);
-      vec3 R = W - 2. * N * dot(N, W);
-      return pow(max(0., dot(R, surfToLight)), 2.);
-   }
-
-   void main(void) {
-      vec3 uL = vec3(-4., 10., -2.);
-
-      vec4 texture;
-      vec3 nor = normalize(vNor);
-      for (int i = 0; i < 16; i++)
-         if (uTexture == 1)
-            texture = texture2D(uSampler[i], vUV);
-         if (uBumpTexture == i)
-            vec3 b = 2. * texture2D(uSampler[i], vUV).rgb - 1;
-            vec3 tan = normalize(vTan);
-            vec3 bin = cross(nor, tan);
-            nor = normalize(b.x * tan + b.y * bin + b.z * nor);
-
-
-      float att = 10.*attenuation(vPos, uL),
-            spec = specular(vec3(0.,0.,1.), nor, vPos, uL),
-            diff = diffuse(nor, vPos, uL);
-            
-      float c = att*(0.05+diff+spec);
-
-      vec3 color = sqrt(c * uColor) * texture.rgb;
-      gl_FragColor = vec4(sqrt(c * uColor), uOpacity * texture.a);
-   }
-`;
-
-// HANDLE CURSOR
-
-let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
-let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
-                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
-                                     z !== undefined ? z : cursor[2] ];
-
-canvas1.onmousedown = e => setCursor(e, 1);
-canvas1.onmousemove = e => setCursor(e,  );
-canvas1.onmouseup   = e => setCursor(e, 0);
-
-// BALLOONS IN SCENE
-
-let balloons = [];
-
-function Balloon() {
-   let color = [Math.random(), Math.random(), Math.random()];
-   let size = 0.11;
-   let pos = [0.,0.,-2*fl], inflating = 1;
-   let a = [0.,0.,0.];
-   let v=[10*(Math.random()-.5),10*(Math.random()-.5),10*(Math.random()-.5)];
-   let t = 0;
-
-   this.speed = () => v;
-   this.where = () => pos;
-   this.color = () => color;
-   this.size  = () => size;
-
-   let move = (dt) => {
-      pos[0]=pos[0]+v[0]*dt+0.5*a[0]*dt**2;
-      pos[1]=pos[1]+v[1]*dt+0.5*a[1]*dt**2;
-      pos[2]=pos[2]+v[2]*dt+0.5*a[2]*dt**2;
-      v[0]=v[0]+a[0]*dt;
-      v[1]=v[1]+a[1]*dt;
-      v[2]=v[2]+a[2]*dt;
-   };
-
-   this.inflating = () => inflating==1;
-
-   this.inflate = (x, y) => {
-      if (inflating==1) {
-         size = size + 0.002;
-         pos[0] = fl*x;
-         pos[1] = fl*y;
-      }
-   };
-   this.deflate = (time) => {
-      t=time;
-      inflating=0;
-   };
-   this.fly = (time) => {
-      if (inflating==0) {
-         a=[200*(Math.random()-.5), 200*(Math.random()-.5), 200*(Math.random()-.5)];
-         size=size - 0.001;
-         let dt = time - t;
-         move(dt < 10**(-10) ? 0.01 : dt );
-         t=t+dt;
-      }
-   };
-   this.render = () => M.S().move(pos[0], pos[1], pos[2]).scale(size).draw(Sphere(60),color,.8).R();
-}
-
-// DECLARE GL-RELATED VARIABLES AND MATRIX OBJECT
-
-let gl = start_gl(canvas1, vertexSize, vertexShader, fragmentShader);
-let uColor       = gl.getUniformLocation(gl.program, "uColor"      );
-let uOpacity     = gl.getUniformLocation(gl.program, "uOpacity"    );
-let uInvMatrix   = gl.getUniformLocation(gl.program, "uInvMatrix"  );
-let uMatrix      = gl.getUniformLocation(gl.program, "uMatrix"     );
-let uSampler     = gl.getUniformLocation(gl.program, "uSampler"    );
-let uTexture     = gl.getUniformLocation(gl.program, "uTexture"    );
-let uBumpTexture = gl.getUniformLocation(gl.program, "uBumpTexture");
-let M = new Matrix();
-
-gl.uniform1iv(uSampler, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]);
-
-// DRAW A SINGLE SHAPE TO THE WEBGL CANVAS
-
-let draw = (Shape, color, opacity, texture) => {
-   gl.uniform1f       (uOpacity    , opacity===undefined ? 1 : opacity);
-   gl.uniform1i       (uTexture    , texture===undefined ? 1 : texture);
-   gl.uniform1i       (uBumpTexture, bumpTexture===undefined ? 1 : bumpTexture);
-   gl.uniform3fv      (uColor      , color );
-   gl.uniformMatrix4fv(uInvMatrix  , false, mInverse(M.get()));
-   gl.uniformMatrix4fv(uMatrix     , false, M.get()          );
-   gl.bufferData(gl.ARRAY_BUFFER, Shape.mesh, gl.STATIC_DRAW);
-   gl.drawArrays(Shape.type ? gl.TRIANGLE_STRIP : gl.TRIANGLES, 0, Shape.mesh.length / vertexSize);
-   return M;
-}
-
-let startTime = Date.now() / 1000;
-function renderFrame() {
-   requestAnimationFrame(renderFrame);
-   let time = Date.now() / 1000 - startTime;
-
-   // camera perspective
-   M.identity().perspective(fl);
-
-   M.S().draw(Cube, [1,0,0], .8, -1).R();
-}
-requestAnimationFrame(renderFrame);
+requestAnimationFrame(drawFrame);
 
 </script>
