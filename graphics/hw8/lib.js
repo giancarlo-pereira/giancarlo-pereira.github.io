@@ -64,7 +64,7 @@
 function Balloon() {
    let color = [Math.random(), Math.random(), Math.random()];
    let size = 0.11;
-   let pos = [0.,0.,-2*fl], inflating = 1;
+   let pos = [0.,0.,-2*fl];
    let a = [0.,0.,0.];
    let v=[10*(Math.random()-.5),10*(Math.random()-.5),10*(Math.random()-.5)];
    let t = 0;
@@ -83,29 +83,16 @@ function Balloon() {
       v[2]=v[2]+a[2]*dt;
    };
 
-   this.inflating = () => inflating==1;
-
-   this.inflate = (x, y) => {
-      if (inflating==1) {
-         size = size + 0.002;
-         pos[0] = fl*x;
-         pos[1] = fl*y;
-      }
-   };
-   this.deflate = (time) => {
-      t=time;
-      inflating=0;
-   };
    this.fly = (time) => {
       if (inflating==0) {
-         a=[200*(Math.random()-.5), 200*(Math.random()-.5), 200*(Math.random()-.5)];
+         a=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
          size=size - 0.001;
          let dt = time - t;
          move(dt < 10**(-10) ? 0.01 : dt );
          t=t+dt;
       }
    };
-   this.render = () => M.S().move(pos[0], pos[1], pos[2]).scale(size).draw(Sphere(60),color,.8).R();
+   this.render = () => M.S().move(pos[0], pos[1], pos[2]).scale(size).draw(Sphere(60),color,.8, texture, bumpTexture).R();
 }
 
 // HANDLE CURSOR
