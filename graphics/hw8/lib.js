@@ -382,7 +382,7 @@ function Balloon() {
 
    this.trigger = () => {
       moving = 1;
-   }
+   };
 
    this.fly = (time) => {
       let dt = time - t;
@@ -414,14 +414,14 @@ function Balloon() {
 
       return false;
 
-   }
+   };
 
    this.reset = () => {
       moving=0;
       a=[0,0,0];
       v=[0,0,0];
       pos=[0,0,-fl];
-   }
+   };
 
    this.render = (t,tex,btex) => M.S().move(pos[0], pos[1], pos[2]).turnX(t).turnY(t).scale(size).draw(Sphere(60),color,.8, tex, btex).R();
 }
