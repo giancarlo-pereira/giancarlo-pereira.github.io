@@ -5,6 +5,25 @@ let fl=3;
 let pi = Math.PI;
 let C = t => Math.cos(t), S = t => Math.sin(t);
 
+// ALGORITHM P TAKEN FROM
+// https://stackoverflow.com/questions/75677/converting-a-uniform-distribution-to-a-normal-distribution
+function normal_random(mean,stddev)
+{
+    var V1
+    var V2
+    var S
+    do{
+        var U1 = Math.random() // return uniform distributed in [0,1[
+        var U2 = Math.random()
+        V1 = 2*U1-1
+        V2 = 2*U2-1
+        S = V1*V1+V2*V2
+    }while(S >= 1)
+    if(S===0) return 0
+    return mean+stddev*(V1*Math.sqrt(-2*Math.log(S)/S))
+}
+
+
 // MATRIX SUPPORT LIBRARY
 
 let mInverse = m => {
@@ -204,7 +223,7 @@ let fragmentShader = `
    varying vec3 vPos, vNor, vTan;
    varying vec2 vUV;
    void main(void) {
-      vec3 uL = normalize(vec3(-1.,-1,2));
+      vec3 uL = normalize(vec3(-1.,-1.,2.));
       vec4 texture = vec4(1.);
       vec3 nor = normalize(vNor);
       for (int i = 0 ; i < 16 ; i++) {
@@ -295,16 +314,19 @@ let draw = (Shape, color, opacity, texture, bumpTexture) => {
 
 function Explosion() {
    let exploding = 0;
+   let pos = [0.,0.,0.];
    let t = 0.;
-   let trig = 0., thresh = 4.; //seconds
+   let trig = 0., thresh = 1.; //seconds
 
-   this.trigger = t => {
+   this.trigger = (t,balloonPos) => {
       trig = t;
       exploding = 1;
+      pos=balloonPos;
    }
 
    this.reset = () => {
       exploding=0;
+      pos=[0.,0.,0.];
    };
 
    this.render = t => {
@@ -312,7 +334,7 @@ function Explosion() {
       if (t-trig > thresh) {this.reset(); return;}
       let c = [.7,.7,.7];
       for ( var i = 0; i < 100; i++ ) {
-         M.S().move(Math.random()-.5,Math.random()-.5,0).scale(.01).draw(Sphere(10),c,.9, -1, -1).R()
+         M.S().move(normal_random(pos[0],.1*(1+(t-trig)**4)),normal_random(pos[1],.1*(1+(t-trig)**4)),normal_random(pos[2],.1*(1+(t-trig)**4))).turnZ(2*(Math.random()-.5)*pi).turnX(2*(Math.random()-.5)*pi).turnY(2*(Math.random()-.5)*pi).scale(.005).draw(Square(),c,1., -1, -1).R()
       }
    }
 }
@@ -403,17 +425,14 @@ function Balloon() {
    };
 
    this.render = (t,tex,btex) => {
-      if (t-reset < thresh) {
-         opacity = 0;
-      } else {
-         opacity = Math.min(.95,(t-reset-thresh)*.1);
-      }
+      if (t-reset < thresh) return;
+      opacity = Math.min(.95,(t-reset-thresh)*.1);
       if (moving==0) {
          M.S().move(pos[0] - size, pos[1] - size, pos[2]).scale(size/4).draw(Torus(30),color,opacity, -1, -1).R();  
          M.S().move(pos[0] - size*1.5, pos[1] - size*1.5, pos[2]).scale(size/6).draw(Torus(30),color,opacity, -1, -1).R(); 
          M.S().move(pos[0] - size*1.9, pos[1] - size*1.9, pos[2]).scale(size/8).draw(Torus(30),color,opacity, -1, -1).R();   
       }
-      M.S().move(pos[0],pos[1],pos[2]).turnZ(angle[2]).turnX(angle[0]).turnY(angle[1]).scale(size).draw(Sphere(60),color,opacity, tex, btex).R();
+      M.S().move(pos[0],pos[1],pos[2]).turnZ(angle[2]).turnX(angle[0]).turnY(angle[1]).scale(size).draw(Sphere(300),color,opacity, tex, btex).R();
    }
 }
 
