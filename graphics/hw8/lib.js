@@ -61,51 +61,6 @@
 // let Octahedron  = () => { return { type: 0, mesh: new Float32Array(octahedron      ) }; }
 // let Tetrahedron = () => { return { type: 0, mesh: new Float32Array(tetrahedron     ) }; }
 
-function Balloon() {
-   let color = [Math.random(), Math.random(), Math.random()];
-   let size = 0.11;
-   let pos = [0.,0.,-2*fl];
-   let a = [0.,0.,0.];
-   let v=[10*(Math.random()-.5),10*(Math.random()-.5),10*(Math.random()-.5)];
-   let t = 0;
-
-   this.speed = () => v;
-   this.where = () => pos;
-   this.color = () => color;
-   this.size  = () => size;
-
-   let move = (dt) => {
-      pos[0]=pos[0]+v[0]*dt+0.5*a[0]*dt**2;
-      pos[1]=pos[1]+v[1]*dt+0.5*a[1]*dt**2;
-      pos[2]=pos[2]+v[2]*dt+0.5*a[2]*dt**2;
-      v[0]=v[0]+a[0]*dt;
-      v[1]=v[1]+a[1]*dt;
-      v[2]=v[2]+a[2]*dt;
-   };
-
-   this.fly = (time) => {
-      if (inflating==0) {
-         a=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
-         size=size - 0.001;
-         let dt = time - t;
-         move(dt < 10**(-10) ? 0.01 : dt );
-         t=t+dt;
-      }
-   };
-   this.render = () => M.S().move(pos[0], pos[1], pos[2]).scale(size).draw(Sphere(60),color,.8, texture, bumpTexture).R();
-}
-
-// HANDLE CURSOR
-
-let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
-let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
-                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
-                                     z !== undefined ? z : cursor[2] ];
-
-canvas1.onmousedown = e => setCursor(e, 1);
-canvas1.onmousemove = e => setCursor(e,  );
-canvas1.onmouseup   = e => setCursor(e, 0);
-
 // CAMERA VIEW PARAMETERS
 let fl=3;
 
@@ -398,3 +353,86 @@ let draw = (Shape, color, opacity, texture, bumpTexture) => {
    return M;
 }
 
+function Balloon() {
+   let color = [.7,.7,.7];
+   let size = 0.5;
+   let pos = [0.,0.,-fl];
+   let a = [0.,0.,0.];
+   let v=[.1, -.1, 0];
+   let t = 0, moving = 0;
+
+   this.speed = () => v;
+   this.where = () => pos;
+   this.color = () => color;
+   this.size  = () => size;
+
+   let move = (dt) => {
+      pos[0]=pos[0]+v[0]*dt+0.5*a[0]*dt**2;
+      pos[1]=pos[1]+v[1]*dt+0.5*a[1]*dt**2;
+      pos[2]=pos[2]+v[2]*dt+0.5*a[2]*dt**2;
+
+      if (Math.abs(pos[0]) - 2 > 0) v[0] = -.25*v[0];
+      if (Math.abs(pos[1]) - 2 > 0) v[1] = -.25*v[1];
+      if (Math.abs(pos[2]+fl) - 1 > 0) v[2] = -.25*v[2];
+
+      v[0]=v[0]+a[0]*dt;
+      v[1]=v[1]+a[1]*dt;
+      v[2]=v[2]+a[2]*dt;
+   };
+
+   this.trigger = () => {
+      moving = 1;
+   }
+
+   this.fly = (time) => {
+      let dt = time - t;
+      if (moving!=0) {
+         a=[(Math.random()-.5), (Math.random()-.5), (Math.random()-.5)];
+      } else {
+         a=[0,0,0];
+         v=[0,0,0];
+         pos=[.1*C(time/4)*S(time/4), -.1*S(time/4)*S(time/4), -fl];
+      }
+      move(dt < 10**(-10) ? 0.01 : dt );
+      t=t+dt;
+   };
+
+   this.hit = (cursor) => {
+      if (moving==0) return false;
+      if (cursor[2]==0) return false;
+
+      let x = -(pos[2]-fl)*cursor[0]/fl;
+      let y = -(pos[2]-fl)*cursor[1]/fl;
+      console.log(`thought at ${pos[0]}, ${pos[1]}, ${pos[2]}`);
+      console.log(`cursor at ${cursor[0]}, ${cursor[1]}`);
+      console.log(`ray at ${x}, ${y}, ${pos[2]}`);
+
+      if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
+         this.reset();
+         return true;
+      }
+
+      return false;
+
+   }
+
+   this.reset = () => {
+      moving=0;
+      a=[0,0,0];
+      v=[0,0,0];
+      pos=[0,0,-fl];
+   }
+
+   this.render = (t,tex,btex) => M.S().move(pos[0], pos[1], pos[2]).turnX(t).turnY(t).scale(size).draw(Sphere(60),color,.8, tex, btex).R();
+}
+
+// HANDLE CURSOR
+
+let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
+                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
+                                     z !== undefined ? z : cursor[2] ];
+
+canvas1.onmousedown = e => setCursor(e, 1);
+canvas1.onmousemove = e => setCursor(e,  );
+canvas1.onmouseup   = e => setCursor(e, 0);

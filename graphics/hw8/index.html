@@ -30,12 +30,12 @@
 <script src=lib.js></script>
 <script>
 
-texture(0, 'brick.png');
-texture(1, 'polka_dots.png');
+texture(0, 'cloud_bump.jpg');
+texture(1, 'wood_bump.jpg');
 texture(2, textureCanvas1);    // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
-texture(3, 'bumpy.jpg');
-texture(4, 'check-button.png');
-texture(5, textureCanvas2);
+texture(3, textureCanvas2);
+
+let thought = new Balloon();
 
 // REPARSE THE TEXT AREA AFTER EVERY KEYSTROKE.
 let lim = 120;
@@ -45,7 +45,8 @@ textArea.style.color = 'white';
 window.addEventListener("keydown", e => {
    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
    'Delete', 'ShiftRight', 'ShiftLeft', 'Tab', 'ControlRight',
-   'ControlLeft', 'AltLeft', 'AltRight', 'Escape', 'CapsLock'].indexOf(e.code) >= 0)
+   'ControlLeft', 'AltLeft', 'AltRight', 'Escape', 'CapsLock',
+   'MetaLeft', 'MetaRight'].indexOf(e.code) >= 0)
       e.preventDefault();
    else if (['Space', 'Enter'].indexOf(e.code) >= 0) {
       e.preventDefault();
@@ -56,13 +57,21 @@ window.addEventListener("keydown", e => {
 
 let sendThought = (text) => {
    console.log(`sending message... ${text}`);
+   thought.trigger();
 } 
+
+let explosion = t => {
+   let c = [.7,.7,.7];
+   let move = .05*(Math.random() - .5)
+   for ( var i = 0; i < 100; i++ ) {
+      M.S().move(Math.random()-.5,Math.random()-.5,0).scale(.01).draw(Sphere(10),c,.9, -1, -1).R()
+   }
+}
 
 textArea.onkeydown = function(e) {
    if (e.code === 'Enter')  {
          if (this.value.length > 0 )  
          sendThought(this.value);
-         this.value = ``;
       }
    else if (e.code === 'Backspace') this.value = this.value.slice(0,-1);
    else {
@@ -86,20 +95,27 @@ function drawFrame() {
    ctx.fillText(minutes + 'm ' + seconds + 's', 60, 280);
 
    ctx = textureCanvas2.getContext('2d');
-   ctx.fillStyle = '#ffd0d0';
+   ctx.fillStyle = '#ededed';
    ctx.fillRect(0, 0, 512, 512);
    ctx.fillStyle = 'black';
-   ctx.font = '100px Arial';
-   ctx.fillText(textArea.value, 60, 280);
+   ctx.font = '25px Arial';
+   ctx.fillText(textArea.value, 0, 250);
 
-   M.S().perspective(3);
-      M.S().move(-.6, .3,0).turnY( t).scale(.2).draw(Tube(30)    , [1,1,1]   , 1,  0   ).R();
-      M.S().move(  0, .3,0).turnY( 0).scale(.2).draw(Sphere(30)  , [1,1,0]   , 1,      ).R();
-      M.S().move( .6, .3,0).turnY( t).scale(.2).draw(Cylinder(30), [1,1,1]   , 1,  0   ).R();
-      M.S().move(-.6,-.3,0).turnX(-t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  1   ).R();
-      M.S().move( .6,-.3,0).turnY(-t).scale(.2).draw(Torus(30)   , [1,.5,.3] , 1, -1, 3).R();
-      M.S().move(  0,-.3,0).turnX( t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  5, -1).R();
-      M.S().move(0,.3,.5).turnY( t).scale(.2).draw(Square()      , [1,1,1]   , 1,  2, -1   ).R();
+   M.S().perspective(fl);
+      if (thought.hit(cursor)) {
+         console.log(`thought shot down`);
+         textArea.value = ``;
+         explosion(t);
+      }
+      thought.fly(t);
+      thought.render(t,3,0);
+      // M.S().move(-.6, .3,0).turnY( t).scale(.2).draw(Tube(30)    , [1,1,1]   , 1,  0   ).R();
+      // M.S().move(  0, .3,0).turnY( 0).scale(.2).draw(Sphere(30)  , [1,1,0]   , 1,      ).R();
+      // M.S().move( .6, .3,0).turnY( t).scale(.2).draw(Cylinder(30), [1,1,1]   , 1,  0   ).R();
+      // M.S().move(-.6,-.3,0).turnX(-t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  1   ).R();
+      // M.S().move( .6,-.3,0).turnY(-t).scale(.2).draw(Torus(30)   , [1,.5,.3] , 1, -1, 3).R();
+      // M.S().move(  0,-.3,0).turnX( t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  5,-1).R();
+      // M.S().move(0,.3,.5).turnY( t).scale(.2).draw(Square()      , [1,1,1]   , 1,  2,-1).R();
    M.R();
 }
 requestAnimationFrame(drawFrame);
