@@ -1,6 +1,5 @@
 <body bgcolor=#ffffff>
-   <canvas id=textureCanvas1 width=512 height=512 style=position:absolute;left:-1000></canvas>
-   <canvas id=textureCanvas2 width=512 height=512 style=position:absolute;left:-1000></canvas>
+   <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
    <textarea id=textArea
          spellcheck=false
          rows="4"
@@ -27,10 +26,9 @@
 
 texture(0, 'cloud_bump.jpg');
 texture(1, 'wood_bump.jpg');
-texture(2, textureCanvas1);    // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
-texture(3, textureCanvas2);
+texture(2, 'popcorn_bump.jpg');
+texture(3, textureCanvas);  // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
 texture(4, 'wood_floorboard.jpg');
-texture(5, 'popcorn_bump.jpg');
 
 let thought = new Balloon();
 let explosion = new Explosion();
@@ -77,16 +75,7 @@ function drawFrame() {
    let t = Date.now() / 1000;
 
    // CHANGE THE CONTENT OF THE 2D CANVAS EVERY ANIMATION FRAME.
-
-   let ctx = textureCanvas1.getContext('2d');
-   ctx.fillStyle = '#ffd0d0';
-   ctx.fillRect(0, 0, 512, 512);
-   ctx.fillStyle = 'black';
-   ctx.font = '100px Arial';
-   let minutes = (t/60>>0)%60, seconds = t%60>>0;        // FORMAT TIME TO MINUTES & SECONDS.
-   ctx.fillText(minutes + 'm ' + seconds + 's', 60, 280);
-
-   ctx = textureCanvas2.getContext('2d');
+   ctx = textureCanvas.getContext('2d');
    ctx.fillStyle = '#ededed';
    ctx.fillRect(0, 0, 512, 512);
    ctx.fillStyle = 'black';
@@ -100,13 +89,15 @@ function drawFrame() {
          explosion.trigger(t);
       }
 
+      let wallColor = [201/255,183/255,177/255];
+
       //walls
-      M.S().move(0, 0,-2*fl).scale(fl).turnY(   pi).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
-      M.S().move(-2,0,  -fl).scale(fl).turnY(-pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
-      M.S().move(+2,0,  -fl).scale(fl).turnY( pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
+      M.S().move(0, 0,-2*fl).scale(fl).turnY(   pi).draw(Square(), wallColor, 1,-1, 2).R();
+      M.S().move(-2,0,  -fl).scale(fl).turnY(-pi/2).draw(Square(), wallColor, 1,-1, 2).R();
+      M.S().move(+2,0,  -fl).scale(fl).turnY( pi/2).draw(Square(), wallColor, 1,-1, 2).R();
 
       //floor
-      M.S().move(0,-2,  -fl).scale(fl).turnX(-pi/2).draw(Square()    , [1,1,1  ]   , 1,   4, 1).R();
+      M.S().move(0,-2,  -fl).scale(fl).turnX(-pi/2).draw(Square(), [1,1,1  ], 1, 4, 1).R();
 
       thought.fly(t);
       thought.render(t,3,-1);
