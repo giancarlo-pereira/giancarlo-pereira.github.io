@@ -15,12 +15,7 @@
          GIANCARLO PEREIRA HW8 -- TEXTURE MAPPING
       </p>
       <p>
-         Type your thoughts into the thought bubble.
-      </p>
-      <p>
-         Press <b>ENTER</b> to release that thought!
-      </p>
-      <p>
+         Type your thoughts into the thought bubble. Press <b>ENTER</b> to release that thought!<br>
          Once released, you can click on that thought to make it disappear.
       </p>
       <canvas id='canvas1' width=800 height=800></canvas>         
@@ -34,6 +29,7 @@ texture(0, 'cloud_bump.jpg');
 texture(1, 'wood_bump.jpg');
 texture(2, textureCanvas1);    // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
 texture(3, textureCanvas2);
+texture(4, 'wood_floorboard.jpg');
 
 let thought = new Balloon();
 
@@ -107,8 +103,17 @@ function drawFrame() {
          textArea.value = ``;
          explosion(t);
       }
+
+      //walls
+      M.S().move(0, 0,-2*fl).scale(10).turnY(    0).draw(Square()    , [.2,.7,1]   , 1,  -1, -1).R();
+      M.S().move(-2,0,    0).scale(10).turnY( pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, -1).R();
+      M.S().move(+2,0,    0).scale(10).turnY( pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, -1).R();
+
+      //floor
+      M.S().move(0,-2,    0).scale(10).turnX(-pi/2).draw(Square()    , [.1,.1,1]   , 1,  4, 1).R();
+
       thought.fly(t);
-      thought.render(t,3,0);
+      thought.render(t,3,-1);
       // M.S().move(-.6, .3,0).turnY( t).scale(.2).draw(Tube(30)    , [1,1,1]   , 1,  0   ).R();
       // M.S().move(  0, .3,0).turnY( 0).scale(.2).draw(Sphere(30)  , [1,1,0]   , 1,      ).R();
       // M.S().move( .6, .3,0).turnY( t).scale(.2).draw(Cylinder(30), [1,1,1]   , 1,  0   ).R();

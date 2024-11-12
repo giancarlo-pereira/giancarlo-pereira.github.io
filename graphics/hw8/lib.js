@@ -1,66 +1,3 @@
-// // SHORTCUT TO MAKE IT EASIER TO DEFINE CUBE AND OCTAHEDRON
-
-// let strToTris = str => {
-//    let tris = [];
-//    for (let n = 0 ; n < str.length ; n++)
-//       switch (str.charAt(n)) {
-//       case 'N': tris.push(-1    ); break;
-//       case 'M': tris.push(-1.618); break;
-//       case 'n': tris.push(-0.577); break;
-//       case '0': tris.push( 0    ); break;
-//       case 'm': tris.push( 1.618); break;
-//       case 'p': tris.push( 0.577); break;
-//       case 'P': tris.push( 1    ); break;
-      
-//       case 'K': tris.push( 0.873); break;
-//       case 'k': tris.push(-0.873); break;
-//       case 'L': tris.push( 0.539); break;
-//       case 'l': tris.push(-0.539); break;
-//       case 'A': tris.push( 1.412); break;
-//       case 'a': tris.push(-1.412); break;
-
-//       case 'D': tris.push( 1.732); break;
-//       case 'd': tris.push(-1.732); break;
-//       case 'B': tris.push( 2.309); break;
-//       case 'b': tris.push(-2.309); break;
-//       }
-//    return tris;
-// }
-
-// // DEFINE SOME MESHES MADE FROM TRIANGLES
-
-// let cube = strToTris(`PNP00P PPP00P NPP00P  NPP00P NNP00P PNP00P
-//                       NPN00N PPN00N PNN00N  PNN00N NNN00N NPN00N
-//                       PPNP00 PPPP00 PNPP00  PNPP00 PNNP00 PPNP00
-//                       NNPN00 NPPN00 NPNN00  NPNN00 NNNN00 NNPN00
-//                       NPP0P0 PPP0P0 PPN0P0  PPN0P0 NPN0P0 NPP0P0
-//                       PNN0N0 PNP0N0 NNP0N0  NNP0N0 NNN0N0 PNN0N0`);
-
-// let tetrahedron = strToTris(`N0000N P0000N 0D000N  N000pm P000pm 0pm0pm
-//                              P00PBm 0D0PBm 0pmPBm  N00NBm 0D0NBm 0pmNBm`);
-
-// let octahedron = strToTris(`00Nnnn 0N0nnn N00nnn  P00pnn 0N0pnn 00Npnn
-//                             N00npn 0P0npn 00Nnpn  00Nppn 0P0ppn P00ppn
-//                             00Pnnp 0N0nnp N00nnp  00Ppnp 0N0pnp P00pnp
-//                             N00npp 0P0npp 00Pnpp  P00ppp 0P0ppp 00Pppp`);
-
-// let icosahedron = strToTris(`NM0kkK M0PkkK 0NmkkK 0Nm0aL NM00aL PM00aL
-//                              PM0K0K 0NmK0K m0PK0K NM0kkk M0Nkkk 0NMkkk
-//                              0NM0al NM00al PM00al PM0Kkk 0NMKkk m0NKkk
-//                              NM0al0 M0Nal0 M0Pal0 m0NAl0 PM0Al0 m0PAl0
-//                              M0Pl0A 0Nml0A 0Pml0A 0PmL0A 0NmL0A m0PL0A
-//                              M0Nl0a 0NMl0a 0PMl0a 0PML0a 0NML0a m0NL0a
-//                              Nm0kKK M0PkKK 0PmkKK 0Pm0AL Nm00AL Pm00AL
-//                              Pm0KKK 0PmKKK m0PKKK Nm0kKk M0NkKk 0PMkKk
-//                              0PM0Al Nm00Al Pm00Al Pm0KKk 0PMKKk m0NKKk
-//                              Nm0aL0 M0NaL0 M0PaL0 m0NAL0 Pm0AL0 m0PAL0`);
-
-// DEFINE ALL THE OBJECT COLORS AND SHAPES
-
-// let Icosahedron = () => { return { type: 0, mesh: new Float32Array(icosahedron     ) }; }
-// let Octahedron  = () => { return { type: 0, mesh: new Float32Array(octahedron      ) }; }
-// let Tetrahedron = () => { return { type: 0, mesh: new Float32Array(tetrahedron     ) }; }
-
 // CAMERA VIEW PARAMETERS
 let fl=3;
 
@@ -353,6 +290,8 @@ let draw = (Shape, color, opacity, texture, bumpTexture) => {
    return M;
 }
 
+// BALLOON FUNCTION
+
 function Balloon() {
    let color = [.7,.7,.7];
    let size = 0.5;
@@ -371,9 +310,9 @@ function Balloon() {
       pos[1]=pos[1]+v[1]*dt+0.5*a[1]*dt**2;
       pos[2]=pos[2]+v[2]*dt+0.5*a[2]*dt**2;
 
-      if (Math.abs(pos[0]) - 2 > 0) v[0] = -.25*v[0];
-      if (Math.abs(pos[1]) - 2 > 0) v[1] = -.25*v[1];
-      if (Math.abs(pos[2]+fl) - 1 > 0) v[2] = -.25*v[2];
+      if (Math.abs(pos[0])        - 2 > 0) v[0] = -.75*v[0];
+      if (Math.abs(pos[1])        - 2 > 0) v[1] = -.75*v[1];
+      if (Math.abs(pos[2]+2*fl-1) - 1 > 0) v[2] = -.75*v[2];
 
       v[0]=v[0]+a[0]*dt;
       v[1]=v[1]+a[1]*dt;
@@ -403,17 +342,12 @@ function Balloon() {
 
       let x = -(pos[2]-fl)*cursor[0]/fl;
       let y = -(pos[2]-fl)*cursor[1]/fl;
-      console.log(`thought at ${pos[0]}, ${pos[1]}, ${pos[2]}`);
-      console.log(`cursor at ${cursor[0]}, ${cursor[1]}`);
-      console.log(`ray at ${x}, ${y}, ${pos[2]}`);
 
       if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
          this.reset();
          return true;
       }
-
       return false;
-
    };
 
    this.reset = () => {
