@@ -204,6 +204,7 @@ let fragmentShader = `
    varying vec3 vPos, vNor, vTan;
    varying vec2 vUV;
    void main(void) {
+      vec3 uL = normalize(vec3(-1.,-1,2));
       vec4 texture = vec4(1.);
       vec3 nor = normalize(vNor);
       for (int i = 0 ; i < 16 ; i++) {
@@ -216,7 +217,7 @@ let fragmentShader = `
 	    nor = normalize(b.x * tan + b.y * bin + b.z * nor);
          }
       }
-      float c = .05 + max(0., dot(nor, vec3(.557)));
+      float c = .05 + max(0., dot(nor, uL));
       vec3 color = sqrt(uColor * c) * texture.rgb;
       gl_FragColor = vec4(color, uOpacity * texture.a);
    }
@@ -317,7 +318,7 @@ function Explosion() {
 }
 
 function Balloon() {
-   let color = [.7,.7,.7], opacity = .8;
+   let color = [.7,.7,.7], opacity = .95;
    let size = 0.5;
    let pos = [0.,0.,-fl];
    let angle = [pi/2,pi/2,pi/2];
@@ -405,7 +406,7 @@ function Balloon() {
       if (t-reset < thresh) {
          opacity = 0;
       } else {
-         opacity = Math.min(.8,(t-reset-thresh)*.1);
+         opacity = Math.min(.95,(t-reset-thresh)*.1);
       }
       if (moving==0) {
          M.S().move(pos[0] - size, pos[1] - size, pos[2]).scale(size/4).draw(Torus(30),color,opacity, -1, -1).R();  

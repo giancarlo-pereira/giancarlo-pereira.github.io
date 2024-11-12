@@ -101,12 +101,12 @@ function drawFrame() {
       }
 
       //walls
-      M.S().move(0, 0,-2*fl).scale(10).turnY(    0).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
-      M.S().move(-2,0,    0).scale(10).turnY( pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
-      M.S().move(+2,0,    0).scale(10).turnY( pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
+      M.S().move(0, 0,-2*fl).scale(fl).turnY(   pi).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
+      M.S().move(-2,0,  -fl).scale(fl).turnY(-pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
+      M.S().move(+2,0,  -fl).scale(fl).turnY( pi/2).draw(Square()    , [.2,.7,1]   , 1,  -1, 5).R();
 
       //floor
-      M.S().move(0,-2,-fl).scale(fl).turnX(-pi/2).draw(Square()    , [.1,.1,1]   , 1,  -4, -1).R();
+      M.S().move(0,-2,  -fl).scale(fl).turnX(-pi/2).draw(Square()    , [1,1,1  ]   , 1,   4, 1).R();
 
       thought.fly(t);
       thought.render(t,3,-1);
