@@ -292,13 +292,39 @@ let draw = (Shape, color, opacity, texture, bumpTexture) => {
 
 // BALLOON FUNCTION
 
+function Explosion() {
+   let exploding = 0;
+   let t = 0.;
+   let trig = 0., thresh = 4.; //seconds
+
+   this.trigger = t => {
+      trig = t;
+      exploding = 1;
+   }
+
+   this.reset = () => {
+      exploding=0;
+   };
+
+   this.render = t => {
+      if (exploding==0) return;
+      if (t-trig > thresh) {this.reset(); return;}
+      let c = [.7,.7,.7];
+      for ( var i = 0; i < 100; i++ ) {
+         M.S().move(Math.random()-.5,Math.random()-.5,0).scale(.01).draw(Sphere(10),c,.9, -1, -1).R()
+      }
+   }
+}
+
 function Balloon() {
-   let color = [.7,.7,.7];
+   let color = [.7,.7,.7], opacity = .8;
    let size = 0.5;
    let pos = [0.,0.,-fl];
-   let a = [0.,0.,0.];
-   let v=[.1, -.1, 0];
-   let t = 0, moving = 0;
+   let angle = [pi/2,pi/2,pi/2];
+   let a = [0.,0.,0.], alpha = [0.,0.,0.];
+   let v = [.1, -.1, 0.], omega = [0.,0.,0.];
+   let t = 0., moving = 0;
+   let reset = 0., thresh = 4.; //seconds
 
    this.speed = () => v;
    this.where = () => pos;
@@ -310,14 +336,24 @@ function Balloon() {
       pos[1]=pos[1]+v[1]*dt+0.5*a[1]*dt**2;
       pos[2]=pos[2]+v[2]*dt+0.5*a[2]*dt**2;
 
-      if (Math.abs(pos[0])        - 2 > 0) v[0] = -.75*v[0];
-      if (Math.abs(pos[1])        - 2 > 0) v[1] = -.75*v[1];
-      if (Math.abs(pos[2]+2*fl-1) - 1 > 0) v[2] = -.75*v[2];
-
       v[0]=v[0]+a[0]*dt;
       v[1]=v[1]+a[1]*dt;
       v[2]=v[2]+a[2]*dt;
+
+      if (Math.abs(pos[0])      - 1.5 > 0) v[0] = -.75*v[0];
+      if (Math.abs(pos[1])      - 1.5 > 0) v[1] = -.75*v[1];
+      if (Math.abs(pos[2]+2*fl-1) - 1 > 0) v[2] = -.75*v[2];
    };
+
+   let rotate = (dt) => {
+      angle[0]=angle[0]+omega[0]*dt+0.5*alpha[0]*dt**2;
+      angle[1]=angle[1]+omega[1]*dt+0.5*alpha[1]*dt**2;
+      angle[2]=angle[2]+omega[2]*dt+0.5*alpha[2]*dt**2;
+
+      omega[0]=omega[0]+alpha[0]*dt;
+      omega[1]=omega[1]+alpha[1]*dt;
+      omega[2]=omega[2]+alpha[2]*dt;
+   }
 
    this.trigger = () => {
       moving = 1;
@@ -326,17 +362,22 @@ function Balloon() {
    this.fly = (time) => {
       let dt = time - t;
       if (moving!=0) {
-         a=[(Math.random()-.5), (Math.random()-.5), (Math.random()-.5)];
+         a=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
+         alpha=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
       } else {
-         a=[0,0,0];
-         v=[0,0,0];
+         a=[0.,0.,0.];
+         v=[0.,0.,0.];
          pos=[.1*C(time/4)*S(time/4), -.1*S(time/4)*S(time/4), -fl];
+         alpha=[0.,0.,0.];
+         omega=[0.,0.,0.];
+         angle=[pi/2,pi/2,pi/2];
       }
-      move(dt < 10**(-10) ? 0.01 : dt );
+      move(  dt < 10**(-10) ? 0.01 : dt );
+      rotate(dt < 10**(-10) ? 0.01 : dt );
       t=t+dt;
    };
 
-   this.hit = (cursor) => {
+   this.hit = (t,cursor) => {
       if (moving==0) return false;
       if (cursor[2]==0) return false;
 
@@ -344,20 +385,35 @@ function Balloon() {
       let y = -(pos[2]-fl)*cursor[1]/fl;
 
       if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
-         this.reset();
+         this.reset(t);
          return true;
       }
       return false;
    };
 
-   this.reset = () => {
+   this.reset = (t) => {
+      reset = t;
       moving=0;
-      a=[0,0,0];
-      v=[0,0,0];
-      pos=[0,0,-fl];
+      a=[0.,0.,0.]
+      v=[0.,0.,0.]
+      omega=[0.,0.,0.]
+      angle=[pi/2,pi/2,pi/2];
+      pos=[0.,0.,-fl];
    };
 
-   this.render = (t,tex,btex) => M.S().move(pos[0], pos[1], pos[2]).turnX(t).turnY(t).scale(size).draw(Sphere(60),color,.8, tex, btex).R();
+   this.render = (t,tex,btex) => {
+      if (t-reset < thresh) {
+         opacity = 0;
+      } else {
+         opacity = Math.min(.8,(t-reset-thresh)*.1);
+      }
+      if (moving==0) {
+         M.S().move(pos[0] - size, pos[1] - size, pos[2]).scale(size/4).draw(Torus(30),color,opacity, -1, -1).R();  
+         M.S().move(pos[0] - size*1.5, pos[1] - size*1.5, pos[2]).scale(size/6).draw(Torus(30),color,opacity, -1, -1).R(); 
+         M.S().move(pos[0] - size*1.9, pos[1] - size*1.9, pos[2]).scale(size/8).draw(Torus(30),color,opacity, -1, -1).R();   
+      }
+      M.S().move(pos[0],pos[1],pos[2]).turnZ(angle[2]).turnX(angle[0]).turnY(angle[1]).scale(size).draw(Sphere(60),color,opacity, tex, btex).R();
+   }
 }
 
 // HANDLE CURSOR
