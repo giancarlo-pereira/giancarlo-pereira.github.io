@@ -15,7 +15,7 @@
       </p>
       <p>
          Type your thoughts (limit of 25 characters) into the thought bubble. Press <b>ENTER</b> to release that thought!<br>
-         Once released, you can click on that thought to make it disappear.
+         Once released, you can click on that thought to make it explode.
       </p>
       <canvas id='canvas1' width=800 height=800></canvas>         
    </center>
@@ -56,8 +56,6 @@ let sendThought = (text) => {
    thought.trigger();
 } 
 
-
-
 textArea.onkeydown = function(e) {
    if (e.code === 'Enter')  {
          if (this.value.length > 0 )  
@@ -86,7 +84,7 @@ function drawFrame() {
       if (thought.hit(t,cursor)) {
          console.log(`thought shot down`);
          textArea.value = ``;
-         explosion.trigger(t,cursor);
+         explosion.trigger(t,thought.where());
       }
 
       let wallColor = [201/255,183/255,177/255];
