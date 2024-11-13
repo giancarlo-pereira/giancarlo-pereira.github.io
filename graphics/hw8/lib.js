@@ -384,9 +384,9 @@ function Balloon() {
       v[1]=v[1]+a[1]*dt;
       v[2]=v[2]+a[2]*dt;
 
-      if (Math.abs(pos[0])      - 1.5 > 0) v[0] = -.9*v[0];
-      if (Math.abs(pos[1])      - 1.5 > 0) v[1] = -.9*v[1];
-      if (Math.abs(pos[2]+fl-1) -   1 > 0) v[2] = -.9*v[2];
+      if (Math.abs(pos[0])      - 1.5 > 0) v[0] = -v[0];
+      if (Math.abs(pos[1])      - 1.5 > 0) v[1] = -v[1];
+      if (Math.abs(pos[2]+fl-2) -   1 > 0) v[2] = -v[2];
    };
 
    let rotate = (dt) => {
@@ -400,13 +400,14 @@ function Balloon() {
    }
 
    this.trigger = () => {
+      v=[2*(Math.random()-.5),2*(Math.random()-.5),2*(Math.random()-.5)];
       moving = 1;
    };
 
    this.fly = (time) => {
       let dt = time - t;
       if (moving!=0) {
-         a=[5*(Math.random()-.5), 5*(Math.random()-.5), 5*(Math.random()-.5)];
+         a=[normal_random(0,.1),normal_random(0,.1),normal_random(0,.1)];
          alpha=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
       } else {
          a=[0.,0.,0.];
