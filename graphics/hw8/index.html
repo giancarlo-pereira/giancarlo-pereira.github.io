@@ -81,10 +81,11 @@ function drawFrame() {
    ctx.fillText(textArea.value, 0, 250);
 
    M.S().perspective(fl);
+      explosion.follow(thought.where());
       if (thought.hit(t,cursor)) {
          console.log(`thought shot down`);
          textArea.value = ``;
-         explosion.trigger(t,thought.where());
+         explosion.trigger(t);
       }
 
       let wallColor = [201/255,183/255,177/255];

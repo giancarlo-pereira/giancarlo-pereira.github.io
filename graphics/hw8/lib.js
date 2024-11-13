@@ -175,6 +175,8 @@ let strToTris = s => {
    return new Float32Array(t);
 }
 
+let triangle = strToTris(`1N000111100 11000110100 N1000100100`);
+
 let square = strToTris(`1N000111100 11000110100 N1000100100  N1000100100 NN000101100 1N000111100`);
 
 let cube = strToTris(`1N100111100 11100110100 N1100100100  N1100100100 NN100101100 1N100111100
@@ -191,6 +193,7 @@ let Cylinder = (n,s)   => { return { type: 1, mesh: cylinder(n,s) }; }
 let Disk     = n       => { return { type: 1, mesh: disk    (n, 1) }; }
 let Sphere   = n       => { return { type: 1, mesh: sphere  (n, n>>1) }; }
 let Square   = ()      => { return { type: 0, mesh: square }; }
+let Triangle = ()      => { return { type: 0, mesh: triangle }; }
 let Torus    = (n,r,t) => { return { type: 1, mesh: torus   (n, n, r, t) }; }
 let Tube     = n       => { return { type: 1, mesh: tube    (n, 1) }; }
 
@@ -235,7 +238,7 @@ let fragmentShader = `
    }
 
    void main(void) {
-      vec3 uL = vec3(-1., 3., 0);
+      vec3 uL = vec3(-1., 3., `+ -fl +`);
       vec4 texture = vec4(1.);
       vec3 nor = normalize(vNor);
       for (int i = 0 ; i < 16 ; i++) {
@@ -249,7 +252,7 @@ let fragmentShader = `
          }
       }
 
-      float att = 100.*attenuation(vPos, uL),
+      float att = 50.*attenuation(vPos, uL),
          diff = diffuse(nor, vPos, uL);
             
       float c = att*(0.05+diff);
@@ -335,15 +338,16 @@ function Explosion() {
    let t = 0.;
    let trig = 0., thresh = 1.; //seconds
 
-   this.trigger = (t,balloonPos) => {
+   this.where = () => pos;
+   this.follow = p => {if (exploding==0) pos=p;}
+
+   this.trigger = t => {
       trig = t;
       exploding = 1;
-      pos=balloonPos;
    }
 
    this.reset = () => {
       exploding=0;
-      pos=[0.,0.,0.];
    };
 
    this.render = t => {
@@ -351,7 +355,7 @@ function Explosion() {
       if (t-trig > thresh) {this.reset(); return;}
       let c = [normal_random(.7, .05),normal_random(.7, .05),normal_random(.7, .05)];
       for ( var i = 0; i < 100; i++ ) {
-         M.S().move(normal_random(pos[0],.4*(1+(t-trig)**4)),normal_random(pos[1],.4*(1+(t-trig)**4)),normal_random(pos[2],.4*(1+(t-trig)**4))).turnZ(2*(Math.random()-.5)*pi).turnX(2*(Math.random()-.5)*pi).turnY(2*(Math.random()-.5)*pi).scale(size/(t-trig)).draw(Square(),c,1., -1, -1).R()
+         M.S().move(normal_random(pos[0],.4*(1+(t-trig)**4)),normal_random(pos[1]-(t-trig)**2,.4*(1+(t-trig)**4)),normal_random(pos[2],.4*(1+(t-trig)**4))).turnZ(2*(Math.random()-.5)*pi).turnX(2*(Math.random()-.5)*pi).turnY(2*(Math.random()-.5)*pi).scale(size/(t-trig)).draw(Triangle(),c,1., -1, -1).R()
       }
    }
 }
