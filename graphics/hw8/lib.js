@@ -407,6 +407,7 @@ function Balloon() {
 
    this.trigger = () => {
       v=[2*(Math.random()-.5),2*(Math.random()-.5),2*(Math.random()-.5)];
+      omega=[(Math.random()-.5),(Math.random()-.5),(Math.random()-.5)];
       moving = 1;
    };
 
