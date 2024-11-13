@@ -222,8 +222,20 @@ let fragmentShader = `
    uniform int uTexture, uBumpTexture;
    varying vec3 vPos, vNor, vTan;
    varying vec2 vUV;
+
+   // LIGHTING
+   float attenuation(vec3 P, vec3 uLight) {
+      vec3 dist = uLight - P;
+      return 1. / dot(dist, dist); 
+   }
+
+   float diffuse(vec3 N, vec3 P, vec3 uLight) {
+      vec3 surfToLight = normalize(uLight - P);
+      return max(0., dot(N, surfToLight));
+   }
+
    void main(void) {
-      vec3 uL = normalize(vec3(-1.,-1.,2.));
+      vec3 uL = vec3(-1., 3., 0);
       vec4 texture = vec4(1.);
       vec3 nor = normalize(vNor);
       for (int i = 0 ; i < 16 ; i++) {
@@ -236,7 +248,11 @@ let fragmentShader = `
 	    nor = normalize(b.x * tan + b.y * bin + b.z * nor);
          }
       }
-      float c = .05 + max(0., dot(nor, uL));
+
+      float att = 100.*attenuation(vPos, uL),
+         diff = diffuse(nor, vPos, uL);
+            
+      float c = att*(0.05+diff);
       vec3 color = sqrt(uColor * c) * texture.rgb;
       gl_FragColor = vec4(color, uOpacity * texture.a);
    }
@@ -310,11 +326,12 @@ let draw = (Shape, color, opacity, texture, bumpTexture) => {
    return M;
 }
 
-// BALLOON FUNCTION
+// BALLOON AND EXPLOSION FUNCTIONS
 
 function Explosion() {
    let exploding = 0;
    let pos = [0.,0.,0.];
+   let size = .005;
    let t = 0.;
    let trig = 0., thresh = 1.; //seconds
 
@@ -332,9 +349,9 @@ function Explosion() {
    this.render = t => {
       if (exploding==0) return;
       if (t-trig > thresh) {this.reset(); return;}
-      let c = [.7,.7,.7];
+      let c = [normal_random(.7, .05),normal_random(.7, .05),normal_random(.7, .05)];
       for ( var i = 0; i < 100; i++ ) {
-         M.S().move(normal_random(pos[0],.1*(1+(t-trig)**4)),normal_random(pos[1],.1*(1+(t-trig)**4)),normal_random(pos[2],.1*(1+(t-trig)**4))).turnZ(2*(Math.random()-.5)*pi).turnX(2*(Math.random()-.5)*pi).turnY(2*(Math.random()-.5)*pi).scale(.005).draw(Square(),c,1., -1, -1).R()
+         M.S().move(normal_random(pos[0],.4*(1+(t-trig)**4)),normal_random(pos[1],.4*(1+(t-trig)**4)),normal_random(pos[2],.4*(1+(t-trig)**4))).turnZ(2*(Math.random()-.5)*pi).turnX(2*(Math.random()-.5)*pi).turnY(2*(Math.random()-.5)*pi).scale(size/(t-trig)).draw(Square(),c,1., -1, -1).R()
       }
    }
 }
@@ -363,9 +380,9 @@ function Balloon() {
       v[1]=v[1]+a[1]*dt;
       v[2]=v[2]+a[2]*dt;
 
-      if (Math.abs(pos[0])      - 1.5 > 0) v[0] = -.75*v[0];
-      if (Math.abs(pos[1])      - 1.5 > 0) v[1] = -.75*v[1];
-      if (Math.abs(pos[2]+2*fl-1) - 1 > 0) v[2] = -.75*v[2];
+      if (Math.abs(pos[0])      - 1.5 > 0) v[0] = -.9*v[0];
+      if (Math.abs(pos[1])      - 1.5 > 0) v[1] = -.9*v[1];
+      if (Math.abs(pos[2]+fl-1) -   1 > 0) v[2] = -.9*v[2];
    };
 
    let rotate = (dt) => {
@@ -385,7 +402,7 @@ function Balloon() {
    this.fly = (time) => {
       let dt = time - t;
       if (moving!=0) {
-         a=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
+         a=[5*(Math.random()-.5), 5*(Math.random()-.5), 5*(Math.random()-.5)];
          alpha=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
       } else {
          a=[0.,0.,0.];
