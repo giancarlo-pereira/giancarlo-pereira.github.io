@@ -253,10 +253,9 @@ let fragmentShader = `
          }
       }
 
-      float att = 50.*attenuation(vPos, uL),
-         diff = diffuse(nor, vPos, uL);
+      float att = 25.*attenuation(vPos, uL);
             
-      float c = att*(0.05+diff);
+      float c = att*(0.05+diffuse(nor, vPos, -uL)+diffuse(nor, vPos, -uL));
       vec3 color = sqrt(uColor * c) * texture.rgb;
       gl_FragColor = vec4(color, uOpacity * texture.a);
    }
@@ -334,7 +333,7 @@ let points = [];
 
 function Point(x,y) {
    let color = [0.,1.,0.];
-   let size = 0.1;
+   let size = 0.05;
    let pos = [2*x, 2*y,-fl];
 
    let selected = 1;
@@ -348,7 +347,7 @@ function Point(x,y) {
       let x = 2*cursor[0];
       let y = 2*cursor[1];
 
-      if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
+      if ( (x-pos[0])**2 + (y-pos[1])**2 - 2*size**2 < 0 ) {
          this.select();
          return true;
       }
@@ -402,6 +401,31 @@ canvas.onmouseup   = e => {
 }
 
 // CUBIC SPLINES
+
+let drawSpline = (canvas, points, n, splineType) => {
+   if (points.length < 2) return;
+
+   // let spline = new Float32Array();
+
+   // for (var t=0; t <= 1; t += 1/n) {
+   //    spline[0]
+   //    catmullRom(points, t)
+   // }
+
+   ctx = canvas.getContext('2d');
+   ctx.clearRect(0, 0, canvas.width, canvas.height);
+   // ctx.fillStyle = '#ededed';
+   // ctx.fillRect(0, 0, 512, 512);
+   // ctx.fillStyle = 'red';
+   ctx.linewidth = 5;
+   ctx.strokeStyle = 'red';
+   ctx.beginPath();
+   ctx.moveTo(50, 140);
+   ctx.lineTo(150, 60);
+   ctx.lineTo(250, 140);
+   ctx.closePath();
+   ctx.stroke();
+}
 
 let catmullRom = (K, t) => {
     let n = K.length -1, i = floor(n * t), f = (n * t) % 1;

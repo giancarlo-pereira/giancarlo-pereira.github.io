@@ -1,17 +1,72 @@
+<head>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="style.css"
+ </head>
+
 <body bgcolor=#ffffff>
+    <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
     <center>
        <p>
+        <font size=12>
         GIANCARLO PEREIRA HW9 -- CUBIC SPLINES
        </p>
-       <p>
-        Still figuring it out...
-       </p>
-       <canvas id='canvas' width=800 height=800></canvas>         
+        </font>
+        <table cellspacing=10>
+            <tr>
+                <td valign="top"><font size=5>
+                    <b>CLICK</b> to add a new point.<br>
+                    <b>CLICK</b> on an existing point to select it (the color changes to green).<br>
+                    <b>ESCAPE</b> to unselect a point (the color changes back to gray).<br>
+                    <b>CLICK AND DRAG</b> a point to move it around.<br>
+                    <b>BACKSPACE</b> a selected point to remove it.<br>
+                    <b>R</b> to remove all points.<br>
+                    <b>ENTER</b> to generate the spline.<br>
+                    Choose a cubic spline from the list below (default is Catmull Rom).
+                    <div class="container">
+                        <button class="btn" id="btn">
+                          Spline Types
+                          <i class="bx bx-chevron-down" id="arrow"></i>
+                        </button>
+                      
+                        <div class="dropdown" id="dropdown">
+                          <a href="" splineType=0>
+                            <i class="bx bxs-hand bx-burst" ></i>
+                            Catmull Rom
+                          </a>
+                          <a href="" >
+                            <i class="bx bx-confused"></i>
+                            B Spline
+                          </a>
+                          <a href="" splineType=2>
+                            <i class="bx bx-cool"></i>
+                            Walking Confidently
+                          </a>
+                          <a href="" splineType=2>
+                            <i class="bx bx-party"></i>
+                            Ballet Dancing
+                          </a>
+                          <a href="" splineType=3>
+                            <i class="bx bx-body bx-tada" ></i>
+                            Jumping jacks
+                          </a>
+                          <a href="" splineType=4>
+                           <i class='bx bx-coffee bx-flashing' ></i>
+                           Drinking Cofee
+                         </a>
+                        </div>
+                      </div>
+                </td>
+                <td>
+                    <canvas id='canvas' width=800 height=800></canvas>       
+                </td>
+        </table>  
     </center>
 </body>
  
 <script src=lib.js></script>
 <script>
+
+texture(0, textureCanvas);
 
 window.addEventListener("keydown", e => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
@@ -19,8 +74,12 @@ window.addEventListener("keydown", e => {
     'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
     'MetaLeft', 'MetaRight'].indexOf(e.code) >= 0)
         e.preventDefault();
-    else if (['Space', 'Enter'].indexOf(e.code) >= 0) {
+    else if (['Enter'].indexOf(e.code) >= 0) {
         e.preventDefault();
+        points.forEach(point => {
+            point.unselect();
+        })
+        drawSpline(textureCanvas, points, 1000);
     }
     else if (['Backspace'].indexOf(e.code) >= 0) {
         e.preventDefault();
@@ -33,6 +92,10 @@ window.addEventListener("keydown", e => {
         points.forEach(point => {
             point.unselect();
         })
+    }
+    else if (['KeyR'].indexOf(e.code) >= 0) {
+        e.preventDefault();
+        points = [];
     }
 });
 
@@ -54,6 +117,8 @@ function drawFrame() {
         points.forEach(point => {
             point.render();
         });
+
+        M.S().move(0, 0,-fl).scale(2).turnY(   pi).draw(Square(), wallColor, .5, 0, -1).R();
 
         // M.S().move(-.6, .3,0).turnY( t).scale(.2).draw(Tube(30)    , [1,1,1]   , 1,  0   ).R();
         // M.S().move(  0, .3,0).turnY( 0).scale(.2).draw(Sphere(30)  , [1,1,0]   , 1,      ).R();
