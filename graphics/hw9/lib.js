@@ -71,6 +71,7 @@ function Matrix() {
 // INITIALIZE WEBGL
 
 let start_gl = (canvas, vertexShader, fragmentShader) => {
+   // initEventHandlers(canvas);
    let gl = canvas.getContext("webgl");
    let program = gl.createProgram();
    gl.program = program;
@@ -263,7 +264,7 @@ let fragmentShader = `
 
 // DECLARE GL-RELATED VARIABLES AND MATRIX OBJECT
 
-let gl = start_gl(canvas1, vertexShader, fragmentShader);
+let gl = start_gl(canvas, vertexShader, fragmentShader);
 let uColor       = gl.getUniformLocation(gl.program, "uColor"      );
 let uInvMatrix   = gl.getUniformLocation(gl.program, "uInvMatrix"  );
 let uMatrix      = gl.getUniformLocation(gl.program, "uMatrix"     );
@@ -331,72 +332,73 @@ let draw = (Shape, color, opacity, texture, bumpTexture) => {
 
 let points = [];
 
-function Point() {
-    let color = [.2,.2,.2], opacity = .95;
-    let size = 0.2;
-    let pos = [0.,0.,-fl];
+function Point(x,y) {
+   let color = [0.,1.,0.];
+   let size = 0.1;
+   let pos = [2*x, 2*y,-fl];
 
-    let selected = 0;
+   let selected = 1;
 
-    this.where = () => pos;
-    this.color = () => color;
-    this.size  = () => size;
-    this.on    = () => selected==1;
+   this.where = () => pos;
+   this.color = () => color;
+   this.size  = () => size;
+   this.on    = () => selected==1;
 
-    this.hit = (cursor) => {
-        if (cursor[2]==0) {}
+   this.hit = (cursor) => {
+      let x = 2*cursor[0];
+      let y = 2*cursor[1];
 
-        let x = -(pos[2]-fl)*cursor[0]/fl;
-        let y = -(pos[2]-fl)*cursor[1]/fl;
+      if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
+         this.select();
+         return true;
+      }
+      return false;
+   }
 
-        if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
-            this.select();
-        }
-    }
+   this.select   = () => {selected=1; color=[0.,1.,0.];}
+   this.unselect = () => {selected=0; color=[.2,.2,.2];}
 
-    this.select   = () => {selected=1; color=[0.,1.,0.];}
-    this.unselect = () => {selected=0; color=[.2,.2,.2];}
+   this.place = (cursor) => {
+      if (selected==0 || cursor[2]==0) {return;}
+      pos=[2*cursor[0],2*cursor[1],-fl];
+   }
 
-    this.move = (cursor) => {
-        if (selected==0 || cursor[2]==0) {};
-        pos=[cursor[0],cursor[1],-fl];
-    }
-    this.render = () => M.S().move(pos[0],pos[1],pos[2]).scale(size).draw(Sphere(20),color,opacity, -1, -1).R();
+   this.render = () => M.S().move(pos[0],pos[1],pos[2]).scale(size).draw(Sphere(20),color,1, -1, -1).R();
 }
 
 // HANDLE CURSOR
 
-let rect = canvas1.getBoundingClientRect(), cursor = [0,0,0];
-let rx = 0, ry = 0;
-let drag = false;
-let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas1.width  - 1,
-                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas1.height + 1,
+let rect = canvas.getBoundingClientRect(), cursor = [0,0,0];
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas.width  - 1,
+                                     -2 * (e.clientY - rect.top + window.scrollY) / canvas.height + 1,
                                      z !== undefined ? z : cursor[2] ];
 
-canvas1.onmousedown = e => {
-    setCursor(e, 1);
-    rx=cursor[0], ry=cursor[1];
-    points.forEach(point => {
-        point.unselect();
-        point.hit(cursor);
-    });
-    
-    drag=false;
-}
-canvas1.onmousemove = e => {
-    setCursor(e,  );
+canvas.onmousedown = e => {
+   setCursor(e, 1);
+   let hit = false;
 
-    if ( (rx-cursor[0])**2 + (ry-cursor[1])**2 > 0.1 ) drag=true;
+   if (points.length >= 1) {
+      points.forEach(point => {
+         point.unselect();
+         hit = hit || point.hit(cursor);
+      }); 
+   }
 
-    if (drag) {
-        points.forEach(point => {
-            point.move(cursor);
-        })
-    }
+   if (!hit) points.push(new Point(cursor[0], cursor[1]));
 }
-canvas1.onmouseup   = e => {
+
+canvas.onmousemove = e => {
+   setCursor(e,  );
+
+   if (points.length > 0 && cursor[2]==1) {
+      points.forEach(point => {
+         point.place(cursor);
+      });
+   }
+}
+
+canvas.onmouseup   = e => {
     setCursor(e, 0);
-    drag=false;
 }
 
 // CUBIC SPLINES
