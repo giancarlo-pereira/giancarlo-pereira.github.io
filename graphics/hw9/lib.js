@@ -368,7 +368,7 @@ function Point(x,y) {
 // HANDLE CURSOR
 
 let rect = canvas.getBoundingClientRect(), cursor = [0,0,0];
-let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas.width  - 1,
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left + window.scrollX) / canvas.width  - 1,
                                      -2 * (e.clientY - rect.top + window.scrollY) / canvas.height + 1,
                                      z !== undefined ? z : cursor[2] ];
 
@@ -416,8 +416,8 @@ let drawSpline = (canvas, points, n) => {
    });
 
    for (var t=0; t <= 1; t += 1/n) {
-      splinePoints.push(-catmullRom(controlPointsX, t)*128 + 256);
-      splinePoints.push(-catmullRom(controlPointsY, t)*128 + 256);
+      splinePoints.push(-catmullRom(controlPointsX, t)*canvas.width/4 + canvas.width/2);
+      splinePoints.push(-catmullRom(controlPointsY, t)*canvas.height/4 + canvas.height/2);
    }
 
    ctx = canvas.getContext('2d');

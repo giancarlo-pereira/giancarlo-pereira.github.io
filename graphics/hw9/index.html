@@ -4,14 +4,14 @@
  </head>
 
 <body bgcolor=#ffffff>
-    <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
+    <canvas id=textureCanvas width=1024 height=1024 style=position:absolute;left:-2000></canvas>
     <center>
        <p>
         <font size=12>
         GIANCARLO PEREIRA HW9 -- CUBIC SPLINES
        </p>
         </font>
-        <table cellspacing=10>
+        <table cellspacing=20>
             <tr>
                 <td valign="top"><font size=5>
                     <b>CLICK</b> to add a new point.<br>
@@ -21,40 +21,9 @@
                     <b>BACKSPACE</b> a selected point to remove it.<br>
                     <b>R</b> to remove all points.<br>
                     <b>ENTER</b> to generate the spline.<br>
-                    Choose a cubic spline from the list below (default is Catmull Rom).
-                    <div class="container">
-                        <button class="btn" id="btn">
-                          Spline Types
-                          <i class="bx bx-chevron-down" id="arrow"></i>
-                        </button>
-                      
-                        <div class="dropdown" id="dropdown">
-                          <a href="" splineType=0>
-                            <i class="bx bxs-hand bx-burst" ></i>
-                            Catmull Rom
-                          </a>
-                          <a href="" >
-                            <i class="bx bx-confused"></i>
-                            B Spline
-                          </a>
-                          <a href="" splineType=2>
-                            <i class="bx bx-cool"></i>
-                            Walking Confidently
-                          </a>
-                          <a href="" splineType=2>
-                            <i class="bx bx-party"></i>
-                            Ballet Dancing
-                          </a>
-                          <a href="" splineType=3>
-                            <i class="bx bx-body bx-tada" ></i>
-                            Jumping jacks
-                          </a>
-                          <a href="" splineType=4>
-                           <i class='bx bx-coffee bx-flashing' ></i>
-                           Drinking Cofee
-                         </a>
-                        </div>
-                      </div>
+                    Number of Sample Points:<br>
+                    <input type="range" value="100" min="1" max="1000" id="n" style="width: 400"
+                    oninput="nValue.innerText = this.value"></input><span id="nValue">100</span><br>
                 </td>
                 <td>
                     <canvas id='canvas' width=800 height=800></canvas>       
@@ -79,7 +48,7 @@ window.addEventListener("keydown", e => {
         points.forEach(point => {
             point.unselect();
         })
-        drawSpline(textureCanvas, points, 100);
+        drawSpline(textureCanvas, points, n.value);
     }
     else if (['Backspace'].indexOf(e.code) >= 0) {
         e.preventDefault();
