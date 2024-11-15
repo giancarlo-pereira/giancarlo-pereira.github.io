@@ -402,34 +402,41 @@ canvas.onmouseup   = e => {
 
 // CUBIC SPLINES
 
-let drawSpline = (canvas, points, n, splineType) => {
+let drawSpline = (canvas, points, n) => {
    if (points.length < 2) return;
 
-   // let spline = new Float32Array();
+   let controlPointsX = [],
+   controlPointsY = [],
+   splinePoints = [];
 
-   // for (var t=0; t <= 1; t += 1/n) {
-   //    spline[0]
-   //    catmullRom(points, t)
-   // }
+   points.forEach(point => {
+        pos = point.where();
+        controlPointsX.push(pos[0]);
+        controlPointsY.push(pos[1]);
+   });
+
+   for (var t=0; t <= 1; t += 1/n) {
+      splinePoints.push(-catmullRom(controlPointsX, t)*128 + 256);
+      splinePoints.push(-catmullRom(controlPointsY, t)*128 + 256);
+   }
 
    ctx = canvas.getContext('2d');
    ctx.clearRect(0, 0, canvas.width, canvas.height);
    // ctx.fillStyle = '#ededed';
    // ctx.fillRect(0, 0, 512, 512);
    // ctx.fillStyle = 'red';
-   ctx.linewidth = 5;
+   ctx.linewidth = 10;
    ctx.strokeStyle = 'red';
    ctx.beginPath();
-   ctx.moveTo(50, 140);
-   ctx.lineTo(150, 60);
-   ctx.lineTo(250, 140);
-   ctx.closePath();
+
+   ctx.moveTo(splinePoints[0], splinePoints[1]);
+   for (let i = 2; i < splinePoints.length-1; i += 2) ctx.lineTo(splinePoints[i], splinePoints[i+1]);
    ctx.stroke();
 }
 
 let catmullRom = (K, t) => {
-    let n = K.length -1, i = floor(n * t), f = (n * t) % 1;
-    let A = K[max(0, i-1)], B = K[i], C = K[i+1], D = K[min(n, i+2)]; // this does NOT wrap around
+    let n = K.length -1, i = Math.floor(n * t), f = (n * t) % 1;
+    let A = K[Math.max(0, i-1)], B = K[i], C = K[i+1], D = K[Math.min(n, i+2)]; // this does NOT wrap around
     return ((((-A+3*B-3*C+D) * f + (2*A-5*B+4*C-D)) * f + (-A+C)) * f + 2*B) / 2;
 }
 

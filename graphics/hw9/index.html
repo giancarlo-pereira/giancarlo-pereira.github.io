@@ -79,7 +79,7 @@ window.addEventListener("keydown", e => {
         points.forEach(point => {
             point.unselect();
         })
-        drawSpline(textureCanvas, points, 1000);
+        drawSpline(textureCanvas, points, 100);
     }
     else if (['Backspace'].indexOf(e.code) >= 0) {
         e.preventDefault();
