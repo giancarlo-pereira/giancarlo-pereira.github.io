@@ -95,6 +95,7 @@ window.addEventListener("keydown", e => {
     }
     else if (['KeyR'].indexOf(e.code) >= 0) {
         e.preventDefault();
+        clearSpline(textureCanvas);
         points = [];
     }
 });

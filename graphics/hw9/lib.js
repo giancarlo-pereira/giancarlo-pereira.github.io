@@ -434,6 +434,11 @@ let drawSpline = (canvas, points, n) => {
    ctx.stroke();
 }
 
+let clearSpline = (canvas) => {
+    ctx = textureCanvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 let catmullRom = (K, t) => {
     let n = K.length -1, i = Math.floor(n * t), f = (n * t) % 1;
     let A = K[Math.max(0, i-1)], B = K[i], C = K[i+1], D = K[Math.min(n, i+2)]; // this does NOT wrap around
