@@ -333,7 +333,7 @@ let points = [];
 
 function Point(x,y) {
    let color = [0.,1.,0.];
-   let size = 0.05;
+   let size = 0.025;
    let pos = [2*x, 2*y,-fl];
 
    let selected = 1;
@@ -347,7 +347,7 @@ function Point(x,y) {
       let x = 2*cursor[0];
       let y = 2*cursor[1];
 
-      if ( (x-pos[0])**2 + (y-pos[1])**2 - 2*size**2 < 0 ) {
+      if ( (x-pos[0])**2 + (y-pos[1])**2 - 3*size**2 < 0 ) {
          this.select();
          return true;
       }
@@ -403,7 +403,9 @@ canvas.onmouseup   = e => {
 // CUBIC SPLINES
 
 let drawSpline = (canvas, points, n) => {
-   if (points.length < 2) return;
+   let l = points.length - 1;
+   if (l < 1) return;
+   n = n * l;
 
    let controlPointsX = [],
    controlPointsY = [],
@@ -415,10 +417,13 @@ let drawSpline = (canvas, points, n) => {
         controlPointsY.push(pos[1]);
    });
 
-   for (var t=0; t <= 1; t += 1/n) {
-      splinePoints.push(-catmullRom(controlPointsX, t)*canvas.width/4 + canvas.width/2);
-      splinePoints.push(-catmullRom(controlPointsY, t)*canvas.height/4 + canvas.height/2);
+   for (var i = 0; i < n; i += 1) {
+      splinePoints.push( (2. - catmullRom(controlPointsX, i/n) ) *  canvas.width/4);
+      splinePoints.push( (2. - catmullRom(controlPointsY, i/n) ) * canvas.height/4);
    }
+   // add last point
+   splinePoints.push( (2. - controlPointsX[l]) *  canvas.width/4);
+   splinePoints.push( (2. - controlPointsY[l]) * canvas.height/4);
 
    ctx = canvas.getContext('2d');
    ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -430,7 +435,11 @@ let drawSpline = (canvas, points, n) => {
    ctx.beginPath();
 
    ctx.moveTo(splinePoints[0], splinePoints[1]);
-   for (let i = 2; i < splinePoints.length-1; i += 2) ctx.lineTo(splinePoints[i], splinePoints[i+1]);
+   for (let i = 2; i < splinePoints.length-1; i += 2) 
+      {
+         ctx.lineTo(splinePoints[i], splinePoints[i+1]);
+         console.log(`the points are ${splinePoints[i]}, ${splinePoints[i+1]}`);
+      }
    ctx.stroke();
 }
 

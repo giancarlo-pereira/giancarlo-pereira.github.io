@@ -22,8 +22,8 @@
                     <b>R</b> to remove all points.<br>
                     <b>ENTER</b> to generate the spline.<br>
                     Number of Sample Points:<br>
-                    <input type="range" value="100" min="1" max="1000" id="n" style="width: 400"
-                    oninput="nValue.innerText = this.value"></input><span id="nValue">100</span><br>
+                    <input type="range" value="25" min="1" max="100" id="n" style="width: 400"
+                    oninput="nValue.innerText = this.value"></input><span id="nValue">25</span><br>
                 </td>
                 <td>
                     <canvas id='canvas' width=800 height=800></canvas>       
@@ -88,15 +88,9 @@ function drawFrame() {
             point.render();
         });
 
+        // spline texture canvas
         M.S().move(0, 0,-fl).scale(2).turnY(   pi).draw(Square(), wallColor, .5, 0, -1).R();
 
-        // M.S().move(-.6, .3,0).turnY( t).scale(.2).draw(Tube(30)    , [1,1,1]   , 1,  0   ).R();
-        // M.S().move(  0, .3,0).turnY( 0).scale(.2).draw(Sphere(30)  , [1,1,0]   , 1,      ).R();
-        // M.S().move( .6, .3,0).turnY( t).scale(.2).draw(Cylinder(30), [1,1,1]   , 1,  0   ).R();
-        // M.S().move(-.6,-.3,0).turnX(-t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  1   ).R();
-        // M.S().move( .6,-.3,0).turnY(-t).scale(.2).draw(Torus(30)   , [1,.5,.3] , 1, -1, 3).R();
-        // M.S().move(  -.5,.5,0).turnX( t).scale(.2).draw(Cube()      , [1,1,1]   , 1,  2,-1).R();
-        // M.S().move(0,.3,.5).turnY( t).scale(.2).draw(Square()      , [1,1,1]   , 1,  2,-1).R();
     M.R();
 }
 requestAnimationFrame(drawFrame);
