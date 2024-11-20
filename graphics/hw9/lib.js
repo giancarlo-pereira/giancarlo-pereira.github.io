@@ -347,7 +347,7 @@ function Point(x,y) {
       let x = 2*cursor[0];
       let y = 2*cursor[1];
 
-      if ( (x-pos[0])**2 + (y-pos[1])**2 - 3*size**2 < 0 ) {
+      if ( (x-pos[0])**2 + (y-pos[1])**2 - 4*size**2 < 0 ) {
          this.select();
          return true;
       }
