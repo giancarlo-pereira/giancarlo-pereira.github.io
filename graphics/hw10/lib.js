@@ -19,6 +19,7 @@ if (window.DeviceOrientationEvent)
 // MATH AND VECTOR SUPPORT
 
 let TAU       = 2 * Math.PI;
+let pi        = Math.PI;
 let add       = (a,b)   => a.map((a,i) => a + b[i]);
 let cross     = (a,b)   => [ a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0] ];
 let distance  = (a,b)   => norm(subtract(a,b));
