@@ -46,10 +46,10 @@ let points = [
    [.5, 0, 0],
    // SIDE PUNCH
    [.5, .0, 0],
-   [.5, .0, .5],
-   [.9, .0, .7],
-   [.9, .0, -.7],
-   [.8, .0, .0],
+   [.3, .0, .4],
+   [.3, .0, .6],
+   [.7, .0, -.7],
+   [.5, .0, .0],
    // UPPER CUT
    [.3, -.3, 0],
    [.5, -.6, 0],
@@ -130,8 +130,8 @@ function drawFrame() {
 
       // DRAW GYM WALLS
       M.S().move(0,0,-7).scale(7, 3, 1).draw(mySquare,[1,1,1],1,0).R();
-      M.S().move(7,0,0).turnY(-pi/2).scale(7,3,1).draw(mySquare,[1,1,1],1,4).R();
-      M.S().move(-7,0,0).turnY(pi/2).scale(7,3,1).draw(mySquare,[1,1,1],1,3).R();
+      M.S().move(7,0,0).turnY(pi/2).scale(7,3,1).draw(mySquare,[1,1,1],1,4).R();
+      M.S().move(-7,0,0).turnY(-pi/2).scale(7,3,1).draw(mySquare,[1,1,1],1,3).R();
       M.S().move(0,0,7).turnY(0).scale(7,3,1).draw(mySquare,[1,1,1],1,0).R();
 
       // DRAW WOOD FLOOR
