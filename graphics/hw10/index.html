@@ -1,10 +1,10 @@
 <body bgcolor=#808080><font face=courier>
 <center>
    <p>
-      GIANCARLO PEREIRA HW10 -- BOXER ROBOT
+      GIANCARLO PEREIRA HW10 -- BOXING GYM
    </p>
    <p>
-      This robotic arm is training to be a boxer.
+      These robotic arms are training to be a boxers.<br>
       Easter Egg: On a desktop, press <b>ENTER</b> turn the light on or off.
    </p>
    <canvas id=canvas1 width=900 height=700></canvas>
@@ -40,22 +40,21 @@ let mySquare   = Square();
 
 let points = [
    // STRAIGHT PUNCH
-   [.2, .3, -3],
-   [.1, .3, -3],
-
-   [.7, .4, -3],
-   [.2, .3, -3],
+   [.5, 0, 0],
+   [.4, 0, 0],
+   [1, .1, 0],
+   [.5, 0, 0],
    // SIDE PUNCH
-   [.2, .3, -3],
-   [.2, .3, -2.5],
-   [.3, .3, -2.3],
-   [.6, .3, -3.7],
-   [.2, .3, -3],
+   [.5, .0, 0],
+   [.5, .0, .5],
+   [.9, .0, .7],
+   [.9, .0, -.7],
+   [.8, .0, .0],
    // UPPER CUT
-   [0, 0, -3],
-   [.2, -.3, -3],
-   [.7, .8, -3],
-   [.2, .3, -3],
+   [.3, -.3, 0],
+   [.5, -.6, 0],
+   [1, .5, 0],
+   [.5, 0, 0],
 ];
 
 let pointsX = [],
@@ -95,14 +94,21 @@ addMaterial(2, ``);
 material = 1;
 startGL(canvas1);
 
+let numRobots = 8;
+
 // IN MY SCENE, THE SPRING IS THE PUNCHING BAG.
 // MY SPRING HAS HIGH MASS, SO IT WILL RESPOND LIKE A HEAVY OBJECT.
-let springx = new Spring();
-let springz = new Spring();
-springx.setMass(2);
-springz.setMass(2);
-springx.setDamping(2);
-springz.setDamping(5);
+let springs = [];
+for (var i = 0; i < numRobots; i++) {
+   let springx = new Spring();
+   let springz = new Spring();
+   springx.setMass(2);
+   springz.setMass(2);
+   springx.setDamping(2);
+   springz.setDamping(5);
+   springs.push([springx, springz]);
+}
+
 let startTime = Date.now() / 25;
 function drawFrame() {
    requestAnimationFrame(drawFrame);
@@ -120,9 +126,7 @@ function drawFrame() {
    drawScene(() => {
       
       // DRAW THE CEILING
-      let ceiling = [.6, 1, -3];
-      let padding = .25;
-      M.S().turnX(pi/2).move(ceiling).scale(10).draw(mySquare,[.2,.2,.2]).R();
+      M.S().move(0,3.5,0).turnX(pi/2).scale(10).draw(mySquare,[.2,.2,.2]).R();
 
       // DRAW GYM WALLS
       M.S().move(0,0,-7).scale(7, 3, 1).draw(mySquare,[1,1,1],1,0).R();
@@ -132,34 +136,44 @@ function drawFrame() {
 
       // DRAW WOOD FLOOR
       M.S().move(0,-3,0).turnX(-pi/2).scale(10).draw(mySquare,[1,1,1],1,2).R();
-      
-      // PLACE AND THEN RENDER THE JOINTS (SHOULDER, ELBOW, WRIST), USING IK.
-      let s = [-.3,.3,-3];
-      let w = [splinePointsX[Math.floor(time % num)],
-               splinePointsY[Math.floor(time % num)],
-               splinePointsZ[Math.floor(time % num)]];
-      let e = add(s,ik(.5,.5,subtract(w,s),[0,-1,0]));
 
-      M.S().move(s).scale(.07).draw(mySphere  ,[0,.5,1]).R();
-      M.S().move(w).scale(.07).draw(mySphere  ,[0,.5,1]).R();
-      M.S().move(e).scale(.07,.07,.04).draw(myCylinder,[0,.5,1]).R();
+      // do a few robotic arms at the gym
+      for (var i = 0; i < numRobots; i++) {
+         // PLACE AND THEN RENDER THE JOINTS (SHOULDER, ELBOW, WRIST), USING IK.
+         let spring = springs[i];
+         let s = [-2 + 5*C(i*2*pi/numRobots),.3, 1 + 4*S(i*2*pi/numRobots)];
+         let phase = i**3 * 7,
+             t = time + phase;
+         let w = add(s, [splinePointsX[Math.floor(t % num)],
+                  splinePointsY[Math.floor(t % num)],
+                  splinePointsZ[Math.floor(t % num)]]);
 
-      // DRAW THE LIMBS THAT CONNECT THE JOINTS.
+         let e = add(s,ik(.5,.5,subtract(w,s),[0,-1,0]));
 
-      M.S().move(mix(s,e,.5)).aim(subtract(e,s)).scale(.02,.02,distance(s,e)/2).draw(myCube,[1,1,1]).R();
-      M.S().move(mix(e,w,.5)).aim(subtract(w,e)).scale(.02,.02,distance(e,w)/2).draw(myCube,[1,1,1]).R();
+         M.S().move(s).scale(.07).draw(mySphere  ,[0,.5,1]).R();
+         M.S().move(w).scale(.07).draw(mySphere  ,[0,.5,1]).R();
+         M.S().move(e).scale(.07,.07,.04).draw(myCylinder,[0,.5,1]).R();
 
-      // DANGLE A PUNCH BAG FROM THE CEILING, AND ANIMATE IT WITH A SPRING FORCE.
+         // DRAW THE LIMBS THAT CONNECT THE JOINTS.
 
-      springx.setForce(Math.max(0,w[0]-ceiling[0] + padding));
-      springx.update(.03);
-      springz.setForce(Math.min(0,w[2]-ceiling[2] + padding));
-      springz.update(.03);
-      
-      let x = springx.getPosition(),
-          z = springz.getPosition();
-      let p = add(ceiling, scale(normalize([x,-.4,z]),.4));
-      M.S().move(p).aim(subtract(p,ceiling)).scale(.3, .3, .8).draw(myCylinder,[1,0,0],1, -1, 1).R();
+         M.S().move(mix(s,e,.5)).aim(subtract(e,s)).scale(.02,.02,distance(s,e)/2).draw(myCube,[1,1,1]).R();
+         M.S().move(mix(e,w,.5)).aim(subtract(w,e)).scale(.02,.02,distance(e,w)/2).draw(myCube,[1,1,1]).R();
+
+         // DANGLE A PUNCH BAG FROM THE CEILING, AND ANIMATE IT WITH A SPRING FORCE.
+
+         let ceiling = add(s, [.9, .7, 0]);
+         let padding = .25;
+
+         spring[0].setForce(Math.max(0,w[0]-ceiling[0] + padding));
+         spring[0].update(.03);
+         spring[1].setForce(Math.min(0,w[2]-ceiling[2] + padding));
+         spring[1].update(.03);
+         
+         let x = spring[0].getPosition(),
+             z = spring[1].getPosition();
+         let p = add(ceiling, scale(normalize([x,-.4,z]),.4));
+         M.S().move(p).aim(subtract(p,ceiling)).scale(.3, .3, .8).draw(myCylinder,[1,0,0],1, -1, 1).R();
+      }
       // M.S().move(mix(e,p,.5)).aim(subtract(p,e)).scale(.01,.01,distance(e,p)/2).draw(myCube,[1,0,0]).R();
 
       // ADD OTHER OBJECTS MOVING AROUND THE SCENE FOR FUN
