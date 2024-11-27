@@ -371,7 +371,7 @@ let fragmentShader = `
             nor = normalize(b.x * tan + b.y * bin + b.z * nor);
          }
       }
-      vec3 L = vec3(.577), E = vec3(0.,0.,1.);
+      vec3 L = vec3(0.,2.,0.), E = vec3(0.,0.,1.);
       float c = .05 + max(0., dot(L, nor)) + max(0., dot(-L, nor));;
       vec3 color = sqrt(uColor * c) * texture.rgb;
       float power = 40.;
