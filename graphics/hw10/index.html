@@ -148,7 +148,7 @@ function drawFrame() {
       let x = springx.getPosition(),
           z = springz.getPosition();
       let p = add(ceiling, scale(normalize([x,-.4,z]),.4));
-      M.S().move(p).aim(subtract(p,ceiling)).scale(.3, .3, .8).draw(myCylinder,[1,0,0],1, 0, 1).R();
+      M.S().move(p).aim(subtract(p,ceiling)).scale(.3, .3, .8).draw(myCylinder,[1,0,0],1, -1, 1).R();
       // M.S().move(mix(e,p,.5)).aim(subtract(p,e)).scale(.01,.01,distance(e,p)/2).draw(myCube,[1,0,0]).R();
 
       // ADD GYM WALLS
@@ -158,7 +158,7 @@ function drawFrame() {
       M.S().move(0,0,7).turnY(0).scale(10).draw(mySquare,[1,1,1],1,0).R();
 
       // ADD WOOD FLOOR
-      M.S().move(0,-2,0).turnX(-pi/2).scale(10).draw(mySquare,[1,1,1],1,2).R();
+      M.S().move(0,-3,0).turnX(-pi/2).scale(10).draw(mySquare,[1,1,1],1,2).R();
 
       // ADD OTHER OBJECTS MOVING AROUND THE SCENE FOR FUN
 
