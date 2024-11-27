@@ -33,6 +33,52 @@ let myCylinder = Cylinder(20);
 let mySphere   = Sphere(20);
 let mySquare   = Square();
 
+let points = [
+   // STRAIGHT PUNCH
+   [.2, .3, -3],
+   [.1, .3, -3],
+   [.7, .4, -3],
+   [.2, .3, -3],
+   // SIDE PUNCH
+   [.2, .3, -3],
+   [.2, .3, -2.5],
+   [.3, .3, -2.3],
+   [.6, .3, -3.7],
+   [.2, .3, -3],
+   // UPPER CUT
+   [0, 0, -3],
+   [.2, -.3, -3],
+   [.5, .7, -3],
+   [.2, .3, -3],
+];
+// [.2+.6*ease(.5+.5*S(5*time+C(4*time))),.3-.3*ease(.5+.5*S(5*time+C(4*time))),-3+.1*ease(.5+.5*S(5*time+C(4*time)))];
+
+let pointsX = [],
+    pointsY = [],
+    pointsZ = [];
+
+points.forEach(point => {
+   pointsX.push(point[0]);
+   pointsY.push(point[1]);
+   pointsZ.push(point[2]);
+});
+
+let splinePointsX = [],
+    splinePointsY = [],
+    splinePointsZ = [];
+
+let num = 25 * points.length;
+
+for (var i = 0; i < num; i += 1) {
+      splinePointsX.push(catmullRom(pointsX, i/num));
+      splinePointsY.push(catmullRom(pointsY, i/num));
+      splinePointsZ.push(catmullRom(pointsZ, i/num));
+}
+// add last point
+splinePointsX.push(points[ points.length - 1 ][0]);
+splinePointsY.push(points[ points.length - 1 ][1]);
+splinePointsZ.push(points[ points.length - 1 ][2]);
+
 // LIGHT ON WITH FOG
 addMaterial(1, `color = mix(color, vec3(.5), min(.95,.007 * dot(vTpos, vTpos)));
       color += diffuse(vTpos, nor, L); 
@@ -52,10 +98,10 @@ springx.setMass(.2);
 springz.setMass(.5);
 springx.setDamping(.2);
 springz.setDamping(.5);
-
+let startTime = Date.now() / 25;
 function drawFrame() {
    requestAnimationFrame(drawFrame);
-   let time = Date.now() / 1000;
+   let time = Date.now() / 25 - startTime;
 
    // SCALE THE SCENE NON-UNIFORMLY BECAUSE THE CANVAS IS NOT SQUARE.
 
@@ -67,13 +113,16 @@ function drawFrame() {
       VM.turnX(canvas1.ry/30).turnY(canvas1.rx/30);
 
    drawScene(() => {
-
-      // PLACE AND THEN RENDER THE JOINTS (SHOULDER, ELBOW, WRIST), USING IK.
-
+      
+      // DRAW THE CEILING
       let ceiling = [.5, 1, -3];
-
+      M.S().turnX(pi/2).move(ceiling).scale(10).draw(mySquare,[.2,.2,.2]).R();
+      
+      // PLACE AND THEN RENDER THE JOINTS (SHOULDER, ELBOW, WRIST), USING IK.
       let s = [-.3,.3,-3];
-      let w = [.2+.6*ease(.5+.5*S(5*time+C(4*time))),.3-.3*ease(.5+.5*S(5*time+C(4*time))),-3+.1*ease(.5+.5*S(5*time+C(4*time)))];
+      let w = [splinePointsX[Math.floor(time % num)],
+               splinePointsY[Math.floor(time % num)],
+               splinePointsZ[Math.floor(time % num)]];
       let e = add(s,ik(.5,.5,subtract(w,s),[0,-1,0]));
 
       M.S().move(s).scale(.07).draw(mySphere  ,[0,.5,1]).R();

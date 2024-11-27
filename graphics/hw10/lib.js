@@ -31,6 +31,13 @@ let normalize = v       => scale(v, 1 / norm(v));
 let scale     = (a,s)   => a.map((a,i) => (s[i]!==undefined ? s[i] : s) * a);
 let subtract  = (a,b)   => a.map((a,i) => a - b[i]);
 
+// SPLINE
+let catmullRom = (K, t) => {
+   let n = K.length -1, i = Math.floor(n * t), f = (n * t) % 1;
+   let A = K[Math.max(0, i-1)], B = K[i], C = K[i+1], D = K[Math.min(n, i+2)]; // this does NOT wrap around
+   return ((((-A+3*B-3*C+D) * f + (2*A-5*B+4*C-D)) * f + (-A+C)) * f + 2*B) / 2;
+}
+
 // TRACK THE MOUSE
 
 let trackMouse = canvas => {
