@@ -1,20 +1,46 @@
 <body bgcolor=#808080><font face=courier>
-<center><canvas id=canvas1 width=900 height=700></canvas>
+<center>
+   <p>
+      GIANCARLO PEREIRA HW10 -- TURN THE LIGHT ON
+   </p>
+   <p>
+      Press <b>ENTER</b> so that the robot arm will turn the light on or off.
+   <canvas id=canvas1 width=900 height=700></canvas>
 <script src=lib.js></script>
 <script>
 
 trackMouse(canvas1);
 texture(0,'brick.png');
 
+window.addEventListener("keydown", e => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    'Delete', 'ShiftRight', 'ShiftLeft', 'Tab', 'ControlRight',
+    'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
+    'MetaLeft', 'MetaRight'].indexOf(e.code) >= 0)
+        e.preventDefault();
+    else if (['Enter'].indexOf(e.code) >= 0) {
+        e.preventDefault();
+        // LIGHT ACTION
+        material = (material==1) ? 2 : 1 ;
+    }
+});
+
 // I PRE-BUILD ALL MY OBJECTS FOR EFFICIENCY.
 
 let myCube     = Cube();
 let myCylinder = Cylinder(20);
 let mySphere   = Sphere(20);
+let mySquare   = Square();
 
-// MY MATERIAL IN THIS EXAMPLE IS UNIFORM FOG.
-
-addMaterial(1, `color = mix(color, vec3(.5), min(.95,.007 * dot(vTpos, vTpos)));`);
+// LIGHT ON WITH FOG
+addMaterial(1, `color = mix(color, vec3(.5), min(.95,.007 * dot(vTpos, vTpos)));
+      color += diffuse(vTpos, nor, L); 
+      color += pow(max(0., dot(normalize(E+L), nor)), power)
+             + pow(max(0., dot(normalize(E-L), nor)), power);
+      color *= 5.;`);
+// LIGHT OFF
+addMaterial(2, ``);
+material = 1;
 startGL(canvas1);
 
 // MY SPRING HAS HIGH MASS, SO IT WILL RESPOND LIKE A HEAVY OBJECT.
@@ -36,7 +62,6 @@ function drawFrame() {
       VM.turnX(canvas1.ry/30).turnY(canvas1.rx/30);
 
    drawScene(() => {
-      material = 1;
 
       // PLACE AND THEN RENDER THE JOINTS (SHOULDER, ELBOW, WRIST), USING IK.
 

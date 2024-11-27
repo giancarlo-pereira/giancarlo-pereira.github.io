@@ -336,6 +336,16 @@ let fragmentShader = `
 
    varying float vClipX;
 
+   float attenuation(vec3 P, vec3 uLight) {
+      vec3 dist = uLight - P;
+      return 1. / dot(dist, dist); 
+   }
+
+   float diffuse(vec3 N, vec3 P, vec3 uLight) {
+      vec3 surfToLight = normalize(uLight - P);
+      return max(0., dot(N, surfToLight));
+   }
+
    void main(void) {
 
       if (vClipX < 0.)
@@ -358,8 +368,7 @@ let fragmentShader = `
       vec3 color = sqrt(uColor * c) * texture.rgb;
       float power = 40.;
       // MATERIAL
-      color += pow(max(0., dot(normalize(E+L), nor)), power)
-             + pow(max(0., dot(normalize(E-L), nor)), power);
+      color *= attenuation(vTpos, L);
       gl_FragColor = vec4(color, uOpacity * texture.a);
    }
 `;
