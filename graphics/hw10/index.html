@@ -1,17 +1,20 @@
 <body bgcolor=#808080><font face=courier>
 <center>
    <p>
-      GIANCARLO PEREIRA HW10 -- TURN THE LIGHT ON
+      GIANCARLO PEREIRA HW10 -- BOXER ROBOT
    </p>
    <p>
-      Press <b>ENTER</b> so that the robot arm will turn the light on or off.
+      This robotic arm is training to be a boxer.
+      Easter Egg: Press <b>ENTER</b> turn the light on or off.
+   </p>
    <canvas id=canvas1 width=900 height=700></canvas>
 <script src=lib.js></script>
 <script>
 
 trackMouse(canvas1);
-texture(0,'brick.png');
+texture(0,'boxing_gym.jpg');
 texture(1,'leather_bump.jpg');
+texture(2,'wood_floorboard.jpg');
 
 window.addEventListener("keydown", e => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
@@ -37,6 +40,7 @@ let points = [
    // STRAIGHT PUNCH
    [.2, .3, -3],
    [.1, .3, -3],
+
    [.7, .4, -3],
    [.2, .3, -3],
    // SIDE PUNCH
@@ -51,7 +55,6 @@ let points = [
    [.5, .7, -3],
    [.2, .3, -3],
 ];
-// [.2+.6*ease(.5+.5*S(5*time+C(4*time))),.3-.3*ease(.5+.5*S(5*time+C(4*time))),-3+.1*ease(.5+.5*S(5*time+C(4*time)))];
 
 let pointsX = [],
     pointsY = [],
@@ -144,12 +147,17 @@ function drawFrame() {
       let x = springx.getPosition(),
           z = springz.getPosition();
       let p = add(w, scale(normalize([x,.4,z]),.4));
-      M.S().move(p).aim(subtract(p,ceiling)).scale(.3, .3, .8).draw(myCylinder,[1,0,0], -1, 1).R();
+      M.S().move(p).aim(subtract(p,ceiling)).scale(.3, .3, .8).draw(myCylinder,[1,0,0],1, 0, 1).R();
       // M.S().move(mix(e,p,.5)).aim(subtract(p,e)).scale(.01,.01,distance(e,p)/2).draw(myCube,[1,0,0]).R();
 
-      // ADD A TEXTURED OBJECT IN THE DISTANCE TO SHOW THAT FOG IS WORKING.
+      // ADD GYM WALLS
+      M.S().move(0,0,-7).scale(10).draw(mySquare,[1,1,1],1,0).R();
+      M.S().move(7,0,0).turnY(-pi/2).scale(10).draw(mySquare,[1,1,1],1,0).R();
+      M.S().move(-7,0,0).turnY(pi/2).scale(10).draw(mySquare,[1,1,1],1,0).R();
+      M.S().move(0,0,7).turnY(0).scale(10).draw(mySquare,[1,1,1],1,0).R();
 
-      M.S().move(0,0,-12).scale(2).draw(myCube,[1,1,1],1,0).R();
+      // ADD WOOD FLOOR
+      M.S().move(0,-2,0).turnX(-pi/2).scale(10).draw(mySquare,[1,1,1],1,2).R();
 
       // ADD OTHER OBJECTS MOVING AROUND THE SCENE FOR FUN
 
