@@ -10,3 +10,4 @@ Below is an updated list of homework assignments:
 - [Homework 8](https://giancarlo-pereira.github.io/graphics/hw8/index.html) on Texture Mapping.
 - [Homework 9](https://giancarlo-pereira.github.io/graphics/hw9/index.html) on Cubic Splines.
 - [Homework 10](https://giancarlo-pereira.github.io/graphics/hw10/index.html) on Inverse Kinematics.
+- [Final Project](https://giancarlo-pereira.github.io/graphics/final_project/index.html)
