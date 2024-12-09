@@ -4,6 +4,7 @@
         <tr><th valign=top>
         <table>
         <tr><td><input type=range id=flSlider  ></input> <font color=white><big> Focal Length
+        <!-- <tr><td><input type=range id=mouseSlider  ></input> <font color=white><big> Mouse Sensitivity -->
         </table>
         <th><canvas id=canvas1 width=900 height=700></canvas>
         </table>
@@ -19,7 +20,8 @@ for (let slider in sliders)
 // DECLARE PLAYER
 player = new Player();
 
-trackMouse(canvas1);
+// let mouseSensitivity   = EPS + mouseSlider.value / 200;
+trackMouse(canvas1, player);
 handleKeys(canvas1, player);
 
 window.addEventListener('keydown', e => {
@@ -33,7 +35,7 @@ window.addEventListener('keydown', e => {
     'KeyM', 'KeyV'].indexOf(e.code) >= 0)
        e.preventDefault();
  });
- window.addEventListener('keydown', e => {console.log(e.code); canvas1.keyDown(e.code);});
+ window.addEventListener('keydown', e => canvas1.keyDown(e.code));
  window.addEventListener('keyup', e => canvas1.keyUp(e.code));
  if (! canvas1.keyDown) canvas.keyDown = () => {}
  if (! canvas1.keyUp  ) canvas.keyUp   = () => {}
@@ -70,25 +72,36 @@ function drawFrame() {
    requestAnimationFrame(drawFrame);
    let time = Date.now() / 1000 - startTime;
 
-   let focalLength   = 0.01 + flSlider.value  / 20;
+   let focalLength   = EPS + flSlider.value  / 20;
 
+   player.move(time);
 
-   player.move(1);
-//    console.log(`position ${player.where()}`);
-//    console.log(`speed ${player.speed()}`);
-
-   // SCALE THE SCENE NON-UNIFORMLY BECAUSE THE CANVAS IS NOT SQUARE.
+   // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
    VM.identity().perspective(focalLength).scale(1,canvas1.width/canvas1.height,1);
 
    // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
-   if (! isPhone())
-      VM.move(player.where());
-      VM.turnX(canvas1.ry/30).turnY(canvas1.rx/30);
+   if (! isPhone()) {
+       console.log(`player is facing ${player.direction()}`);
+    //    console.log(`sensitivity ${mouseSensitivity}`);
+    pos = player.position();
+    // VM.move([dot(mX(VM.get()), pos), dot(mY(VM.get()), pos), dot(mZ(VM.get()), pos)]);
+    // VM.aim(player.direction());
+    VM.turnX(canvas1.ry)
+           .turnY(canvas1.rx - pi/2);
+    VM.move(pos);
+   }
+    
 
    drawScene(() => {
-    M.S().move(0,0, -3).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
+    for (var i = 0; i < 100; i++) {
+
+         let s = [-2 + 5*C(i*2*pi/100),0, 1 + 4*S(i*2*pi/100)];
+        M.S().move(s).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
+    }
+
+    M.S().move(0,-5,0).scale(10,0.01,10).draw(myCube, [1,0,0], 1).R();
 
    });
 }

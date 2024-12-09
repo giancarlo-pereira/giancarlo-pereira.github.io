@@ -20,6 +20,7 @@ document.body.addEventListener('click', () => {
  
  let TAU       = 2 * Math.PI;
  let pi        = Math.PI;
+ let EPS       = 0.00001;
  let add       = (a,b)   => a.map((a,i) => a + b[i]);
  let cross     = (a,b)   => [ a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0] ];
  let distance  = (a,b)   => norm(subtract(a,b));
@@ -30,7 +31,7 @@ document.body.addEventListener('click', () => {
  let normalize = v       => scale(v, 1 / norm(v));
  let scale     = (a,s)   => a.map((a,i) => (s[i]!==undefined ? s[i] : s) * a);
  let subtract  = (a,b)   => a.map((a,i) => a - b[i]);
- 
+
  // SPLINE
  let catmullRom = (K, t) => {
     let n = K.length -1, i = Math.floor(n * t), f = (n * t) % 1;
@@ -40,7 +41,7 @@ document.body.addEventListener('click', () => {
  
  // TRACK THE MOUSE
  
- let trackMouse = canvas => {
+ let trackMouse = (canvas, player) => {
     canvas.rx = 0;
     canvas.ry = 0;
     canvas.onmousedown = e => {
@@ -50,85 +51,73 @@ document.body.addEventListener('click', () => {
     }
     canvas.onmousemove = e => {
        if (canvas.pressed) {
-          canvas.rx += e.clientX - canvas.mx;
-          canvas.ry += e.clientY - canvas.my;
+          canvas.rx += (e.clientX - canvas.mx)/30;
+          canvas.ry += (e.clientY - canvas.my)/30;
+          canvas.ry = Math.max(Math.min(canvas.ry, pi/2 - EPS), -pi/2 + EPS);
           canvas.mx = e.clientX;
           canvas.my = e.clientY;
+          player.direction([C(canvas.rx), S(canvas.ry), S(canvas.rx)]);
        }
     }
     canvas.onmouseup = e => canvas.pressed = undefined;
  }
 
+
+ // MAZE FUNCTION
+
+
+ // PLAYER FUNCTION
+
  function Player() {
+   // up remains unchanged
+   let up = [0, 1, 0];
+   // front will move around
+   let front = [0, 0, -1];
+   // side is the third axis
+   let side = cross(front, up);
+
+   let vf = 0, vs = 0;
    let color = [.7,.7,.7], opacity = .95;
    let pos = [0.,0.,0];
-   let v = [0, 0, 0];
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
 
-   this.speed = () => v;
-   this.where = () => pos;
-   this.color = () => color;
-   this.size  = () => size;
+   // MAZE CELL
+   let currentCell = [];
+   // BOUNDARIES OF THE CELL, i.e. WALLS
+   let boundaries = [];
 
-   this.move = (dt) => {
-      pos[0]=pos[0]+v[0]*dt;
-      pos[1]=pos[1]+v[1]*dt;
-      pos[2]=pos[2]+v[2]*dt;
-   };
-
-   let rotate = (dt) => {
-      angle[0]=angle[0]+omega[0]*dt;
-      angle[1]=angle[1]+omega[1]*dt;
-      angle[2]=angle[2]+omega[2]*dt;
+   this.vf = v => {
+      if (v===undefined) return this.vf;
+      vf=v;
+   }
+   this.vs = v => {
+      if (v===undefined) return this.vs;
+      vs=v;
    }
 
-   this.trigger = () => {
-      v=[2*(Math.random()-.5),2*(Math.random()-.5),2*(Math.random()-.5)];
-      omega=[(Math.random()-.5),(Math.random()-.5),(Math.random()-.5)];
-      moving = 1;
-   };
+   this.direction = dir => {
+      if (dir===undefined) return front;
+      front=dir;
+      // y direction remaisn unchanged
+      front[1]=0;
+      side = cross(front, up);
+   }
+   this.position = () => pos;
 
-   this.fly = (time) => {
+   this.move = (time) => {
+      // update internal time
       let dt = time - t;
-      if (moving!=0) {
-         a=[normal_random(0,.1),normal_random(0,.1),normal_random(0,.1)];
-         alpha=[2*(Math.random()-.5), 2*(Math.random()-.5), 2*(Math.random()-.5)];
-      } else {
-         a=[0.,0.,0.];
-         v=[0.,0.,0.];
-         pos=[.1*C(time/4)*S(time/4), -.1*S(time/4)*S(time/4), -fl];
-         alpha=[0.,0.,0.];
-         omega=[0.,0.,0.];
-         angle=[pi/2,pi/2,pi/2];
-      }
-      move(  dt < 10**(-10) ? 0.01 : dt );
-      rotate(dt < 10**(-10) ? 0.01 : dt );
-      t=t+dt;
-   };
+      t = time;
 
-   this.hit = (t,cursor) => {
-      if (moving==0) return false;
-      if (cursor[2]==0) return false;
+      // collect side velocity and front velocity
+      let speed = add(scale(front, vf), scale(side, vs));
+      // y never changes
+      speed[1]=0;
 
-      let x = -(pos[2]-fl)*cursor[0]/fl;
-      let y = -(pos[2]-fl)*cursor[1]/fl;
-
-      if ( (x-pos[0])**2 + (y-pos[1])**2 - size**2 < 0 ) {
-         this.reset(t);
-         return true;
-      }
-      return false;
-   };
-
-   this.reset = (t) => {
-      reset = t;
-      moving=0;
-      a=[0.,0.,0.]
-      v=[0.,0.,0.]
-      omega=[0.,0.,0.]
-      angle=[pi/2,pi/2,pi/2];
-      pos=[0.,0.,-fl];
+      // equation of motion
+      pos = add(pos, scale(speed, dt));
+      // TEST BOUNDARIES, KEEP PLAYER WITHIN CELL GRID
    };
 
    this.render = (t,tex,btex) => {
@@ -148,10 +137,10 @@ document.body.addEventListener('click', () => {
  let handleKeys = (canvas, player) => {
    canvas.keyDown     = c => {
       switch(c) {
-          case 'KeyA':        player.v=[-0.17,0,0]; break;
-          case 'KeyS':        player.v=[0,0.17,0];     break;
-          case 'KeyD':        player.v=[0,0.17,0];  break;
-          case 'KeyW':        player.v=[0,0,0.17];      break;
+          case 'KeyA':        player.vs(-1); break;
+          case 'KeyS':        player.vf(-1); break;
+          case 'KeyD':        player.vs(1);  break;
+          case 'KeyW':        player.vf(1);  break;
          //  case 'KeyV':        birdsEyeView();   break;
          //  case 'KeyM':        drawMap();        break;
       }
@@ -159,15 +148,14 @@ document.body.addEventListener('click', () => {
    
    canvas.keyUp     = c => {
       switch(c) {
-          case 'KeyA':        player.v=[0,0,0];  break;
-          case 'KeyS':        player.v=[0,0,0];      break;
-          case 'KeyD':        player.v=[0,0,0];  break;
-          case 'KeyW':        player.v=[0,0,0];      break;
+         case 'KeyA':        player.vs(0); break;
+         case 'KeyS':        player.vf(0); break;
+         case 'KeyD':        player.vs(0); break;
+         case 'KeyW':        player.vf(0); break;
       }
    }
  }
 
- 
  // INVERSE KINEMATICS
  
  let ik  = (a,b,C,D) => {
@@ -214,9 +202,9 @@ document.body.addEventListener('click', () => {
  }
  let C = t => Math.cos(t), S = t => Math.sin(t);
  let mId = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
- //let mPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
- let mPe = (fl, m) => mxm(m, imu.alpha == null ? [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]
-                                               : [1,0,0,0, 0,1,0,0, 0,0,0,-1/fl, 0,0,1,0]);
+ let mPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,1,0]);
+//  let mPe = (fl, m) => mxm(m, imu.alpha == null ? [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]
+//                                                : [1,0,0,0, 0,1,0,0, 0,0,0,-1/fl, 0,0,1,0]);
  let mRX = (t, m) => mxm(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
  let mRY = (t, m) => mxm(m, [C(t),0,-S(t),0, 0,1,0,0, S(t),0,C(t),0, 0,0,0,1]);
  let mRZ = (t, m) => mxm(m, [C(t),S(t),0,0, -S(t),C(t),0,0, 0,0,1,0, 0,0,0,1]);
@@ -224,6 +212,10 @@ document.body.addEventListener('click', () => {
  let mTr = (x,y,z, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,0, x[0]!==undefined?x[0]:x,
                                                             x[0]!==undefined?x[1]:y,
                                                             x[0]!==undefined?x[2]:z,1]);
+let mX = m => [ m[0],  m[1],  m[2],  m[3]];
+let mY = m => [ m[4],  m[5],  m[6],  m[7]];
+let mZ = m => [ m[8],  m[9], m[10], m[11]];
+let mW = m => [m[12], m[13], m[14], m[15]];
  
  function Matrix() {
     let stack = [mId()], top = 0;
@@ -485,7 +477,7 @@ document.body.addEventListener('click', () => {
        vec3 color = sqrt(uColor * c) * texture.rgb;
        float power = 40.;
        // MATERIAL
-       color *= attenuation(vTpos, L);
+      //  color *= attenuation(vTpos, L);
        gl_FragColor = vec4(color, uOpacity * texture.a);
     }
  `;
