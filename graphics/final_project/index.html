@@ -1,0 +1,98 @@
+<body bgcolor=#808080><font face=courier>
+<center>
+    <table>
+        <tr><th valign=top>
+        <table>
+        <tr><td><input type=range id=flSlider  ></input> <font color=white><big> Focal Length
+        </table>
+        <th><canvas id=canvas1 width=900 height=700></canvas>
+        </table>
+
+<script src=lib.js></script>
+<script>
+
+let sliders = document.getElementsByTagName('input');
+for (let slider in sliders)
+   if (sliders[slider].style)
+      sliders[slider].style.width = 200;
+
+// DECLARE PLAYER
+player = new Player();
+
+trackMouse(canvas1);
+handleKeys(canvas1, player);
+
+window.addEventListener('keydown', e => {
+    if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    'KeyA', 'KeyS', 'KeyD', 'KeyW',
+    'Escape', 'Backspace', 'Enter', 'Delete',
+    'ShiftRight', 'ShiftLeft', 'Tab', 'ControlRight',
+    'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
+    'MetaLeft', 'MetaRight',
+    'KeyM', 'KeyV'].indexOf(e.code) >= 0)
+       e.preventDefault();
+ });
+ window.addEventListener('keydown', e => {console.log(e.code); canvas1.keyDown(e.code);});
+ window.addEventListener('keyup', e => canvas1.keyUp(e.code));
+ if (! canvas1.keyDown) canvas.keyDown = () => {}
+ if (! canvas1.keyUp  ) canvas.keyUp   = () => {}
+
+
+// ADD WALL TEXTURES 
+texture(4, 'textures/rusty_grid.png');
+texture(5, 'textures/rusty_grid_bump.png');
+
+// ADD FLOOR TEXTURES
+texture(0, 'textures/grass.png');
+texture(1, 'textures/grass_bump.png');
+texture(2, 'textures/cobblestone_floor.png');
+texture(3, 'textures/cobblestone_floor_bump.png');
+
+// ADD EXIT SIGN TEXTURE
+
+
+// ADD 2D CANVAS TEXTURE FOR SPLINE ASSISTANCE
+
+
+// PRE-BUILD ALL OBJECTS FOR EFFICIENCY
+let myCube     = Cube();
+let myCylinder = Cylinder(20);
+let mySphere   = Sphere(20);
+let mySquare   = Square();
+
+
+// THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
+startGL(canvas1);
+
+let startTime = Date.now() / 1000;
+function drawFrame() {
+   requestAnimationFrame(drawFrame);
+   let time = Date.now() / 1000 - startTime;
+
+   let focalLength   = 0.01 + flSlider.value  / 20;
+
+
+   player.move(1);
+//    console.log(`position ${player.where()}`);
+//    console.log(`speed ${player.speed()}`);
+
+   // SCALE THE SCENE NON-UNIFORMLY BECAUSE THE CANVAS IS NOT SQUARE.
+
+   VM.identity().perspective(focalLength).scale(1,canvas1.width/canvas1.height,1);
+
+   // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
+
+   if (! isPhone())
+      VM.move(player.where());
+      VM.turnX(canvas1.ry/30).turnY(canvas1.rx/30);
+
+   drawScene(() => {
+    M.S().move(0,0, -3).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
+
+   });
+}
+requestAnimationFrame(drawFrame);
+
+</script>
+
