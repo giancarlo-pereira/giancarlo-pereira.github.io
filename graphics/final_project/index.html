@@ -3,7 +3,7 @@
     <table>
         <tr><th valign=top>
         <table>
-        <tr><td><input type=range id=flSlider  ></input> <font color=white><big> Focal Length
+        <tr><td><input type=range id=flSlider></input> <font color=white><big> Focal Length
         <!-- <tr><td><input type=range id=mouseSlider  ></input> <font color=white><big> Mouse Sensitivity -->
         <tr><td><font color=white><big> Difficulty: <select name="difficulty" id=mode>
                 <option value="debug">Debug</option>
@@ -23,9 +23,9 @@
                 <option value=50>50</option>
                 <option value=100>100</option>
               </select>
-        <tr><td><input type="button" id=start></input><font color=white><big>Start
+        <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         </table>
-        <th><canvas id=canvas1 width=900 height=700></canvas>
+        <th><canvas id=canvas width=900 height=700></canvas>
         </table>
 
 <script src=lib.js></script>
@@ -37,90 +37,107 @@ for (let slider in sliders)
       sliders[slider].style.width = 200;
 
 // ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
+start.addEventListener('click', () => {
+        // get game settings (rows and columns for maze, difficulty for gameability)
+        let r = parseInt(rows.value);
+        let c = parseInt(columns.value);
+        let d = mode.value;
 
-// CREATE MAZE
-let maze = new Maze(1, 10, 10);
-// DECLARE PLAYER
-let player = new Player(maze);
+         // show canvas
+        canvas.style.display = 'block';
 
-// let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
-trackMouse(canvas1, player);
-handleKeys(canvas1, player);
+        // disable game settings
+        rows.disabled    = true;
+        columns.disabled = true;
+        mode.disabled    = true;
 
-window.addEventListener('keydown', e => {
-    if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-    'KeyA', 'KeyS', 'KeyD', 'KeyW',
-    'Escape', 'Backspace', 'Enter', 'Delete',
-    'Tab', 'ControlRight',
-    'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
-    'MetaLeft', 'MetaRight',
-    'KeyM', 'KeyV'].indexOf(e.code) >= 0)
-       e.preventDefault();
- });
- window.addEventListener('keydown', e => canvas1.keyDown(e.code));
- window.addEventListener('keyup', e => canvas1.keyUp(e.code));
- if (! canvas1.keyDown) canvas.keyDown = () => {}
- if (! canvas1.keyUp  ) canvas.keyUp   = () => {}
+        // hide and disable start button
+        start.style.display = 'none';
+        start.disabled      = true;
+
+        startGame(canvas, r, c, d);
+});
+
+function startGame(canvas, rows, columns, difficulty) {
+    console.log(`creating maze with ${rows} rows and ${columns} columns, in ${difficulty} mode`);
+    // CREATE MAZE
+    let maze = new Maze(1, rows, columns);
+    // DECLARE PLAYER
+    let player = new Player(maze, difficulty);
+
+    // let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
+    trackMouse(canvas, player);
+    handleKeys(canvas, player);
+
+    window.addEventListener('keydown', e => {
+        if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',
+        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+        'KeyA', 'KeyS', 'KeyD', 'KeyW',
+        'Escape', 'Backspace', 'Enter', 'Delete',
+        'Tab', 'ControlRight',
+        'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
+        'MetaLeft', 'MetaRight',
+        'KeyM', 'KeyV'].indexOf(e.code) >= 0)
+        e.preventDefault();
+    });
+    window.addEventListener('keydown', e => canvas.keyDown(e.code));
+    window.addEventListener('keyup', e => canvas.keyUp(e.code));
+    if (! canvas.keyDown) canvas.keyDown = () => {}
+    if (! canvas.keyUp  ) canvas.keyUp   = () => {}
 
 
-// ADD WALL TEXTURES 
-texture(4, 'textures/rusty_grid.png');
-texture(5, 'textures/rusty_grid_bump.png');
+    // ADD WALL TEXTURES 
+    texture(4, 'textures/rusty_grid.png');
+    texture(5, 'textures/rusty_grid_bump.png');
 
-// ADD FLOOR TEXTURES
-texture(0, 'textures/grass.png');
-texture(1, 'textures/grass_bump.png');
-texture(2, 'textures/cobblestone_floor.png');
-texture(3, 'textures/cobblestone_floor_bump.png');
+    // ADD FLOOR TEXTURES
+    texture(0, 'textures/grass.png');
+    texture(1, 'textures/grass_bump.png');
+    texture(2, 'textures/cobblestone_floor.png');
+    texture(3, 'textures/cobblestone_floor_bump.png');
 
-// ADD EXIT SIGN TEXTURE
-// texture(6, 'textures/exit_sign.jpg');
+    // ADD EXIT SIGN TEXTURE
+    // texture(6, 'textures/exit_sign.jpg');
 
-// PRE-BUILD ALL OBJECTS FOR EFFICIENCY
-let myCube     = Cube();
-let myCylinder = Cylinder(20);
-let mySphere   = Sphere(20);
-let mySquare   = Square();
+    startGL(canvas);
 
-startGL(canvas1);
+    let startTime = Date.now() / 1000;
+    function drawFrame() {
+    requestAnimationFrame(drawFrame);
+    let time = Date.now() / 1000 - startTime;
 
-let startTime = Date.now() / 1000;
-function drawFrame() {
-   requestAnimationFrame(drawFrame);
-   let time = Date.now() / 1000 - startTime;
+    let focalLength   = 0.5 + flSlider.value  / 75;
 
-   let focalLength   = 0.5 + flSlider.value  / 75;
+    player.move(time);
+    player.updatePosition(maze);
 
-   player.move(time);
-   player.updatePosition(maze);
+    // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
-   // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
+    VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
 
-   VM.identity().perspective(focalLength).scale(1,canvas1.width/canvas1.height,1);
+    // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
-   // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
-
-   if (! isPhone()) {
-    pos = player.position();
-    VM.turnX(canvas1.ry).turnY(canvas1.rx + pi/2);
-    VM.move(scale(pos, -1));
-   }
-    
-
-   drawScene(() => {
-    
-    maze.render();
-
-    for (var i = 0; i < 100; i++) {
-
-         let s = [-2 + 5*C(i*2*pi/100),0, 1 + 4*S(i*2*pi/100)];
-        M.S().move(s).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
+    if (! isPhone()) {
+        pos = player.position();
+        VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
+        VM.move(scale(pos, -1));
     }
+        
 
-   });
+    drawScene(() => {
+        
+        maze.render();
+
+        for (var i = 0; i < 100; i++) {
+
+            let s = [-2 + 5*C(i*2*pi/100),0, 1 + 4*S(i*2*pi/100)];
+            M.S().move(s).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
+        }
+
+    });
+    }
+    requestAnimationFrame(drawFrame);
+
 }
-requestAnimationFrame(drawFrame);
-
 </script>
 

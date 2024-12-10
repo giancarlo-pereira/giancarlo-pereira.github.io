@@ -253,7 +253,7 @@ function Maze(s, r, c) {
 
  // PLAYER FUNCTION
 
- function Player(maze) {
+ function Player(maze, difficulty) {
    // up remains unchanged
    let up = [0, 1, 0];
    // front will move around
@@ -267,6 +267,9 @@ function Maze(s, r, c) {
    let pos = add(maze.startWhere(), [0, 0.5, 0]);
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
+
+   let mode = difficulty;
+   this.mode = () => mode;
 
    // MAZE CELL
    let currentCell = undefined;
@@ -610,6 +613,13 @@ let mW = m => [m[12], m[13], m[14], m[15]];
     let r = Math.pow(Math.pow(ax,p) + Math.pow(ay,p), 1/p);
     return [Math.sign(x)*ax/r, Math.sign(y)*ay/r];
  }
+ 
+
+// PRE-BUILD ALL OBJECTS FOR EFFICIENCY
+let myCube     = Cube();
+let myCylinder = Cylinder(20);
+let mySphere   = Sphere(20);
+let mySquare   = Square();
  
  // GPU SHADERS
  
