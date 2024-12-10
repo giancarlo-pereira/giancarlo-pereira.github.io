@@ -24,6 +24,8 @@
                 <option value=100>100</option>
               </select>
         <tr><td><button type="submit" id=start><font color=black><big>Start</button>
+
+        <tr><td><span id=timeArea style="color:white"></span>
         </table>
         <th><canvas id=canvas width=900 height=700></canvas>
         </table>
@@ -102,39 +104,36 @@ function startGame(canvas, rows, columns, difficulty) {
     startGL(canvas);
 
     let startTime = Date.now() / 1000;
+
     function drawFrame() {
-    requestAnimationFrame(drawFrame);
-    let time = Date.now() / 1000 - startTime;
+        requestAnimationFrame(drawFrame);
+        let time = Date.now() / 1000 - startTime;
 
-    let focalLength   = 0.5 + flSlider.value  / 75;
+        // FORMAT TIME TO MINUTES & SECONDS.
+        let minutes = (time/60>>0)%60, seconds = time%60>>0;
 
-    player.move(time);
-    player.updatePosition(maze);
+        let focalLength   = 0.5 + flSlider.value  / 75;
+        if (difficulty!=='peace') timeArea.innerHTML = 'Time: ' + minutes + 'm ' + seconds + 's';
 
-    // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
+        player.move(time);
+        player.updatePosition(maze);
 
-    VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
+        // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
-    // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
+        VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
 
-    if (! isPhone()) {
-        pos = player.position();
-        VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
-        VM.move(scale(pos, -1));
-    }
-        
+        // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
-    drawScene(() => {
-        
-        maze.render();
-
-        for (var i = 0; i < 100; i++) {
-
-            let s = [-2 + 5*C(i*2*pi/100),0, 1 + 4*S(i*2*pi/100)];
-            M.S().move(s).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
+        if (! isPhone()) {
+            pos = player.position();
+            VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
+            VM.move(scale(pos, -1));
         }
+            
 
-    });
+        drawScene(() => {
+            maze.render();
+        });
     }
     requestAnimationFrame(drawFrame);
 
