@@ -96,7 +96,8 @@ function Cell(s, r, c, g) {
    let pos = scale([column+0.5,0, row+0.5], size);
 
    let selected = false;
-   let visited = false;
+   let visited  = false;
+   let goal     = false;
 
    let walls = {
       top: true,
@@ -114,9 +115,20 @@ function Cell(s, r, c, g) {
    this.select   = () => selected = true;
    this.unselect = () => selected = false;
 
-   this.visited  = bool => {
+   this.visited = bool => {
       if (bool===undefined) return visited;
       visited = bool;
+   }
+
+   this.isGoal  = bool => {
+      if (bool===undefined) return goal;
+      goal = bool;
+      if (goal===true) {
+         if (row===0) walls['bottom']=false;
+         else if (column===0) walls['right']=false;
+         else if (row==grid.rows()-1) walls['top']=false;
+         else if (column===grid.columns()-1) walls['left']=false;
+      }
    }
 
    // FOR MAZE CONSTRUCTION
@@ -172,10 +184,10 @@ function Cell(s, r, c, g) {
       if (walls['top'])    M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1,).R();
       if (walls['bottom']) M.S().move(add(pos, [0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1,).R();
       if (walls['right'])  M.S().move(add(pos, [-size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
-      if (walls['left'])   M.S().move(add(pos, [size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
+      if (walls['left'])   M.S().move(add(pos, [ size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
 
       // draw floor
-      M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, selected ? [0,1,0] : [1,0,0], 1,).R();
+      M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, goal ? [0,1,0] : [1,0,0], 1,).R();
    }
 }
 
@@ -197,19 +209,6 @@ function Maze(s, r, c) {
       grid.push(row);
    }
 
-   this.startWhere = () => {
-      return this.fetch(startRow, startColumn).position();
-   }
-
-   this.getCurrentCell = pos => {
-      let r = Math.floor(pos[2] / size);
-      let c = Math.floor(pos[0] / size);
-      
-      if ((r >= rows || r < 0 ) || (c >= columns || c < 0)) {return undefined;}
-
-      return this.fetch(r,c);
-   }
-
    this.fetch = (row, column) => {
       return grid[row][column];
    }
@@ -220,6 +219,18 @@ function Maze(s, r, c) {
 
    let current = this.fetch(startRow, startColumn);
    stack.push(current);
+
+   // PICK EXIT CELL AT BORDER OF MAZE
+   let goalColumn, goalRow;
+   if (Math.random() > 0.5) {
+      goalColumn = (Math.random() > 0.5) ? columns-1 : 0;
+      goalRow = random_int(rows);
+   } else {
+      goalRow = (Math.random() > 0.5) ? rows-1 : 0;
+      goalColumn = random_int(columns);
+   }
+   let goal = this.fetch(goalRow, goalColumn);
+   goal.isGoal(true);
 
    // RECURSE TO CREATE MAZE WITH REMOVED WALLS
    while (stack.length > 0) {
@@ -239,6 +250,23 @@ function Maze(s, r, c) {
          let cell = stack.pop();
          current = cell;
       }
+   }
+
+   this.getCurrentCell = pos => {
+      let r = Math.floor(pos[2] / size);
+      let c = Math.floor(pos[0] / size);
+      
+      if ((r >= rows || r < 0 ) || (c >= columns || c < 0)) {return undefined;}
+
+      return this.fetch(r,c);
+   }
+
+   this.columns = () => columns;
+   this.rows    = () => rows;
+
+
+   this.startWhere = () => {
+      return this.fetch(startRow, startColumn).position();
    }
 
    this.render = () => {
