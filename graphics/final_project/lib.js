@@ -125,15 +125,15 @@ function Cell(s, r, c, g) {
 
       // check if any neighbors available
       let top = row !== 0 ? grid[row - 1][column] : undefined;
-      let right = column !== grid.columns - 1 ? grid[row][column + 1] : undefined;
-      let bottom = row !== grid.rows - 1 ? grid[row + 1][column] : undefined;
+      let right = column !== grid[row].length - 1 ? grid[row][column + 1] : undefined;
+      let bottom = row !== grid.length - 1 ? grid[row + 1][column] : undefined;
       let left = column !== 0 ? grid[row][column - 1] : undefined;
 
       // push cells (univisited) to neighbors array
-      if (top && !top.visited)       neighbors.push(top);
-      if (right && !right.visited)   neighbors.push(right);
-      if (bottom && !bottom.visited) neighbors.push(bottom);
-      if (left && !left.visited)     neighbors.push(left);
+      if (top && !top.visited())       neighbors.push(top);
+      if (right && !right.visited())   neighbors.push(right);
+      if (bottom && !bottom.visited()) neighbors.push(bottom);
+      if (left && !left.visited())     neighbors.push(left);
 
       // Choose a random neighbor
       if (neighbors.length > 0) {
@@ -169,13 +169,13 @@ function Cell(s, r, c, g) {
 
    this.render = () => {
       // draw each wall
-      // if (walls['top'])    M.S().move(add(pos, [ 0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1);
-      // if (walls['bottom']) M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1, 4, 5);
-      // if (walls['right'])  M.S().move(add(pos, [ size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1, 4, 5);
-      // if (walls['left'])   M.S().move(add(pos, [-size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1, 4, 5);
+      if (walls['top'])    M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1,).R();
+      if (walls['bottom']) M.S().move(add(pos, [0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1,).R();
+      if (walls['right'])  M.S().move(add(pos, [-size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
+      if (walls['left'])   M.S().move(add(pos, [size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
 
       // draw floor
-      M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, selected ? [0,1,0] : [1,0,0], 1).R();
+      M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, selected ? [0,1,0] : [1,0,0], 1,).R();
    }
 }
 
@@ -200,9 +200,6 @@ function Maze(s, r, c) {
    this.startWhere = () => {
       return this.fetch(startRow, startColumn).position();
    }
-
-   this.rows = () => rows;
-   this.columns = () => columns;
 
    this.getCurrentCell = pos => {
       let r = Math.floor(pos[2] / size);
@@ -233,7 +230,7 @@ function Maze(s, r, c) {
          // Add the current cell to the stack for backtracking
          stack.push(current);
          // This function compares the current cell to the next cell and removes the relevant walls for each cell
-         current.removeWalls(next);
+         current.removeWall(next);
          // Set the nect cell to the current cell
          current = next;
 
@@ -312,15 +309,11 @@ function Maze(s, r, c) {
          let walls   = currentCell.boundaries();
          let size    = currentCell.size();
          let cellPos = currentCell.position();
-
-         console.log(`surrounded by walls ${walls['top']}, ${walls['bottom']}, ${walls['left']}, ${walls['right']}}`);
-         console.log(`cell is at position ${cellPos}`);
-         console.log(`player is at position ${pos}`);
          // UP WALL
-         if (   walls['top'] && pos[2] > (cellPos[2] + size/2)) return false;
-         if (walls['bottom'] && pos[2] < (cellPos[2] - size/2)) return false;
-         if (  walls['left'] && pos[0] > (cellPos[0] + size/2)) return false;
-         if ( walls['right'] && pos[0] < (cellPos[0] - size/2)) return false;
+         if (   walls['top'] && pos[2] + size/10 > (cellPos[2] + size/2)) return false;
+         if (walls['bottom'] && pos[2] - size/10 < (cellPos[2] - size/2)) return false;
+         if (  walls['left'] && pos[0] + size/10 > (cellPos[0] + size/2)) return false;
+         if ( walls['right'] && pos[0] - size/10 < (cellPos[0] - size/2)) return false;
       }
       return true;
    }

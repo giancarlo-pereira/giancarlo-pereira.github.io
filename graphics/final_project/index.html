@@ -90,7 +90,7 @@ function drawFrame() {
    requestAnimationFrame(drawFrame);
    let time = Date.now() / 1000 - startTime;
 
-   let focalLength   = 1 + flSlider.value  / 20;
+   let focalLength   = 0.5 + flSlider.value  / 75;
 
    player.move(time);
    player.updatePosition(maze);
@@ -102,10 +102,7 @@ function drawFrame() {
    // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
    if (! isPhone()) {
-    //    console.log(`sensitivity ${mouseSensitivity}`);
     pos = player.position();
-    // VM.move([dot(mX(VM.get()), pos), dot(mY(VM.get()), pos), dot(mZ(VM.get()), pos)]);
-    // VM.aim(player.direction());
     VM.turnX(canvas1.ry).turnY(canvas1.rx + pi/2);
     VM.move(scale(pos, -1));
    }
