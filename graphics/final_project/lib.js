@@ -63,8 +63,80 @@ document.body.addEventListener('click', () => {
  }
 
 
- // MAZE FUNCTION
+// MAZE UTILS
 
+function Cell(s, r, c, g) {
+   let row = r;
+   let column = c;
+   let size = s;
+   let parentGrid = g;
+   let pos = scale([column+0.5,0, row+0.5], -size);
+
+   let selected = false;
+
+   let walls = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+   }
+
+   this.position   = () => pos;
+   this.size       = () => size;
+   this.boundaries = () => walls;
+
+   this.select   = () => selected = true;
+   this.unselect = () => selected = false;
+
+   this.render = () => {
+      // draw each wall
+
+      // draw floor
+      M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, selected ? [0,1,0] : [1,0,0], 1).R();
+   }
+}
+
+function Maze(s, r, c) {
+   let rows = r;
+   let columns = c;
+   let size = s;
+
+   let grid = [];
+   let stack = [];
+
+   for (let r = 0; r < rows; r++) {
+      let row = [];
+      for (let c = 0; c < columns; c++) {
+         let cell = new Cell(size, r, c, grid);
+         row.push(cell);
+      }
+      grid.push(row);
+   }
+
+   this.getCurrentCell = pos => {
+      let r = Math.floor(pos[2] / size);
+      let c = Math.floor(pos[0] / size);
+
+      console.log(`row is ${r} and column is ${c}`);
+      
+      if ((r >= rows || r < 0 ) || (c >= columns || c < 0)) {return undefined;}
+
+      return this.fetch(r,c);
+   }
+
+   this.fetch = (row, column) => {
+      return grid[row][column];
+   }
+
+   this.render = () => {
+      grid.forEach(row => {
+         row.forEach(cell => {
+            cell.render();
+         })
+     })
+   }
+
+}
 
  // PLAYER FUNCTION
 
@@ -72,20 +144,18 @@ document.body.addEventListener('click', () => {
    // up remains unchanged
    let up = [0, 1, 0];
    // front will move around
-   let front = [0, 0, -1];
+   let front = [0, 0, +1];
    // side is the third axis
    let side = cross(front, up);
 
    let vf = 0, vs = 0;
    let color = [.7,.7,.7], opacity = .95;
-   let pos = [0.,0.,0];
+   let pos = [0.,-.5,0];
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
 
    // MAZE CELL
-   let currentCell = [];
-   // BOUNDARIES OF THE CELL, i.e. WALLS
-   let boundaries = [];
+   let currentCell = undefined;
 
    this.vf = v => {
       if (v===undefined) return this.vf;
@@ -99,13 +169,43 @@ document.body.addEventListener('click', () => {
    this.direction = dir => {
       if (dir===undefined) return front;
       front=dir;
-      // y direction remaisn unchanged
+      // y direction remains unchanged
       front[1]=0;
       side = cross(front, up);
    }
    this.position = () => pos;
 
-   this.move = (time) => {
+   this.updatePosition = maze => {
+      cell = maze.getCurrentCell(this.position());
+
+      // avoid unnecessary back-end calls if cell is still the same
+      if (cell!==currentCell) this.updateCell(cell);
+   }
+
+   this.updateCell = cell => {
+      if (currentCell!==undefined) currentCell.unselect();
+
+      currentCell = cell;
+      
+      if (currentCell!==undefined) currentCell.select();
+   }
+
+   this.isMovePossible = pos => {
+      if (currentCell!==undefined) {
+         let walls   = currentCell.boundaries();
+         let size    = currentCell.size();
+         let cellPos = currentCell.position();
+         
+         // UP WALL
+         if (   walls['up'] && pos[2] > cellPos[2] + size/2) return false;
+         if ( walls['down'] && pos[2] < cellPos[2] - size/2) return false;
+         if ( walls['left'] && pos[0] > cellPos[0] + size/2) return false;
+         if (walls['right'] && pos[0] < cellPos[0] - size/2) return false;
+      }
+      return true;
+   }
+
+   this.move = time => {
       // update internal time
       let dt = time - t;
       t = time;
@@ -116,8 +216,10 @@ document.body.addEventListener('click', () => {
       speed[1]=0;
 
       // equation of motion
-      pos = add(pos, scale(speed, dt));
+      new_pos = add(pos, scale(speed, dt));
+
       // TEST BOUNDARIES, KEEP PLAYER WITHIN CELL GRID
+      pos = this.isMovePossible(new_pos) ? new_pos : pos;
    };
 
    this.render = (t,tex,btex) => {

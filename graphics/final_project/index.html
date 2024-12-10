@@ -56,13 +56,15 @@ texture(3, 'textures/cobblestone_floor_bump.png');
 
 // ADD 2D CANVAS TEXTURE FOR SPLINE ASSISTANCE
 
-
 // PRE-BUILD ALL OBJECTS FOR EFFICIENCY
 let myCube     = Cube();
 let myCylinder = Cylinder(20);
 let mySphere   = Sphere(20);
 let mySquare   = Square();
 
+// CREATE MAZE
+
+let maze = new Maze(1,10, 10);
 
 // THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 startGL(canvas1);
@@ -72,9 +74,10 @@ function drawFrame() {
    requestAnimationFrame(drawFrame);
    let time = Date.now() / 1000 - startTime;
 
-   let focalLength   = EPS + flSlider.value  / 20;
+   let focalLength   = 1 + flSlider.value  / 20;
 
    player.move(time);
+   player.updatePosition(maze);
 
    // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
@@ -83,25 +86,25 @@ function drawFrame() {
    // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
    if (! isPhone()) {
-       console.log(`player is facing ${player.direction()}`);
     //    console.log(`sensitivity ${mouseSensitivity}`);
     pos = player.position();
+    console.log(pos);
     // VM.move([dot(mX(VM.get()), pos), dot(mY(VM.get()), pos), dot(mZ(VM.get()), pos)]);
     // VM.aim(player.direction());
-    VM.turnX(canvas1.ry)
-           .turnY(canvas1.rx - pi/2);
+    VM.turnX(canvas1.ry).turnY(canvas1.rx - pi/2);
     VM.move(pos);
    }
     
 
    drawScene(() => {
+    
+    maze.render();
+
     for (var i = 0; i < 100; i++) {
 
          let s = [-2 + 5*C(i*2*pi/100),0, 1 + 4*S(i*2*pi/100)];
         M.S().move(s).scale(.07).draw(myCube  ,[0,.5,1], 1, 4, 5).R();
     }
-
-    M.S().move(0,-5,0).scale(10,0.01,10).draw(myCube, [1,0,0], 1).R();
 
    });
 }
