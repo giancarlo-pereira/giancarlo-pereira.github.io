@@ -17,6 +17,29 @@ document.body.addEventListener('click', () => {
     });
  
  // MATH AND VECTOR SUPPORT
+
+// ALGORITHM P TAKEN FROM
+// https://stackoverflow.com/questions/75677/converting-a-uniform-distribution-to-a-normal-distribution
+function normal_random(mean,stddev)
+{
+   var V1
+   var V2
+   var S
+   do{
+      var U1 = Math.random() // return uniform distributed in [0,1[
+      var U2 = Math.random()
+      V1 = 2*U1-1
+      V2 = 2*U2-1
+      S = V1*V1+V2*V2
+   }while(S >= 1)
+   if(S===0) return 0
+   return mean+stddev*(V1*Math.sqrt(-2*Math.log(S)/S))
+}
+
+function random_int(max)
+{
+   return Math.floor(Math.random() * max);
+}
  
  let TAU       = 2 * Math.PI;
  let pi        = Math.PI;
@@ -69,18 +92,21 @@ function Cell(s, r, c, g) {
    let row = r;
    let column = c;
    let size = s;
-   let parentGrid = g;
-   let pos = scale([column+0.5,0, row+0.5], -size);
+   let grid = g;
+   let pos = scale([column+0.5,0, row+0.5], size);
 
    let selected = false;
+   let visited = false;
 
    let walls = {
-      up: false,
-      down: false,
-      left: false,
-      right: false
+      top: true,
+      bottom: true,
+      left: true,
+      right: true
    }
 
+   this.column     = () => column;
+   this.row        = () => row;   
    this.position   = () => pos;
    this.size       = () => size;
    this.boundaries = () => walls;
@@ -88,8 +114,65 @@ function Cell(s, r, c, g) {
    this.select   = () => selected = true;
    this.unselect = () => selected = false;
 
+   this.visited  = bool => {
+      if (bool===undefined) return visited;
+      visited = bool;
+   }
+
+   // FOR MAZE CONSTRUCTION
+   this.getRandomNeighbor = () => {
+      let neighbors = [];
+
+      // check if any neighbors available
+      let top = row !== 0 ? grid[row - 1][column] : undefined;
+      let right = column !== grid.columns - 1 ? grid[row][column + 1] : undefined;
+      let bottom = row !== grid.rows - 1 ? grid[row + 1][column] : undefined;
+      let left = column !== 0 ? grid[row][column - 1] : undefined;
+
+      // push cells (univisited) to neighbors array
+      if (top && !top.visited)       neighbors.push(top);
+      if (right && !right.visited)   neighbors.push(right);
+      if (bottom && !bottom.visited) neighbors.push(bottom);
+      if (left && !left.visited)     neighbors.push(left);
+
+      // Choose a random neighbor
+      if (neighbors.length > 0) {
+         let random = random_int(neighbors.length);
+         return neighbors[random];
+      } else {
+         return undefined;
+      }
+   }
+
+   this.removeWall = neighbor => {
+      let neighborColumn = neighbor.column();
+      let neighborRow    = neighbor.row();
+      let neighborWalls  = neighbor.boundaries();
+
+      if (neighborColumn - column == 1) {
+         neighborWalls['right'] = false;
+         walls['left'] = false;
+      }
+      else if (column - neighborColumn == 1) {
+         walls['right'] = false;
+         neighborWalls['left'] = false;
+      }
+      else if (neighborRow - row == 1) {
+         neighborWalls['bottom'] = false;
+         walls['top'] = false;
+      }
+      else if ( row - neighborRow == 1) {
+         walls['bottom'] = false;
+         neighborWalls['top'] = false;
+      }
+   }
+
    this.render = () => {
       // draw each wall
+      // if (walls['top'])    M.S().move(add(pos, [ 0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1);
+      // if (walls['bottom']) M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1, 4, 5);
+      // if (walls['right'])  M.S().move(add(pos, [ size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1, 4, 5);
+      // if (walls['left'])   M.S().move(add(pos, [-size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1, 4, 5);
 
       // draw floor
       M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, selected ? [0,1,0] : [1,0,0], 1).R();
@@ -104,6 +187,7 @@ function Maze(s, r, c) {
    let grid = [];
    let stack = [];
 
+   // CREATE ALL CELLS
    for (let r = 0; r < rows; r++) {
       let row = [];
       for (let c = 0; c < columns; c++) {
@@ -113,11 +197,16 @@ function Maze(s, r, c) {
       grid.push(row);
    }
 
+   this.startWhere = () => {
+      return this.fetch(startRow, startColumn).position();
+   }
+
+   this.rows = () => rows;
+   this.columns = () => columns;
+
    this.getCurrentCell = pos => {
       let r = Math.floor(pos[2] / size);
       let c = Math.floor(pos[0] / size);
-
-      console.log(`row is ${r} and column is ${c}`);
       
       if ((r >= rows || r < 0 ) || (c >= columns || c < 0)) {return undefined;}
 
@@ -126,6 +215,33 @@ function Maze(s, r, c) {
 
    this.fetch = (row, column) => {
       return grid[row][column];
+   }
+
+   // START IN RANDOM CELL, CLOSER TO CENTER OF MAZE
+   let startRow = Math.floor(Math.max(Math.min(normal_random(rows/2, rows/10), rows - 1), 0));
+   let startColumn = Math.floor(Math.max(Math.min(normal_random(columns/2, columns/10), columns - 1), 0));
+
+   let current = this.fetch(startRow, startColumn);
+   stack.push(current);
+
+   // RECURSE TO CREATE MAZE WITH REMOVED WALLS
+   while (stack.length > 0) {
+      let next = current.getRandomNeighbor();
+      // If there is a non visited neighbour cell
+      if (next) {
+         next.visited(true);
+         // Add the current cell to the stack for backtracking
+         stack.push(current);
+         // This function compares the current cell to the next cell and removes the relevant walls for each cell
+         current.removeWalls(next);
+         // Set the nect cell to the current cell
+         current = next;
+
+         // Else if there are no available neighbours start backtracking using the stack
+      } else if (stack.length > 0) {
+         let cell = stack.pop();
+         current = cell;
+      }
    }
 
    this.render = () => {
@@ -140,7 +256,7 @@ function Maze(s, r, c) {
 
  // PLAYER FUNCTION
 
- function Player() {
+ function Player(maze) {
    // up remains unchanged
    let up = [0, 1, 0];
    // front will move around
@@ -150,7 +266,8 @@ function Maze(s, r, c) {
 
    let vf = 0, vs = 0;
    let color = [.7,.7,.7], opacity = .95;
-   let pos = [0.,-.5,0];
+   // let pos = [0.,-.5,0];
+   let pos = add(maze.startWhere(), [0, 0.5, 0]);
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
 
@@ -195,12 +312,15 @@ function Maze(s, r, c) {
          let walls   = currentCell.boundaries();
          let size    = currentCell.size();
          let cellPos = currentCell.position();
-         
+
+         console.log(`surrounded by walls ${walls['top']}, ${walls['bottom']}, ${walls['left']}, ${walls['right']}}`);
+         console.log(`cell is at position ${cellPos}`);
+         console.log(`player is at position ${pos}`);
          // UP WALL
-         if (   walls['up'] && pos[2] > cellPos[2] + size/2) return false;
-         if ( walls['down'] && pos[2] < cellPos[2] - size/2) return false;
-         if ( walls['left'] && pos[0] > cellPos[0] + size/2) return false;
-         if (walls['right'] && pos[0] < cellPos[0] - size/2) return false;
+         if (   walls['top'] && pos[2] > (cellPos[2] + size/2)) return false;
+         if (walls['bottom'] && pos[2] < (cellPos[2] - size/2)) return false;
+         if (  walls['left'] && pos[0] > (cellPos[0] + size/2)) return false;
+         if ( walls['right'] && pos[0] < (cellPos[0] - size/2)) return false;
       }
       return true;
    }
@@ -243,7 +363,7 @@ function Maze(s, r, c) {
           case 'KeyS':        player.vf(-1); break;
           case 'KeyD':        player.vs(1);  break;
           case 'KeyW':        player.vf(1);  break;
-         //  case 'KeyV':        birdsEyeView();   break;
+          case 'KeyT':        topView();     break;
          //  case 'KeyM':        drawMap();        break;
       }
    }

@@ -5,6 +5,25 @@
         <table>
         <tr><td><input type=range id=flSlider  ></input> <font color=white><big> Focal Length
         <!-- <tr><td><input type=range id=mouseSlider  ></input> <font color=white><big> Mouse Sensitivity -->
+        <tr><td><font color=white><big> Difficulty: <select name="difficulty" id=mode>
+                <option value="debug">Debug</option>
+                <option value="peace">Peaceful</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+        <tr><td><font color=white><big> Rows of Grid: <select name="rows" id=rows>
+                <option value=10>10</option>
+                <option value=25>25</option>
+                <option value=50>50</option>
+                <option value=100>100</option>
+              </select>
+        <tr><td><font color=white><big> Columns of Grid: <select name="columns" id=columns>
+                <option value=10>10</option>
+                <option value=25>25</option>
+                <option value=50>50</option>
+                <option value=100>100</option>
+              </select>
+        <tr><td><input type="button" id=start></input><font color=white><big>Start
         </table>
         <th><canvas id=canvas1 width=900 height=700></canvas>
         </table>
@@ -17,10 +36,14 @@ for (let slider in sliders)
    if (sliders[slider].style)
       sliders[slider].style.width = 200;
 
-// DECLARE PLAYER
-player = new Player();
+// ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 
-// let mouseSensitivity   = EPS + mouseSlider.value / 200;
+// CREATE MAZE
+let maze = new Maze(1, 10, 10);
+// DECLARE PLAYER
+let player = new Player(maze);
+
+// let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
 trackMouse(canvas1, player);
 handleKeys(canvas1, player);
 
@@ -29,7 +52,7 @@ window.addEventListener('keydown', e => {
     'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
     'KeyA', 'KeyS', 'KeyD', 'KeyW',
     'Escape', 'Backspace', 'Enter', 'Delete',
-    'ShiftRight', 'ShiftLeft', 'Tab', 'ControlRight',
+    'Tab', 'ControlRight',
     'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
     'MetaLeft', 'MetaRight',
     'KeyM', 'KeyV'].indexOf(e.code) >= 0)
@@ -52,9 +75,7 @@ texture(2, 'textures/cobblestone_floor.png');
 texture(3, 'textures/cobblestone_floor_bump.png');
 
 // ADD EXIT SIGN TEXTURE
-
-
-// ADD 2D CANVAS TEXTURE FOR SPLINE ASSISTANCE
+// texture(6, 'textures/exit_sign.jpg');
 
 // PRE-BUILD ALL OBJECTS FOR EFFICIENCY
 let myCube     = Cube();
@@ -62,11 +83,6 @@ let myCylinder = Cylinder(20);
 let mySphere   = Sphere(20);
 let mySquare   = Square();
 
-// CREATE MAZE
-
-let maze = new Maze(1,10, 10);
-
-// THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 startGL(canvas1);
 
 let startTime = Date.now() / 1000;
@@ -88,11 +104,10 @@ function drawFrame() {
    if (! isPhone()) {
     //    console.log(`sensitivity ${mouseSensitivity}`);
     pos = player.position();
-    console.log(pos);
     // VM.move([dot(mX(VM.get()), pos), dot(mY(VM.get()), pos), dot(mZ(VM.get()), pos)]);
     // VM.aim(player.direction());
-    VM.turnX(canvas1.ry).turnY(canvas1.rx - pi/2);
-    VM.move(pos);
+    VM.turnX(canvas1.ry).turnY(canvas1.rx + pi/2);
+    VM.move(scale(pos, -1));
    }
     
 
