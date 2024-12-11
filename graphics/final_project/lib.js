@@ -554,10 +554,8 @@ function mapPower(difficulty, c) {
       let dt = t-time;
       time=t; // update internal clock
       let change = active ? -dischargeRate*dt : rechargeRate*dt;
-      console.log(`map change is ${change}`);
 
       full += change;
-      console.log(`power is ${full}% full`);
       full = Math.max( Math.min(full, 100), 0); // clip it between 0 and 100
 
       if (full < EPS) {
@@ -596,7 +594,7 @@ function mapPower(difficulty, c) {
       let size = player.height();
       let f = player.direction();
       let s = player.side();
-      M.S().move(add(pos, scale(add(add(f, [0, -.5, 0]), scale(s, size/2)), size/2))).aim(f).turnX(-pi/12).turnY(pi/8).scale(size/5, size/5, size/1000).draw(myCube, [1,1,1], 1, 6, -1).R();
+      M.S().move(add(pos, scale(add(add(f, [0, -.5, 0]), scale(s, size/2)), size/2))).aim(f).turnX(-pi/12).turnY(pi/8).scale(size/5, size/5, size/1000).draw(myCube, [1,1,1], 1, 6, 7).R();
    }
 
 }
@@ -639,15 +637,17 @@ function splinePower(m, difficulty, c) {
 
    this.update = t => {
       if (disabled) return;
+      if (time===undefined) {time=t; return;}
+      let dt = t-time;
       time=t; // update internal clock
-      let dt = time - t;
-
       let change = active ? -dischargeRate*dt : rechargeRate*dt;
 
       full += change;
-      full = Math.max(Math.min(full, 100), 0); // clip it between 0 and 100
+      full = Math.max( Math.min(full, 100), 0); // clip it between 0 and 100
 
-      if (full < EPS) active = false; // deactivate power if reached zero 
+      if (full < EPS) {
+         active = false; // deactivate power if reached zero 
+      }
 
    }
 
