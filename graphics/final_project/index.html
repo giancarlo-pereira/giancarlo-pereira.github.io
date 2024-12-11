@@ -1,4 +1,5 @@
 <body bgcolor=#808080><font face=courier>
+<canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
 <center>
     <table>
         <tr><th valign=top>
@@ -24,8 +25,9 @@
                 <option value=100>100</option>
               </select>
         <tr><td><button type="submit" id=start><font color=black><big>Start</button>
-
         <tr><td><span id=timeArea style="color:white"></span>
+        <tr><td><canvas id=mapPowerCanvas width=200 height=20></canvas>
+        <tr><td><canvas id=splinePowerCanvas width=200 height=20></canvas>
         </table>
         <th><canvas id=canvas width=900 height=700></canvas>
         </table>
@@ -47,6 +49,8 @@ start.addEventListener('click', () => {
 
          // show canvas
         canvas.style.display = 'block';
+        mapPowerCanvas.style.display = 'block';
+        splinePowerCanvas.style.difficulty = 'block';
 
         // disable game settings
         rows.disabled    = true;
@@ -66,6 +70,10 @@ function startGame(canvas, rows, columns, difficulty) {
     let maze = new Maze(1, rows, columns);
     // DECLARE PLAYER
     let player = new Player(maze, difficulty);
+    
+    // // DECLARE POWERS
+    let map = new mapPower(difficulty, mapPowerCanvas);
+    let spline = new splinePower(difficulty, splinePowerCanvas);
 
     // let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
     trackMouse(canvas, player);
@@ -101,6 +109,9 @@ function startGame(canvas, rows, columns, difficulty) {
     // ADD EXIT SIGN TEXTURE
     // texture(6, 'textures/exit_sign.jpg');
 
+    // ADD MAZE MAP
+    // texture(6, textureCanvas);  // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
+
     startGL(canvas);
 
     let startTime = Date.now() / 1000;
@@ -117,6 +128,8 @@ function startGame(canvas, rows, columns, difficulty) {
 
         player.move(time);
         player.updatePosition(maze);
+        map.update(time);
+        spline.update(time);
 
         // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
@@ -129,10 +142,14 @@ function startGame(canvas, rows, columns, difficulty) {
             VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
             VM.move(scale(pos, -1));
         }
-            
 
         drawScene(() => {
+            map.draw2D();
+            spline.draw2D();
             maze.render();
+            if (map.isActive()) {
+                maze.draw2DMap(textureCanvas, player);
+            }
         });
     }
     requestAnimationFrame(drawFrame);

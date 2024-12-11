@@ -51,7 +51,7 @@ function random_int(max)
  let ease      = t       => (t = Math.max(0,Math.min(1,t))) * t * (3 - t - t);
  let mix       = (a,b,t) => a[0]!==undefined ? a.map((a,i) => a + t * (b[i] - a)) : a + t * (b - a);
  let norm      = v       => Math.sqrt(dot(v,v));
- let normalize = v       => scale(v, 1 / norm(v));
+ let normalize = v       => scale(v, 1 / (norm(v) > 0 ? norm(v) : 1) );
  let scale     = (a,s)   => a.map((a,i) => (s[i]!==undefined ? s[i] : s) * a);
  let subtract  = (a,b)   => a.map((a,i) => a - b[i]);
 
@@ -74,8 +74,8 @@ function random_int(max)
     }
     canvas.onmousemove = e => {
        if (canvas.pressed) {
-          canvas.rx += (e.clientX - canvas.mx)/30;
-          canvas.ry += (e.clientY - canvas.my)/30;
+          canvas.rx += (e.clientX - canvas.mx)/45;
+          canvas.ry += (e.clientY - canvas.my)/45;
           canvas.ry = Math.max(Math.min(canvas.ry, pi/2 - EPS), -pi/2 + EPS);
           canvas.mx = e.clientX;
           canvas.my = e.clientY;
@@ -126,8 +126,8 @@ function Cell(s, r, c, g) {
       if (goal===true) {
          if (row===0) walls['bottom']=false;
          else if (column===0) walls['right']=false;
-         else if (row==grid.rows()-1) walls['top']=false;
-         else if (column===grid.columns()-1) walls['left']=false;
+         else if (row==grid.length - 1) walls['top']=false;
+         else if (column===grid[row].length - 1) walls['left']=false;
       }
    }
 
@@ -136,10 +136,10 @@ function Cell(s, r, c, g) {
       let neighbors = [];
 
       // check if any neighbors available
-      let top = row !== 0 ? grid[row - 1][column] : undefined;
-      let right = column !== grid[row].length - 1 ? grid[row][column + 1] : undefined;
-      let bottom = row !== grid.length - 1 ? grid[row + 1][column] : undefined;
-      let left = column !== 0 ? grid[row][column - 1] : undefined;
+      let bottom = row === 0 ? undefined : grid[row - 1][column];
+      let left = column === grid[row].length - 1 ? undefined : grid[row][column + 1];
+      let top = row === grid.length - 1 ? undefined : grid[row + 1][column];
+      let right = column === 0 ? undefined : grid[row][column - 1];
 
       // push cells (univisited) to neighbors array
       if (top && !top.visited())       neighbors.push(top);
@@ -178,6 +178,61 @@ function Cell(s, r, c, g) {
          neighborWalls['top'] = false;
       }
    }
+
+   this.drawTopWall = (ctx, scale, offsetX, offsetZ) => {
+      ctx.beginPath();
+      let position1 = add(scale(add(pos, scale([1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([-1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let x = position1[0], z = position1[2];
+      ctx.moveTo(x,z);
+      x = position2[0], z = position2[2];
+      ctx.lineTo(x,z);
+      ctx.stroke();
+   }
+   this.drawBottomWall = (ctx, scale, offsetX, offsetZ) => {
+      ctx.beginPath();
+      let position1 = add(scale(add(pos, scale([-1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let x = position1[0], z = position1[2];
+      ctx.moveTo(x,z);
+      x = position2[0], z = position2[2];
+      ctx.lineTo(x,z);
+      ctx.stroke();
+   }
+   this.drawLeftWall = (ctx, scale, offsetX, offsetZ) => {
+      ctx.beginPath();
+      let position1 = add(scale(add(pos, scale([1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let x = position1[0], z = position1[2];
+      ctx.moveTo(x,z);
+      x = position2[0], z = position2[2];
+      ctx.lineTo(x,z);
+      ctx.stroke();
+   }
+   this.drawRightWall = (ctx, scale, offsetX, offsetZ) => {
+      ctx.beginPath();
+      let position1 = add(scale(add(pos, scale([-1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([-1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let x = position1[0], z = position1[2];
+      ctx.moveTo(x,z);
+      x = position2[0], z = position2[2];
+      ctx.lineTo(x,z);
+      ctx.stroke();
+   }
+
+   this.draw2D = (ctx, scale, offsetX, offsetZ) => {
+      // Draws the cell on the maze map canvas
+
+      if (walls['top'])    this.drawTopWall(ctx, scale, offsetX, offsetZ);
+      if (walls['right'])  this.drawRightWall(ctx, scale, offsetX, offsetZ);
+      if (walls['bottom']) this.drawBottomWall(ctx, scale, offsetX, offsetZ);
+      if (walls['left'])   this.drawLeftWall(ctx, scale, offsetX, offsetZ);
+
+      if (this.isGoal()) {
+         ctx.fillStyle = "rgb(83, 247, 43)";
+         // ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
+      }
+ }
 
    this.render = () => {
       // draw each wall
@@ -223,12 +278,13 @@ function Maze(s, r, c) {
    // PICK EXIT CELL AT BORDER OF MAZE
    let goalColumn, goalRow;
    if (Math.random() > 0.5) {
-      goalColumn = (Math.random() > 0.5) ? columns-1 : 0;
-      goalRow = random_int(rows);
+      goalColumn = (Math.random() > 0.5) ? columns - 1 : 0;
+      goalRow = random_int(rows - 1);
    } else {
-      goalRow = (Math.random() > 0.5) ? rows-1 : 0;
-      goalColumn = random_int(columns);
+      goalRow = (Math.random() > 0.5) ? rows - 1 : 0;
+      goalColumn = random_int(columns - 1);
    }
+
    let goal = this.fetch(goalRow, goalColumn);
    goal.isGoal(true);
 
@@ -255,9 +311,9 @@ function Maze(s, r, c) {
    this.getCurrentCell = pos => {
       let r = Math.floor(pos[2] / size);
       let c = Math.floor(pos[0] / size);
-      
-      if ((r >= rows || r < 0 ) || (c >= columns || c < 0)) {return undefined;}
-
+      if ((r > rows - 1 || r < 0 ) || (c > columns - 1 || c < 0)) {
+         return undefined;
+      }
       return this.fetch(r,c);
    }
 
@@ -277,6 +333,35 @@ function Maze(s, r, c) {
      })
    }
 
+   this.draw2DMap = (canvas, player) => {
+      ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // color of brown paper bag
+      ctx.fillStyle = '#b79f7c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.fillStyle = "black";
+      ctx.lineWidth = 10;
+
+      let offsetX = 36, offsetZ = 36;
+      let xSize = size * columns, zSize = size * rows;
+      let scale = canvas.width - 2 * 36;
+      scale /= (xSize > zSize) ? xSize : zSize;
+
+      offsetX = (canvas.width - scale * xSize)/2;
+      offsetZ = (canvas.width - scale * zSize)/2;
+
+      grid.forEach(row => {
+         row.forEach(cell => {
+            cell.draw2D(ctx, scale, offsetX, offsetZ);
+         })
+      })
+      // draw player positon as a triangle
+   }
+
 }
 
  // PLAYER FUNCTION
@@ -290,9 +375,12 @@ function Maze(s, r, c) {
    let side = cross(front, up);
 
    let vf = 0, vs = 0;
+   let speed = 1;
    let color = [.7,.7,.7], opacity = .95;
    // let pos = [0.,-.5,0];
+
    let pos = add(maze.startWhere(), [0, 0.5, 0]);
+   
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
 
@@ -311,6 +399,11 @@ function Maze(s, r, c) {
       vs=v;
    }
 
+   this.speed = s => {
+      if (s===undefined) return this.speed;
+      speed = s;
+   }
+
    this.direction = dir => {
       if (dir===undefined) return front;
       front=dir;
@@ -321,7 +414,7 @@ function Maze(s, r, c) {
    this.position = () => pos;
 
    this.updatePosition = maze => {
-      cell = maze.getCurrentCell(this.position());
+      cell = maze.getCurrentCell(pos);
 
       // avoid unnecessary back-end calls if cell is still the same
       if (cell!==currentCell) this.updateCell(cell);
@@ -355,12 +448,12 @@ function Maze(s, r, c) {
       t = time;
 
       // collect side velocity and front velocity
-      let speed = add(scale(front, vf), scale(side, vs));
+      let v = scale(normalize(add(scale(front, vf), scale(side, vs))),speed);
       // y never changes
-      speed[1]=0;
+      v[1]=0;
 
       // equation of motion
-      new_pos = add(pos, scale(speed, dt));
+      new_pos = add(pos, scale(v, dt));
 
       // TEST BOUNDARIES, KEEP PLAYER WITHIN CELL GRID
       pos = this.isMovePossible(new_pos) ? new_pos : pos;
@@ -378,17 +471,129 @@ function Maze(s, r, c) {
    }
 }
 
+function mapPower(difficulty, c) {
+   let mode = difficulty;
+   let rechargeRate = 1;
+   let dischargeRate = 20;
+   let full = 100; // start with powers full
+   let time;
+
+   let canvas = c;
+
+   let disabled = false;
+   let active = false;
+
+   if (mode==='hard') disabled=true; // no power in hard mode
+   else if (mode==='peace') {
+      rechargeRate = 100; // recharges almost immediately
+      dischargeRate = 1; // extremely slow
+   }
+
+   this.isActive = () => active;
+   this.activate = () => {
+      if (active) return; //if already active, do nothing
+      active = disabled ? false : true; //if disabled, cannot activate
+   }
+
+   this.update = t => {
+      if (disabled) return;
+      time=t; // update internal clock
+      let dt = time - t;
+
+      full = active ? Math.max(0, full-dischargeRate*dt) : Math.min(100, full+rechargeRate*dt);
+   }
+
+   this.draw2D = () => {
+      ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (disabled) {
+         // red color to show DISABLED
+         ctx.fillStyle = '#F40C00';
+         ctx.fillRect(0,0, canvas.width, canvas.height);
+         return;
+      }
+
+
+      // gray color to show how much has been used
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // green color to show ACTIVE
+      ctx.fillStyle = '#65C639';
+      ctx.fillRect(0, 0, canvas.width * full / 100, canvas.height);
+   }
+
+}
+
+function splinePower(difficulty, c) {
+   let mode = difficulty;
+   let rechargeRate = 1;
+   let dischargeRate = 20;
+   let full = 100; // start with powers full
+   let time;
+
+   let canvas = c;
+
+   let disabled = false;
+   let active = false;
+
+   if (mode==='hard') disabled=true; // no power in hard mode
+
+   else if (mode==='peace') {
+      rechargeRate = 100; // recharges almost immediately
+      dischargeRate = 1; // extremely slow
+   }
+
+   this.isActive = () => active;
+   this.activate = () => {
+      if (active || disabled) return; //if already active or disabled, do nothing
+      active = true;
+   }
+
+   this.update = t => {
+      if (disabled) return;
+
+
+      if (time===undefined) time=t; // update internal clock
+      let dt = time - t;
+
+      full = active ? Math.max(0, full-dischargeRate*dt) : Math.min(100, full+rechargeRate*dt);
+   }
+
+   this.draw2D = () => {
+      ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (disabled) {
+         // red color to show DISABLED
+         ctx.fillStyle = '#F40C00';
+         ctx.fillRect(0,0, canvas.width, canvas.height);
+         return;
+      }
+
+      // gray color to show how much has been used
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // green color to show ACTIVE
+      ctx.fillStyle = '#65C639';
+      ctx.fillRect(0, 0, canvas.width * full / 100, canvas.height);
+   }
+
+}
+
  // HANDLE KEY EVENTS
 
  let handleKeys = (canvas, player) => {
    canvas.keyDown     = c => {
       switch(c) {
-          case 'KeyA':        player.vs(-1); break;
-          case 'KeyS':        player.vf(-1); break;
-          case 'KeyD':        player.vs(1);  break;
-          case 'KeyW':        player.vf(1);  break;
-          case 'KeyT':        topView();     break;
-         //  case 'KeyM':        drawMap();        break;
+          case 'KeyA':        player.vs(-1);     break;
+          case 'KeyS':        player.vf(-1);     break;
+          case 'KeyD':        player.vs(1);      break;
+          case 'KeyW':        player.vf(1);      break;
+          case 'ShiftLeft':   player.speed(1.5);   break;
+          case 'ShifRight':   player.speed(1.5);   break;
+          case 'KeyT':        spline.activate(); break;
+          case 'KeyM':        map.activate();    break;
       }
    }
    
@@ -398,6 +603,8 @@ function Maze(s, r, c) {
          case 'KeyS':        player.vf(0); break;
          case 'KeyD':        player.vs(0); break;
          case 'KeyW':        player.vf(0); break;
+         case 'ShiftLeft':   player.speed(1);   break;
+         case 'ShifRight':   player.speed(1);   break;
       }
    }
  }
