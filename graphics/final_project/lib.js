@@ -274,10 +274,10 @@ function Cell(s, r, c, g, d) {
       if (walls['left'])   M.S().move(add(pos, [ size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
 
       // draw floor
-      if (mode!=='debug' && goal) {
-         M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, floorColor, 1, 0, 1).R();
+      if (mode!=='debug') {
+         M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, floorColor, 1, goal ? 0 : floorTex, goal ? 1 : floorBtex).R();
       } else {
-         M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, goal ? [0,1,0] : [1,0,0], 1, floorTex, floorBtex).R();
+         M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, goal ? [0,1,0] : [1,0,0], 1, -1, -1).R();
       }
    }
 }
