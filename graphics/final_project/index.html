@@ -107,21 +107,17 @@ function startGame(canvas, rows, columns, difficulty) {
     window.addEventListener('keyup', e => canvas.keyUp(e.code));
     if (! canvas.keyDown) canvas.keyDown = () => {}
     if (! canvas.keyUp  ) canvas.keyUp   = () => {}
-
-
     // ADD WALL TEXTURES 
-    texture(4, 'textures/rusty_grid.png');
-    texture(5, 'textures/rusty_grid_bump.png');
+    texture(4, 'rusty_grid.png');
+    texture(5, 'rusty_grid_bump.png');
 
     // ADD FLOOR TEXTURES
-    texture(0, 'textures/grass.png');
-    texture(1, 'textures/grass_bump.png');
-    texture(2, 'textures/cobblestone_floor.png');
-    texture(3, 'textures/cobblestone_floor_bump.png');
+    texture(0, 'grass.png');
+    texture(1, 'grass_bump.png');
+    texture(2, 'cobblestone_floor.png');
+    texture(3, 'cobblestone_floor_bump.png');
 
-    // ADD PAPER CRUMPLE NORMAL MAP 
-    texture(7, 'textures/paper_bump.png');
-
+    texture(7, 'paper_bump.png');
     // ADD EXIT SIGN TEXTURE
 
 
@@ -130,8 +126,10 @@ function startGame(canvas, rows, columns, difficulty) {
     let startTime = Date.now() / 1000;
 
     function drawFrame() {
+    
         // ADD MAZE MAP
         texture(6, textureCanvas);  // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
+
         requestAnimationFrame(drawFrame);
         let time = Date.now() / 1000 - startTime;
 
