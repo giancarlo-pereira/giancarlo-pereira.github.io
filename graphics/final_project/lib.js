@@ -550,13 +550,15 @@ function mapPower(difficulty, c) {
 
    this.update = t => {
       if (disabled) return;
+      if (time===undefined) {time=t; return;}
+      let dt = t-time;
       time=t; // update internal clock
-      let dt = time - t;
-
       let change = active ? -dischargeRate*dt : rechargeRate*dt;
+      console.log(`map change is ${change}`);
 
       full += change;
-      full = Math.max(Math.min(full, 100), 0); // clip it between 0 and 100
+      console.log(`power is ${full}% full`);
+      full = Math.max( Math.min(full, 100), 0); // clip it between 0 and 100
 
       if (full < EPS) {
          active = false; // deactivate power if reached zero 
