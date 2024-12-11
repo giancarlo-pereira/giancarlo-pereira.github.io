@@ -80,7 +80,7 @@ start.addEventListener('click', () => {
 function startGame(canvas, rows, columns, difficulty) {
     console.log(`creating maze with ${rows} rows and ${columns} columns, in ${difficulty} mode`);
     // CREATE MAZE
-    let maze = new Maze(1, rows, columns);
+    let maze = new Maze(1, rows, columns, difficulty);
     // DECLARE PLAYER
     let player = new Player(maze, difficulty);
     
@@ -108,8 +108,8 @@ function startGame(canvas, rows, columns, difficulty) {
     if (! canvas.keyDown) canvas.keyDown = () => {}
     if (! canvas.keyUp  ) canvas.keyUp   = () => {}
     // ADD WALL TEXTURES 
-    texture(4, 'rusty_grid.png');
-    texture(5, 'rusty_grid_bump.png');
+    texture(4, 'brick_wall.png');
+    texture(5, 'brick_wall_bump.png');
 
     // ADD FLOOR TEXTURES
     texture(0, 'grass.png');

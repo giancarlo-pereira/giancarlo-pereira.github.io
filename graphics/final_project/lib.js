@@ -88,16 +88,20 @@ function random_int(max)
 
 // MAZE UTILS
 
-function Cell(s, r, c, g) {
+function Cell(s, r, c, g, d) {
    let row = r;
    let column = c;
    let size = s;
    let grid = g;
+   let mode = d;
    let pos = scale([column+0.5,0, row+0.5], size);
 
-   // let color = [];
-   // let tex = ;
-   // let btex = ;
+   let floorColor = [1, .9, .7];
+   let floorTex = (mode==='debug') ? -1 : 2;
+   let floorBtex = (mode==='debug') ? -1 : 3;
+   let wallColor = (mode==='debug') ? [0, 0, 1] : [.9, .4, .1];
+   let wallTex = (mode==='debug') ? -1 : 4;
+   let wallBtex = (mode==='debug') ? -1 : 5;
 
    let selected = false;
    let visited  = false;
@@ -183,6 +187,8 @@ function Cell(s, r, c, g) {
       }
    }
 
+
+   // FOR 2D MAZE CONSTRUCTION
    this.drawTopWall = (ctx, s, offsetX, offsetZ) => {
       ctx.beginPath();
       let position1 = add(scale(add(pos, scale([1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
@@ -258,25 +264,29 @@ function Cell(s, r, c, g) {
       }
    }
 
+
+   // FOR 3D RENDERING
    this.render = () => {
       // draw each wall
-      if (walls['top'])    M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1,).R();
-      if (walls['bottom']) M.S().move(add(pos, [0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, [0,0,1], 1,).R();
-      if (walls['right'])  M.S().move(add(pos, [-size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
-      if (walls['left'])   M.S().move(add(pos, [ size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, [0,0,1], 1,).R();
+      if (walls['top'])    M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
+      if (walls['bottom']) M.S().move(add(pos, [0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
+      if (walls['right'])  M.S().move(add(pos, [-size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
+      if (walls['left'])   M.S().move(add(pos, [ size/2, size/2, 0])).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
 
       // draw floor
-      M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, goal ? [0,1,0] : [1,0,0], 1,).R();
-
-      // if goal, draw some sort of exit sign
-      // if (goal) M.S().move
+      if (mode!=='debug' && goal) {
+         M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, floorColor, 1, 0, 1).R();
+      } else {
+         M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, goal ? [0,1,0] : [1,0,0], 1, floorTex, floorBtex).R();
+      }
    }
 }
 
-function Maze(s, r, c) {
+function Maze(s, r, c, d) {
    let rows = r;
    let columns = c;
    let size = s;
+   let mode = d;
 
    let grid = [];
    let stack = [];
@@ -285,7 +295,7 @@ function Maze(s, r, c) {
    for (let r = 0; r < rows; r++) {
       let row = [];
       for (let c = 0; c < columns; c++) {
-         let cell = new Cell(size, r, c, grid);
+         let cell = new Cell(size, r, c, grid, mode);
          row.push(cell);
       }
       grid.push(row);
@@ -359,6 +369,31 @@ function Maze(s, r, c) {
             cell.render();
          })
      })
+   }
+
+   this.dfs = cell => {
+      let current = cell;
+      let path = [];
+      let stack = [];
+         // RECURSE TO CREATE MAZE WITH REMOVED WALLS
+      while (!current.isGoal()) {
+         let next = current.getRandomNeighbor();
+
+         // If there is a non visited neighbour cell
+         if (next) {
+            next.visited(true);
+            // Add the current cell to the stack for backtracking
+            stack.push(current);
+            // This function compares the current cell to the next cell and removes the relevant walls for each cell
+            // Set the nect cell to the current cell
+            current = next;
+
+            // Else if there are no available neighbours start backtracking using the stack
+         } else if (stack.length > 0) {
+            let cell = stack.pop();
+            current = cell;
+         }
+      }
    }
 
    this.draw2DMap = (canvas, player) => {
@@ -445,8 +480,9 @@ function Maze(s, r, c) {
       front[1]=0;
       side = cross(front, up);
    }
-   this.side = () => side;
+   this.side     = () => side;
    this.position = () => pos;
+   this.cell     = () => currentCell;
    this.height   = () => height;
 
    this.updatePosition = maze => {
@@ -622,15 +658,14 @@ function splinePower(m, difficulty, c) {
    }
 
    this.isActive = () => active;
-   this.activate = () => {
+   this.activate = cell => {
       if (active || disabled) return; //if already active or disabled, do nothing
 
       if (full < 100) return; // wait for it to fully charge
 
       // calculate DFS
-
-      positions = maze.dfs();
-      splinePoints = generateSpline();
+      positions = maze.dfs(cell);
+      splinePoints = generateSpline(positions, 10);
 
       active = true;
    }
@@ -689,7 +724,7 @@ function splinePower(m, difficulty, c) {
           case 'KeyW':        player.vf(1);      break;
           case 'ShiftLeft':   player.speed(1.5); break;
           case 'ShifRight':   player.speed(1.5); break;
-          case 'KeyT':        spline.activate(player.position()); break;
+          case 'KeyT':        spline.activate(player.cell()); break;
           case 'KeyM':        map.activate();                break;
       }
    }
