@@ -95,6 +95,10 @@ function Cell(s, r, c, g) {
    let grid = g;
    let pos = scale([column+0.5,0, row+0.5], size);
 
+   // let color = [];
+   // let tex = ;
+   // let btex = ;
+
    let selected = false;
    let visited  = false;
    let goal     = false;
@@ -179,40 +183,40 @@ function Cell(s, r, c, g) {
       }
    }
 
-   this.drawTopWall = (ctx, scale, offsetX, offsetZ) => {
+   this.drawTopWall = (ctx, s, offsetX, offsetZ) => {
       ctx.beginPath();
-      let position1 = add(scale(add(pos, scale([1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
-      let position2 = add(scale(add(pos, scale([-1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position1 = add(scale(add(pos, scale([1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([-1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
       let x = position1[0], z = position1[2];
       ctx.moveTo(x,z);
       x = position2[0], z = position2[2];
       ctx.lineTo(x,z);
       ctx.stroke();
    }
-   this.drawBottomWall = (ctx, scale, offsetX, offsetZ) => {
+   this.drawBottomWall = (ctx, s, offsetX, offsetZ) => {
       ctx.beginPath();
-      let position1 = add(scale(add(pos, scale([-1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
-      let position2 = add(scale(add(pos, scale([1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position1 = add(scale(add(pos, scale([-1,0,-1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([1,0,-1], size/2)), s), [offsetX, 0, offsetZ]);
       let x = position1[0], z = position1[2];
       ctx.moveTo(x,z);
       x = position2[0], z = position2[2];
       ctx.lineTo(x,z);
       ctx.stroke();
    }
-   this.drawLeftWall = (ctx, scale, offsetX, offsetZ) => {
+   this.drawLeftWall = (ctx, s, offsetX, offsetZ) => {
       ctx.beginPath();
-      let position1 = add(scale(add(pos, scale([1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
-      let position2 = add(scale(add(pos, scale([1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position1 = add(scale(add(pos, scale([1,0,-1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
       let x = position1[0], z = position1[2];
       ctx.moveTo(x,z);
       x = position2[0], z = position2[2];
       ctx.lineTo(x,z);
       ctx.stroke();
    }
-   this.drawRightWall = (ctx, scale, offsetX, offsetZ) => {
+   this.drawRightWall = (ctx, s, offsetX, offsetZ) => {
       ctx.beginPath();
-      let position1 = add(scale(add(pos, scale([-1,0,1], size/2)), scale), [offsetX, 0, offsetZ]);
-      let position2 = add(scale(add(pos, scale([-1,0,-1], size/2)), scale), [offsetX, 0, offsetZ]);
+      let position1 = add(scale(add(pos, scale([-1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([-1,0,-1], size/2)), s), [offsetX, 0, offsetZ]);
       let x = position1[0], z = position1[2];
       ctx.moveTo(x,z);
       x = position2[0], z = position2[2];
@@ -220,19 +224,39 @@ function Cell(s, r, c, g) {
       ctx.stroke();
    }
 
-   this.draw2D = (ctx, scale, offsetX, offsetZ) => {
+   this.drawX = (ctx, s, offsetX, offsetZ) => {
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#F40C00';
+      ctx.beginPath();
+      let position1 = add(scale(add(pos, scale([1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale([-1,0,-1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position3 = add(scale(add(pos, scale([-1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
+      let position4 = add(scale(add(pos, scale([1,0,-1], size/2)), s), [offsetX, 0, offsetZ]);
+      let x = position1[0], z = position1[2];
+      ctx.moveTo(x,z);
+      x = position2[0], z = position2[2];
+      ctx.lineTo(x,z);
+      ctx.stroke();
+      x = position3[0], z = position3[2];      
+      ctx.moveTo(x,z);
+      x = position4[0], z = position4[2];
+      ctx.lineTo(x,z);
+      ctx.stroke();
+   }
+
+   this.draw2D = (ctx, s, offsetX, offsetZ) => {
       // Draws the cell on the maze map canvas
-
-      if (walls['top'])    this.drawTopWall(ctx, scale, offsetX, offsetZ);
-      if (walls['right'])  this.drawRightWall(ctx, scale, offsetX, offsetZ);
-      if (walls['bottom']) this.drawBottomWall(ctx, scale, offsetX, offsetZ);
-      if (walls['left'])   this.drawLeftWall(ctx, scale, offsetX, offsetZ);
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#000000';
+      if (walls['top'])    this.drawTopWall(ctx, s, offsetX, offsetZ);
+      if (walls['right'])  this.drawRightWall(ctx, s, offsetX, offsetZ);
+      if (walls['bottom']) this.drawBottomWall(ctx, s, offsetX, offsetZ);
+      if (walls['left'])   this.drawLeftWall(ctx, s, offsetX, offsetZ);
 
       if (this.isGoal()) {
-         ctx.fillStyle = "rgb(83, 247, 43)";
-         // ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
+         this.drawX(ctx, s, offsetX, offsetZ);
       }
- }
+   }
 
    this.render = () => {
       // draw each wall
@@ -243,6 +267,9 @@ function Cell(s, r, c, g) {
 
       // draw floor
       M.S().move(pos).scale(size/2, size/100, size/2).draw(myCube, goal ? [0,1,0] : [1,0,0], 1,).R();
+
+      // if goal, draw some sort of exit sign
+      // if (goal) M.S().move
    }
 }
 
@@ -319,6 +346,7 @@ function Maze(s, r, c) {
 
    this.columns = () => columns;
    this.rows    = () => rows;
+   this.size    = () => size;
 
 
    this.startWhere = () => {
@@ -359,7 +387,11 @@ function Maze(s, r, c) {
             cell.draw2D(ctx, scale, offsetX, offsetZ);
          })
       })
+
+      player.draw2D(ctx, scale, offsetX, offsetZ);
+
       // draw player positon as a triangle
+
    }
 
 }
@@ -379,7 +411,9 @@ function Maze(s, r, c) {
    let color = [.7,.7,.7], opacity = .95;
    // let pos = [0.,-.5,0];
 
-   let pos = add(maze.startWhere(), [0, 0.5, 0]);
+   let height = maze.size()/2;
+
+   let pos = add(maze.startWhere(), [0, height, 0]);
    
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
@@ -411,7 +445,9 @@ function Maze(s, r, c) {
       front[1]=0;
       side = cross(front, up);
    }
+   this.side = () => side;
    this.position = () => pos;
+   this.height   = () => height;
 
    this.updatePosition = maze => {
       cell = maze.getCurrentCell(pos);
@@ -459,6 +495,26 @@ function Maze(s, r, c) {
       pos = this.isMovePossible(new_pos) ? new_pos : pos;
    };
 
+   this.draw2D = (ctx, s, offsetX, offsetZ) => {
+      // Draws the cell on the maze map canvas
+      let position1 = add(scale(add(pos, scale(front, 1.5*height)), s), [offsetX, 0, offsetZ]);
+      let position2 = add(scale(add(pos, scale(side, height/2)), s), [offsetX, 0, offsetZ]);
+      let position3 = add(scale(add(pos, scale(side, -height/2)), s), [offsetX, 0, offsetZ]);;
+      let x = position1[0], z = position1[2];
+      ctx.beginPath();
+      ctx.moveTo(x,z);
+      x = position2[0], z = position2[2];
+      ctx.lineTo(x,z);
+      x = position3[0], z = position3[2];
+      ctx.lineTo(x,z);
+      ctx.closePath();
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#666666';
+      ctx.stroke();
+      ctx.fillStyle = "#FFCC00";
+      ctx.fill();
+
+   }
    this.render = (t,tex,btex) => {
       if (t-reset < thresh) return;
       opacity = Math.min(.95,(t-reset-thresh)*.1);
@@ -473,26 +529,23 @@ function Maze(s, r, c) {
 
 function mapPower(difficulty, c) {
    let mode = difficulty;
-   let rechargeRate = 1;
-   let dischargeRate = 20;
+   let rechargeRate  = (mode==='peace') ? 100 : 1;
+   let dischargeRate = (mode==='peace') ? 1  : 20;
    let full = 100; // start with powers full
    let time;
 
    let canvas = c;
 
-   let disabled = false;
+   let disabled = (mode==='hard') ? true : false;
    let active = false;
-
-   if (mode==='hard') disabled=true; // no power in hard mode
-   else if (mode==='peace') {
-      rechargeRate = 100; // recharges almost immediately
-      dischargeRate = 1; // extremely slow
-   }
 
    this.isActive = () => active;
    this.activate = () => {
-      if (active) return; //if already active, do nothing
-      active = disabled ? false : true; //if disabled, cannot activate
+      if (active || disabled) return; // if already active or disabled, do nothing
+
+      if (full < 100) return; // wait for it to fully charge
+
+      active = true;
    }
 
    this.update = t => {
@@ -500,7 +553,21 @@ function mapPower(difficulty, c) {
       time=t; // update internal clock
       let dt = time - t;
 
-      full = active ? Math.max(0, full-dischargeRate*dt) : Math.min(100, full+rechargeRate*dt);
+      let change = active ? -dischargeRate*dt : rechargeRate*dt;
+
+      full += change;
+      full = Math.max(Math.min(full, 100), 0); // clip it between 0 and 100
+
+      if (full < EPS) {
+         active = false; // deactivate power if reached zero 
+
+         // hide everything
+         ctx = canvas.getContext('2d')
+         ctx.clearRect(0, 0, canvas.width, canvas.height);
+         ctx.fillStyle = '#b79f7c';
+         ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
    }
 
    this.draw2D = () => {
@@ -514,7 +581,6 @@ function mapPower(difficulty, c) {
          return;
       }
 
-
       // gray color to show how much has been used
       ctx.fillStyle = '#808080';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -523,14 +589,25 @@ function mapPower(difficulty, c) {
       ctx.fillRect(0, 0, canvas.width * full / 100, canvas.height);
    }
 
+   this.render = player => {
+      let pos = player.position();
+      let size = player.height();
+      let f = player.direction();
+      let s = player.side();
+      M.S().move(add(pos, scale(add(add(f, [0, -.5, 0]), scale(s, size/2)), size/2))).aim(f).turnX(-pi/12).turnY(pi/8).scale(size/5, size/5, size/1000).draw(myCube, [1,1,1], 1, 6, -1).R();
+   }
+
 }
 
-function splinePower(difficulty, c) {
+function splinePower(m, difficulty, c) {
+   let maze = m;
    let mode = difficulty;
    let rechargeRate = 1;
    let dischargeRate = 20;
    let full = 100; // start with powers full
    let time;
+
+   let path = [];
 
    let canvas = c;
 
@@ -547,17 +624,29 @@ function splinePower(difficulty, c) {
    this.isActive = () => active;
    this.activate = () => {
       if (active || disabled) return; //if already active or disabled, do nothing
+
+      if (full < 100) return; // wait for it to fully charge
+
+      // calculate DFS
+
+      positions = maze.dfs();
+      splinePoints = generateSpline();
+
       active = true;
    }
 
    this.update = t => {
       if (disabled) return;
-
-
-      if (time===undefined) time=t; // update internal clock
+      time=t; // update internal clock
       let dt = time - t;
 
-      full = active ? Math.max(0, full-dischargeRate*dt) : Math.min(100, full+rechargeRate*dt);
+      let change = active ? -dischargeRate*dt : rechargeRate*dt;
+
+      full += change;
+      full = Math.max(Math.min(full, 100), 0); // clip it between 0 and 100
+
+      if (full < EPS) active = false; // deactivate power if reached zero 
+
    }
 
    this.draw2D = () => {
@@ -579,21 +668,27 @@ function splinePower(difficulty, c) {
       ctx.fillRect(0, 0, canvas.width * full / 100, canvas.height);
    }
 
+   this.render = () => {
+      splinePoints.forEach(spPoint => {
+         M.S().move(spPoint)
+      })
+   }
+
 }
 
  // HANDLE KEY EVENTS
 
- let handleKeys = (canvas, player) => {
+ let handleKeys = (canvas, player, map, spline) => {
    canvas.keyDown     = c => {
       switch(c) {
           case 'KeyA':        player.vs(-1);     break;
           case 'KeyS':        player.vf(-1);     break;
           case 'KeyD':        player.vs(1);      break;
           case 'KeyW':        player.vf(1);      break;
-          case 'ShiftLeft':   player.speed(1.5);   break;
-          case 'ShifRight':   player.speed(1.5);   break;
-          case 'KeyT':        spline.activate(); break;
-          case 'KeyM':        map.activate();    break;
+          case 'ShiftLeft':   player.speed(1.5); break;
+          case 'ShifRight':   player.speed(1.5); break;
+          case 'KeyT':        spline.activate(player.position()); break;
+          case 'KeyM':        map.activate();                break;
       }
    }
    
@@ -1063,12 +1158,13 @@ let mySquare   = Square();
  
 // CUBIC SPLINES
 
-let drawSpline = (canvas, points, n) => {
+let generateSpline = (points, n) => {
    let l = points.length - 1;
    if (l < 1) return;
    n = n * l;
 
    let controlPointsX = [],
+   controlPointsZ = [],
    controlPointsY = [],
    splinePoints = [];
 
@@ -1076,27 +1172,17 @@ let drawSpline = (canvas, points, n) => {
         pos = point.where();
         controlPointsX.push(pos[0]);
         controlPointsY.push(pos[1]);
+        controlPointsZ.push(pos[2]);
    });
 
    for (var i = 0; i < n; i += 1) {
-      splinePoints.push( (2. - catmullRom(controlPointsX, i/n) ) *  canvas.width/4);
-      splinePoints.push( (2. - catmullRom(controlPointsY, i/n) ) * canvas.height/4);
+      let splinePointX = catmullRom(controlPointsX, i/n);
+      let splinePointY = catmullRom(controlPointsY, i/n);
+      let splinePointZ = catmullRom(controlPointsZ, i/n);
+      splinePoints.push( [splinePointX, splinePointY, splinePointZ] );
    }
    // add last point
-   splinePoints.push( (2. - controlPointsX[l]) *  canvas.width/4);
-   splinePoints.push( (2. - controlPointsY[l]) * canvas.height/4);
+   splinePoints.push( [controlPointsX[l], controlPointsY[l], controlPointsZ[l]] );
 
-   ctx = canvas.getContext('2d');
-   ctx.clearRect(0, 0, canvas.width, canvas.height);
-   // ctx.fillStyle = '#ededed';
-   // ctx.fillRect(0, 0, 512, 512);
-   // ctx.fillStyle = 'red';
-   ctx.linewidth = 10;
-   ctx.strokeStyle = 'red';
-   ctx.beginPath();
-
-   ctx.moveTo(splinePoints[0], splinePoints[1]);
-   for (let i = 2; i < splinePoints.length-1; i += 2) 
-         ctx.lineTo(splinePoints[i], splinePoints[i+1]);
-   ctx.stroke();
+   return splinePoints
 }

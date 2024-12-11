@@ -26,7 +26,10 @@
               </select>
         <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         <tr><td><span id=timeArea style="color:white"></span>
+        <tr></tr>
+        <tr><td><span id=mapArea style="color:white"></span>
         <tr><td><canvas id=mapPowerCanvas width=200 height=20></canvas>
+        <tr><td><span id=splineArea style="color:white"></span>
         <tr><td><canvas id=splinePowerCanvas width=200 height=20></canvas>
         </table>
         <th><canvas id=canvas width=900 height=700></canvas>
@@ -50,7 +53,17 @@ start.addEventListener('click', () => {
          // show canvas
         canvas.style.display = 'block';
         mapPowerCanvas.style.display = 'block';
-        splinePowerCanvas.style.difficulty = 'block';
+        splinePowerCanvas.style.display = 'block';
+        mapPowerCanvas.style ='border: 2px solid black;';
+        splinePowerCanvas.style = 'border: 2px solid black;';
+
+        mapArea.innerHTML = 'Map Power';
+        splineArea.innerHTML = 'Guide Power';
+
+        if (d==='hard') {
+            mapArea.innerHTML += ' DISABLED';
+            splineArea.innerHTML += ' DISABLED';
+        }
 
         // disable game settings
         rows.disabled    = true;
@@ -73,11 +86,11 @@ function startGame(canvas, rows, columns, difficulty) {
     
     // // DECLARE POWERS
     let map = new mapPower(difficulty, mapPowerCanvas);
-    let spline = new splinePower(difficulty, splinePowerCanvas);
+    let spline = new splinePower(maze, difficulty, splinePowerCanvas);
 
     // let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
     trackMouse(canvas, player);
-    handleKeys(canvas, player);
+    handleKeys(canvas, player, map, spline);
 
     window.addEventListener('keydown', e => {
         if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',
@@ -109,14 +122,14 @@ function startGame(canvas, rows, columns, difficulty) {
     // ADD EXIT SIGN TEXTURE
     // texture(6, 'textures/exit_sign.jpg');
 
-    // ADD MAZE MAP
-    // texture(6, textureCanvas);  // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
 
     startGL(canvas);
 
     let startTime = Date.now() / 1000;
 
     function drawFrame() {
+        // ADD MAZE MAP
+        texture(6, textureCanvas);  // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
         requestAnimationFrame(drawFrame);
         let time = Date.now() / 1000 - startTime;
 
@@ -149,7 +162,9 @@ function startGame(canvas, rows, columns, difficulty) {
             maze.render();
             if (map.isActive()) {
                 maze.draw2DMap(textureCanvas, player);
+                map.render(player);
             }
+            if (spline.isActive()) spline.render(maze, player);
         });
     }
     requestAnimationFrame(drawFrame);
