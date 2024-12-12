@@ -162,10 +162,10 @@ function Cell(s, r, c, g, d) {
       let neighbors = [];
 
       // check if any neighbors available
-      let bottom = row === 0 ? undefined : grid[row - 1][column];
-      let left = column === grid[row].length - 1 ? undefined : grid[row][column + 1];
-      let top = row === grid.length - 1 ? undefined : grid[row + 1][column];
-      let right = column === 0 ? undefined : grid[row][column - 1];
+      let bottom = walls['bottom'] ? undefined : grid[row - 1][column];
+      let left = walls['left'] ? undefined : grid[row][column + 1];
+      let top = walls['top'] ? undefined : grid[row + 1][column];
+      let right = walls['right'] ? undefined : grid[row][column - 1];
 
       // push cells (univisited) to neighbors array
       if (top && !top.visited())       neighbors.push(top);
@@ -359,10 +359,10 @@ function Maze(s, r, c, d) {
    let goalColumn, goalRow;
    if (Math.random() > 0.5) {
       goalColumn = (Math.random() > 0.5) ? columns - 1 : 0;
-      goalRow = random_int(rows - 1);
+      goalRow = random_int(rows);
    } else {
       goalRow = (Math.random() > 0.5) ? rows - 1 : 0;
-      goalColumn = random_int(columns - 1);
+      goalColumn = random_int(columns);
    }
 
    let goal = this.fetch(goalRow, goalColumn);
@@ -424,25 +424,22 @@ function Maze(s, r, c, d) {
    this.dfs = cell => {
       // TODO FIX THIS -- GET THE PATH TO GOAL
       let current = cell;
-      let path = [];
-      let stack = [];
-         // RECURSE TO CREATE MAZE WITH REMOVED WALLS
-      while (!current.isGoal()) {
+      let path = [current];
+      let stack = [current];
+      // RECURSE TO FIND GOAL
+      while (!current.isGoal() && stack.length > 0) {
          let neighbors = current.getNeighbors();
 
-         // If there is a non visited neighbour cell
-         if (next) {
-            next.visited(true);
-            // Add the current cell to the stack for backtracking
-            stack.push(current);
-            // Set the nect cell to the current cell
-            current = next;
-
-         // Else if there are no available neighbours start backtracking using the stack
-         } else if (stack.length > 0) {
-            let cell = stack.pop();
-            current = cell;
+         if (neighbors.length == 0) {
+            current = stack.pop();
+         } else {
+            neighbors.forEach(neighbor => {
+               neighbor.visited(true);
+               stack.push(neighbor);
+            })
+            current = neighbors[random_int(neighbors.length)];
          }
+         path.push(current);
       }
       return path;
    }
@@ -733,15 +730,11 @@ function splinePower(m, difficulty, c) {
       // calculate DFS
       path = maze.dfs(cell);
 
-      console.log(`path to goal is ${path}`);
-
       // convert path to coordinates
       let positions = [];
       path.forEach(cell => {
          positions.push(cell.position());
       });
-
-      console.log(`path to goal is ${positions}`);
 
       // generate splines with 10 points in between
       splinePoints = generateSpline(positions, 10);
@@ -788,11 +781,12 @@ function splinePower(m, difficulty, c) {
    }
 
    this.render = (time) => {
-      console.log(`points are ${splinePoints}`);
+      let s = maze.size();
       for (let i = 0; i < splinePoints.length; i++) {
          let spPoint = splinePoints[i];
-         let yShift = maze.size()*( 1/4 + 1/8*Math.max(0, S(time + i*pi/12)));
-         M.S().move(add(spPoint, [0, yShift, 0])).scale(.1).draw(mySphere, [.4,.8,.2], .75, -1, -1).R();
+         let sinePhase = Math.max(0, S(time - i*pi/12))
+         let yShift = s*( 1/4 + 1/8*sinePhase);
+         M.S().move(add(spPoint, [0, yShift, 0])).scale(s/50*(1+sinePhase)).draw(mySphere, [.4,.8,.2], .9, -1, -1).R();
       }
    }
 
