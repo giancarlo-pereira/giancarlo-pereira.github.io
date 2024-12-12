@@ -1,4 +1,4 @@
-<body bgcolor=#808080><font face=courier>
+<body bgcolor=#131862><font face=courier>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
 <center>
     <font color=white><big> ESPACE THE MAZE
@@ -138,7 +138,7 @@ function startGame(canvas, rows, columns, difficulty) {
 
     // ADD NIGHT SKY
     addMaterial(1, `c += max(0., dot(L, nor));`);
-    
+
     // ADD DAY SKY
     addMaterial(2, `L = normalize(vec3(0.5,0.5,0.5)); c += 0.2 + max(0., dot(L, nor));`);
 
@@ -180,6 +180,9 @@ function startGame(canvas, rows, columns, difficulty) {
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
             VM.turnX(Math.max(canvas.ry, Math.atan(Math.sqrt(s**2+c**2)/5))).turnY(canvas.rx + pi/2);
             let change = ease((time - player.goalTime())/5);
+            document.body.style.backgroundColor = rgbToHex(mix([19,24,98], [225, 246, 255], change));
+            //TODO: fix the text color to go black when the sun comes up
+            document.body.style.color = rgbToHex(mix([255,255,255], [0,0,0], change));
             VM.move(add(scale(toyPos, change), scale(pos, change-1)));
         } else {
             VM.identity().POVperspective(focalLength).scale(1,canvas.width/canvas.height,1);
@@ -190,11 +193,10 @@ function startGame(canvas, rows, columns, difficulty) {
 
         // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
-        if (! isPhone()) {
-            
-        }
-
         drawScene(() => {
+            // draw the Moon "glowing"
+            for (let i=0; i<50; i++) M.S().move([100, 10000, 100]).scale(500 + 10*i).draw(mySphere, [.5,.5,.5], 1-0.02*i).R();
+            
             map.draw2D();
             spline.draw2D();
             maze.render();

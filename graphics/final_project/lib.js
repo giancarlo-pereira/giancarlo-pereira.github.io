@@ -18,7 +18,26 @@ document.body.addEventListener('click', () => {
  
  // MATH AND VECTOR SUPPORT
 
-// ALGORITHM P TAKEN FROM
+ // CONVERTER TAKEN FROM
+ // https://bito.ai/resources/rgb-to-hex-javascript-javascript-explained/#:~:text=To%20convert%20RGB%20color%20codes%20to%20hexadecimal%2C%20you%20need%20to,representation%20of%20the%20color%20code.
+ function componentToHex(c) {
+   return c.toString(16).padStart(2, '0');
+ }
+
+ function rgbToHex(rgb) {
+   let r = (rgb[0] < 1) ? Math.floor(255*rgb[0]) : Math.floor(rgb[0]);
+   let g = (rgb[1] < 1) ? Math.floor(255*rgb[1]) : Math.floor(rgb[1]);
+   let b = (rgb[2] < 1) ? Math.floor(255*rgb[2]) : Math.floor(rgb[2]);
+ 
+   let red = componentToHex(r);
+   let green = componentToHex(g);
+   let blue = componentToHex(b);
+  
+   return '#' + red + green + blue; // #FFC0CB
+  
+ }
+
+// ALGORITHM TAKEN FROM
 // https://stackoverflow.com/questions/75677/converting-a-uniform-distribution-to-a-normal-distribution
 function normal_random(mean,stddev)
 {
@@ -444,7 +463,6 @@ function Maze(s, r, c, d) {
       let xSize = size * columns, zSize = size * rows;
       let scale = canvas.width - 2 * 36;
       scale /= (xSize > zSize) ? xSize : zSize;
-      console.log(`scale: ${scale}`);
 
       ctx.lineWidth = scale / 8.8; // magic number
 
