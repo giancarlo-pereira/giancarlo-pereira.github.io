@@ -249,7 +249,6 @@ function Cell(s, r, c, g, d) {
    }
 
    this.drawX = (ctx, s, offsetX, offsetZ) => {
-      ctx.lineWidth = 10;
       ctx.strokeStyle = '#F40C00';
       ctx.beginPath();
       let position1 = add(scale(add(pos, scale([1,0,1], size/2)), s), [offsetX, 0, offsetZ]);
@@ -270,7 +269,6 @@ function Cell(s, r, c, g, d) {
 
    this.draw2D = (ctx, s, offsetX, offsetZ) => {
       // Draws the cell on the maze map canvas
-      ctx.lineWidth = 10;
       ctx.strokeStyle = '#000000';
       if (walls['top'])    this.drawTopWall(ctx, s, offsetX, offsetZ);
       if (walls['right'])  this.drawRightWall(ctx, s, offsetX, offsetZ);
@@ -441,12 +439,14 @@ function Maze(s, r, c, d) {
 
       ctx.strokeStyle = "#ffffff";
       ctx.fillStyle = "black";
-      ctx.lineWidth = 10;
 
       let offsetX = 36, offsetZ = 36;
       let xSize = size * columns, zSize = size * rows;
       let scale = canvas.width - 2 * 36;
       scale /= (xSize > zSize) ? xSize : zSize;
+      console.log(`scale: ${scale}`);
+
+      ctx.lineWidth = scale / 8.8; // magic number
 
       offsetX = (canvas.width - scale * xSize)/2;
       offsetZ = (canvas.width - scale * zSize)/2;
@@ -588,7 +588,6 @@ function Maze(s, r, c, d) {
       x = position3[0], z = position3[2];
       ctx.lineTo(x,z);
       ctx.closePath();
-      ctx.lineWidth = 10;
       ctx.strokeStyle = '#666666';
       ctx.stroke();
       ctx.fillStyle = "#FFCC00";
@@ -609,8 +608,8 @@ function Maze(s, r, c, d) {
 
 function mapPower(difficulty, c) {
    let mode = difficulty;
-   let rechargeRate  = (mode==='peace') ? 100 : 1;
-   let dischargeRate = (mode==='peace') ? 1  : 20;
+   let rechargeRate  = (mode==='debug') ? 0 : (mode==='peace') ? 100 : 1;
+   let dischargeRate = (mode==='debug') ? 0 :(mode==='peace') ? 1  : 20;
    let full = 100; // start with powers full
    let time;
 
@@ -687,8 +686,8 @@ function mapPower(difficulty, c) {
 function splinePower(m, difficulty, c) {
    let maze = m;
    let mode = difficulty;
-   let rechargeRate = 1;
-   let dischargeRate = 20;
+   let rechargeRate  = (mode==='debug') ? 0 : (mode==='peace') ? 100 : 1;
+   let dischargeRate = (mode==='debug') ? 0 :(mode==='peace') ? 1  : 20;
    let full = 100; // start with powers full
    let time;
 
@@ -701,11 +700,6 @@ function splinePower(m, difficulty, c) {
    let active = false;
 
    if (mode==='hard') disabled=true; // no power in hard mode
-
-   else if (mode==='peace') {
-      rechargeRate = 100; // recharges almost immediately
-      dischargeRate = 1; // extremely slow
-   }
 
    this.isActive = () => active;
    this.activate = cell => {
