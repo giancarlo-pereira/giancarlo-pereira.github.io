@@ -479,10 +479,12 @@ function Maze(s, r, c, d) {
    let pos = add(maze.startWhere(), [0, height, 0]);
    
    let t = 0., moving = 0;
+   let goalT = 0.;
    let reset = 0., thresh = 4.; //seconds
 
    let goal = false;
    this.isGoal = () => goal;
+   this.goalTime = () => goalT;
 
    let mode = difficulty;
    this.mode = () => mode;
@@ -516,10 +518,13 @@ function Maze(s, r, c, d) {
    this.cell     = () => currentCell;
    this.height   = () => height;
 
-   this.updatePosition = maze => {
+   this.updatePosition = (time, maze) => {
       cell = maze.getCurrentCell(pos);
 
-      if (cell.isGoal()) goal = true;
+      if (cell.isGoal()) {
+         goal = true;
+         goalT = time;
+      }
 
       // avoid unnecessary back-end calls if cell is still the same
       if (cell!==currentCell) this.updateCell(cell);
@@ -849,7 +854,8 @@ function splinePower(m, difficulty, c) {
  }
  let C = t => Math.cos(t), S = t => Math.sin(t);
  let mId = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
- let mPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,1,0]);
+ let mPOVPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,1,0]);
+ let mPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
 //  let mPe = (fl, m) => mxm(m, imu.alpha == null ? [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]
 //                                                : [1,0,0,0, 0,1,0,0, 0,0,0,-1/fl, 0,0,1,0]);
  let mRX = (t, m) => mxm(m, [1,0,0,0, 0,C(t),S(t),0, 0,-S(t),C(t),0, 0,0,0,1]);
@@ -877,7 +883,8 @@ let mW = m => [m[12], m[13], m[14], m[15]];
        return this;
     }
     this.identity = () => set(mId());
-    this.perspective = fl => set(mPe(fl, get()));
+    this.POVperspective = fl => set((mPOVPe(fl, get())));
+    this.perspective    = fl => set((mPe(fl, get())));
     this.turnX = t => set(mRX(t, get()));
     this.turnY = t => set(mRY(t, get()));
     this.turnZ = t => set(mRZ(t, get()));

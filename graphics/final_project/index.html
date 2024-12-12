@@ -14,16 +14,16 @@
                 <option value="debug">Debug</option>
               </select>
         <tr><td><font color=white><big> Rows of Grid: <select name="rows" id=rows>
+                <option value=5>5</option>
                 <option value=10>10</option>
                 <option value=25>25</option>
                 <option value=50>50</option>
-                <option value=100>100</option>
               </select>
         <tr><td><font color=white><big> Columns of Grid: <select name="columns" id=columns>
+                <option value=5>5</option>
                 <option value=10>10</option>
                 <option value=25>25</option>
                 <option value=50>50</option>
-                <option value=100>100</option>
               </select>
         <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         <tr><td><span id=timeArea style="color:white"></span>
@@ -156,21 +156,34 @@ function startGame(canvas, rows, columns, difficulty) {
         let focalLength   = 0.5 + flSlider.value  / 75;
         if (difficulty!=='peace' && !player.isGoal()) timeArea.innerHTML = 'Time: ' + minutes + 'm ' + seconds + 's';
 
-        player.move(time);
-        player.updatePosition(maze);
-        map.update(time);
-        spline.update(time);
-
+        if (!player.isGoal()) {
+            player.move(time);
+            player.updatePosition(time, maze);
+            map.update(time);
+            spline.update(time);
+        }
         // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
-        VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
+        // if player has reached goal, move to above maze and let it become toy
+        pos = player.position();
+        let s = maze.size(), c = maze.columns(), r = maze.rows(); 
+        let toyPos = [r*s/2, s*5, c*s/2];
+        if (player.isGoal()) {
+            VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
+            VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
+            let change = ease((time - player.goalTime())/5);
+            VM.move(add(scale(toyPos, -change), scale(pos, change-1)));
+        } else {
+            VM.identity().POVperspective(focalLength).scale(1,canvas.width/canvas.height,1);
+            VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
+            VM.move(scale(pos, -1));
+        }
+        
 
         // USE THE MOUSE TO ROTATE THE VIEW ONLY IF NOT RUNNING ON A PHONE.
 
         if (! isPhone()) {
-            pos = player.position();
-            VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
-            VM.move(scale(pos, -1));
+            
         }
 
         drawScene(() => {
