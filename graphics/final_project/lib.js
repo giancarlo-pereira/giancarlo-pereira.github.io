@@ -854,7 +854,7 @@ function splinePower(m, difficulty, c) {
  }
  let C = t => Math.cos(t), S = t => Math.sin(t);
  let mId = () => [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
- let mPOVPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,1,0]);
+ let mPOVPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,0,-1/fl, 0,0,1,0]);
  let mPe=(fl, m) => mxm(m, [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]);
 //  let mPe = (fl, m) => mxm(m, imu.alpha == null ? [1,0,0,0, 0,1,0,0, 0,0,1,-1/fl, 0,0,0,1]
 //                                                : [1,0,0,0, 0,1,0,0, 0,0,0,-1/fl, 0,0,1,0]);

@@ -5,7 +5,7 @@
     <table>
         <tr><th valign=top>
         <table>
-        <tr><td><input type=range id=flSlider></input> <font color=white><big> Focal Length
+        <tr><td><font color=white><big> Focal Length: <input type=range id=flSlider></input> 
         <!-- <tr><td><input type=range id=mouseSlider  ></input> <font color=white><big> Mouse Sensitivity -->
         <tr><td><font color=white><big> Difficulty: <select name="difficulty" id=mode>
                 <option value="peace">Peaceful</option>
@@ -167,12 +167,13 @@ function startGame(canvas, rows, columns, difficulty) {
         // if player has reached goal, move to above maze and let it become toy
         pos = player.position();
         let s = maze.size(), c = maze.columns(), r = maze.rows(); 
-        let toyPos = [r*s/2, s*5, c*s/2];
+        // let toyPos = [r*s/2, s*5, c*s/2];
+        let toyPos = [0, -s*5, 0];
         if (player.isGoal()) {
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
-            VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
+            VM.turnX(Math.max(canvas.ry, Math.atan(Math.sqrt(s**2+c**2)/5))).turnY(canvas.rx + pi/2);
             let change = ease((time - player.goalTime())/5);
-            VM.move(add(scale(toyPos, -change), scale(pos, change-1)));
+            VM.move(add(scale(toyPos, change), scale(pos, change-1)));
         } else {
             VM.identity().POVperspective(focalLength).scale(1,canvas.width/canvas.height,1);
             VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
@@ -190,11 +191,11 @@ function startGame(canvas, rows, columns, difficulty) {
             map.draw2D();
             spline.draw2D();
             maze.render();
-            if (map.isActive()) {
+            if (!player.isGoal() && map.isActive()) {
                 maze.draw2DMap(textureCanvas, player);
                 map.render(player);
             }
-            if (spline.isActive()) spline.render(time);
+            if (!player.isGoal() && spline.isActive()) spline.render(time);
         });
     }
     requestAnimationFrame(drawFrame);
