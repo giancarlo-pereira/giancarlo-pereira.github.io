@@ -395,7 +395,13 @@ function Maze(s, r, c, d) {
          row.forEach(cell => {
             cell.render();
          })
-     })
+      })
+      // draw grass outside
+      for (let i=-5; i<columns+5; i++) {
+         for (let j=-5; j<rows+5; j++) {
+            if (Math.abs(i-columns/2) > columns/2 || Math.abs(j-rows/2) > rows/2) M.S().move(scale([i+0.5,0, j+0.5], size)).scale(size/2, size/100, size/2).draw(myCube, [1, .9, .7] , 1, mode==='debug' ? -1 : 0, mode==='debug' ? -1 : 1).R();
+         }
+      }
    }
 
    this.dfs = cell => {
