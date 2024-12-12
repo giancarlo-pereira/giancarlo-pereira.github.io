@@ -139,6 +139,24 @@ function Cell(s, r, c, g, d) {
       }
    }
 
+   this.getNeighbors = () => {
+      let neighbors = [];
+
+      // check if any neighbors available
+      let bottom = row === 0 ? undefined : grid[row - 1][column];
+      let left = column === grid[row].length - 1 ? undefined : grid[row][column + 1];
+      let top = row === grid.length - 1 ? undefined : grid[row + 1][column];
+      let right = column === 0 ? undefined : grid[row][column - 1];
+
+      // push cells (univisited) to neighbors array
+      if (top && !top.visited())       neighbors.push(top);
+      if (right && !right.visited())   neighbors.push(right);
+      if (bottom && !bottom.visited()) neighbors.push(bottom);
+      if (left && !left.visited())     neighbors.push(left);
+
+      return neighbors;
+   }
+
    // FOR MAZE CONSTRUCTION
    this.getRandomNeighbor = () => {
       let neighbors = [];
@@ -305,6 +323,14 @@ function Maze(s, r, c, d) {
       return grid[row][column];
    }
 
+   this.unvisitAll = () => {
+      grid.forEach(row =>{
+         row.forEach(cell => {
+            cell.visited(false);
+         })
+      })
+   }
+
    // START IN RANDOM CELL, CLOSER TO CENTER OF MAZE
    let startRow = Math.floor(Math.max(Math.min(normal_random(rows/2, rows/10), rows - 1), 0));
    let startColumn = Math.floor(Math.max(Math.min(normal_random(columns/2, columns/10), columns - 1), 0));
@@ -344,6 +370,7 @@ function Maze(s, r, c, d) {
          current = cell;
       }
    }
+   this.unvisitAll();
 
    this.getCurrentCell = pos => {
       let r = Math.floor(pos[2] / size);
@@ -372,28 +399,29 @@ function Maze(s, r, c, d) {
    }
 
    this.dfs = cell => {
+      // TODO FIX THIS -- GET THE PATH TO GOAL
       let current = cell;
       let path = [];
       let stack = [];
          // RECURSE TO CREATE MAZE WITH REMOVED WALLS
       while (!current.isGoal()) {
-         let next = current.getRandomNeighbor();
+         let neighbors = current.getNeighbors();
 
          // If there is a non visited neighbour cell
          if (next) {
             next.visited(true);
             // Add the current cell to the stack for backtracking
             stack.push(current);
-            // This function compares the current cell to the next cell and removes the relevant walls for each cell
             // Set the nect cell to the current cell
             current = next;
 
-            // Else if there are no available neighbours start backtracking using the stack
+         // Else if there are no available neighbours start backtracking using the stack
          } else if (stack.length > 0) {
             let cell = stack.pop();
             current = cell;
          }
       }
+      return path;
    }
 
    this.draw2DMap = (canvas, player) => {
@@ -453,6 +481,9 @@ function Maze(s, r, c, d) {
    let t = 0., moving = 0;
    let reset = 0., thresh = 4.; //seconds
 
+   let goal = false;
+   this.isGoal = () => goal;
+
    let mode = difficulty;
    this.mode = () => mode;
 
@@ -487,6 +518,8 @@ function Maze(s, r, c, d) {
 
    this.updatePosition = maze => {
       cell = maze.getCurrentCell(pos);
+
+      if (cell.isGoal()) goal = true;
 
       // avoid unnecessary back-end calls if cell is still the same
       if (cell!==currentCell) this.updateCell(cell);
@@ -577,7 +610,12 @@ function mapPower(difficulty, c) {
 
    this.isActive = () => active;
    this.activate = () => {
-      if (active || disabled) return; // if already active or disabled, do nothing
+      if (disabled) return; // if disabled, do nothing
+
+      if (active) { // if already active, deactivate
+         active = false;
+         return;
+      }
 
       if (full < 100) return; // wait for it to fully charge
 
@@ -644,6 +682,7 @@ function splinePower(m, difficulty, c) {
    let time;
 
    let path = [];
+   let splinePoints = [];
 
    let canvas = c;
 
@@ -659,12 +698,29 @@ function splinePower(m, difficulty, c) {
 
    this.isActive = () => active;
    this.activate = cell => {
-      if (active || disabled) return; //if already active or disabled, do nothing
+      if (disabled) return; // if disabled, do nothing
+
+      if (active) { // if already active, deactivate
+         active = false;
+         return;
+      }
 
       if (full < 100) return; // wait for it to fully charge
 
       // calculate DFS
-      positions = maze.dfs(cell);
+      path = maze.dfs(cell);
+
+      console.log(`path to goal is ${path}`);
+
+      // convert path to coordinates
+      let positions = [];
+      path.forEach(cell => {
+         positions.push(cell.position());
+      });
+
+      console.log(`path to goal is ${positions}`);
+
+      // generate splines with 10 points in between
       splinePoints = generateSpline(positions, 10);
 
       active = true;
@@ -681,7 +737,10 @@ function splinePower(m, difficulty, c) {
       full = Math.max( Math.min(full, 100), 0); // clip it between 0 and 100
 
       if (full < EPS) {
-         active = false; // deactivate power if reached zero 
+         active = false; // deactivate power if reached zero
+         splinePoints = []; // save memory
+         path = [];
+         maze.unvisitAll();
       }
 
    }
@@ -705,10 +764,13 @@ function splinePower(m, difficulty, c) {
       ctx.fillRect(0, 0, canvas.width * full / 100, canvas.height);
    }
 
-   this.render = () => {
-      splinePoints.forEach(spPoint => {
-         M.S().move(spPoint)
-      })
+   this.render = (time) => {
+      console.log(`points are ${splinePoints}`);
+      for (let i = 0; i < splinePoints.length; i++) {
+         let spPoint = splinePoints[i];
+         let yShift = maze.size()*( 1/4 + 1/8*Math.max(0, S(time + i*pi/12)));
+         M.S().move(add(spPoint, [0, yShift, 0])).scale(.1).draw(mySphere, [.4,.8,.2], .75, -1, -1).R();
+      }
    }
 
 }
@@ -724,17 +786,17 @@ function splinePower(m, difficulty, c) {
           case 'KeyW':        player.vf(1);      break;
           case 'ShiftLeft':   player.speed(1.5); break;
           case 'ShifRight':   player.speed(1.5); break;
-          case 'KeyT':        spline.activate(player.cell()); break;
-          case 'KeyM':        map.activate();                break;
+          case 'KeyP':        spline.activate(player.cell()); break;
+          case 'KeyM':        map.activate();                 break;
       }
    }
    
    canvas.keyUp     = c => {
       switch(c) {
-         case 'KeyA':        player.vs(0); break;
-         case 'KeyS':        player.vf(0); break;
-         case 'KeyD':        player.vs(0); break;
-         case 'KeyW':        player.vf(0); break;
+         case 'KeyA':        player.vs(0);      break;
+         case 'KeyS':        player.vf(0);      break;
+         case 'KeyD':        player.vs(0);      break;
+         case 'KeyW':        player.vf(0);      break;
          case 'ShiftLeft':   player.speed(1);   break;
          case 'ShifRight':   player.speed(1);   break;
       }
@@ -1206,10 +1268,9 @@ let generateSpline = (points, n) => {
    splinePoints = [];
 
    points.forEach(point => {
-        pos = point.where();
-        controlPointsX.push(pos[0]);
-        controlPointsY.push(pos[1]);
-        controlPointsZ.push(pos[2]);
+        controlPointsX.push(point[0]);
+        controlPointsY.push(point[1]);
+        controlPointsZ.push(point[2]);
    });
 
    for (var i = 0; i < n; i += 1) {
