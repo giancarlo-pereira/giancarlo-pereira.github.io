@@ -1,6 +1,7 @@
 <body bgcolor=#808080><font face=courier>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
 <center>
+    <font color=white><big> ESPACE THE MAZE
     <table>
         <tr><th valign=top>
         <table>
@@ -31,6 +32,7 @@
         <tr><td><canvas id=mapPowerCanvas width=200 height=20></canvas>
         <tr><td><span id=splineArea style="color:white"></span>
         <tr><td><canvas id=splinePowerCanvas width=200 height=20></canvas>
+        <tr><td><span id=instructions style="color: white"></span>
         </table>
         <th><canvas id=canvas width=900 height=700></canvas>
         </table>
@@ -42,6 +44,14 @@ let sliders = document.getElementsByTagName('input');
 for (let slider in sliders)
    if (sliders[slider].style)
       sliders[slider].style.width = 200;
+
+instructions.innerHTML = 'Welcome to ESCAPE  MAZE, an a-maze-ing game!<br>\
+Choose a difficulty and the size of the maze you want to escape.<br>\
+Peaceful has effectively unlimited powers and no timer.<br>\
+Hard disables all powers.<br>\
+Debug has no textures.<br>\
+Once you click start, the game will generate<br>\
+a random maze and you will start in random grid cell.';
 
 // ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 start.addEventListener('click', () => {
@@ -58,7 +68,7 @@ start.addEventListener('click', () => {
         splinePowerCanvas.style = 'border: 2px solid black;';
 
         mapArea.innerHTML = 'Map Power';
-        splineArea.innerHTML = 'Guide Power';
+        splineArea.innerHTML = 'Path Power';
 
         if (d==='hard') {
             mapArea.innerHTML += ' DISABLED';
@@ -73,6 +83,13 @@ start.addEventListener('click', () => {
         // hide and disable start button
         start.style.display = 'none';
         start.disabled      = true;
+
+        // update instructions
+        instructions.innerHTML = 'Press ASDW keys to move around.<br>\
+        Hold SHIFT to move faster.<br>\
+        Click and drag with mouse to look around.<br>\
+        Press M for map power (a map of the maze appears).<br>\
+        Press P for path power (a path to the exit is illuminated).';
 
         startGame(canvas, r, c, d);
 });
@@ -164,7 +181,7 @@ function startGame(canvas, rows, columns, difficulty) {
                 maze.draw2DMap(textureCanvas, player);
                 map.render(player);
             }
-            if (spline.isActive()) spline.render(maze, player);
+            if (spline.isActive()) spline.render(time);
         });
     }
     requestAnimationFrame(drawFrame);
