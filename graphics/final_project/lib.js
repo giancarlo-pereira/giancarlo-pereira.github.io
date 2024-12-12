@@ -397,9 +397,9 @@ function Maze(s, r, c, d) {
          })
       })
       // draw grass outside
-      for (let i=-5; i<columns+5; i++) {
-         for (let j=-5; j<rows+5; j++) {
-            if (Math.abs(i-columns/2) > columns/2 || Math.abs(j-rows/2) > rows/2) M.S().move(scale([i+0.5,0, j+0.5], size)).scale(size/2, size/100, size/2).draw(myCube, [1, .9, .7] , 1, mode==='debug' ? -1 : 0, mode==='debug' ? -1 : 1).R();
+      for (let i=-5; i<=columns+5; i++) {
+         for (let j=-5; j<=rows+5; j++) {
+            if (i >= columns || i < 0 || j >= rows || j < 0) M.S().move(scale([i+0.5,0, j+0.5], size)).scale(size/2, size/100, size/2).draw(myCube, [1, .9, .7] , 1, mode==='debug' ? -1 : 0, mode==='debug' ? -1 : 1).R();
          }
       }
    }
@@ -1139,12 +1139,12 @@ let mySquare   = Square();
              nor = normalize(b.x * tan + b.y * bin + b.z * nor);
           }
        }
-       vec3 L = vec3(0.,2.,0.), E = vec3(0.,0.,1.);
-       float c = .05 + max(0., dot(L, nor)) + max(0., dot(-L, nor));;
+       vec3 L = normalize(vec3(0.05,1.,0.05)), E = vec3(0.,0.,1.);
+       float c = .05;
+       // MATERIAL
        vec3 color = sqrt(uColor * c) * texture.rgb;
        float power = 40.;
-       // MATERIAL
-      //  color *= attenuation(vTpos, L);
+      // color *= attenuation(vTpos, L);
        gl_FragColor = vec4(color, uOpacity * texture.a);
     }
  `;

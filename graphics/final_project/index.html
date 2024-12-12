@@ -135,7 +135,12 @@ function startGame(canvas, rows, columns, difficulty) {
     texture(3, 'cobblestone_floor_bump.png');
 
     texture(7, 'paper_bump.png');
-    // ADD EXIT SIGN TEXTURE
+
+    // ADD NIGHT SKY
+    addMaterial(1, `c += max(0., dot(L, nor));`);
+    
+    // ADD DAY SKY
+    addMaterial(2, `L = normalize(vec3(0.5,0.5,0.5)); c += 0.2 + max(0., dot(L, nor));`);
 
 
     startGL(canvas);
@@ -143,6 +148,7 @@ function startGame(canvas, rows, columns, difficulty) {
     let startTime = Date.now() / 1000;
 
     function drawFrame() {
+        material = 1;
     
         // ADD MAZE MAP
         texture(6, textureCanvas);  // NOTE: THIS IS AN HTML CANVAS BEING USED AS A TEXTURE SOURCE.
@@ -170,6 +176,7 @@ function startGame(canvas, rows, columns, difficulty) {
         // let toyPos = [r*s/2, s*5, c*s/2];
         let toyPos = [0, -s*5, 0];
         if (player.isGoal()) {
+            material = 2;
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
             VM.turnX(Math.max(canvas.ry, Math.atan(Math.sqrt(s**2+c**2)/5))).turnY(canvas.rx + pi/2);
             let change = ease((time - player.goalTime())/5);
