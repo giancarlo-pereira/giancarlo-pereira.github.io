@@ -126,6 +126,19 @@ function Cell(s, r, c, g, d) {
    let visited  = false;
    let goal     = false;
 
+   // for BFS
+   let dist = Infinity;
+   let parent = -1;
+
+   this.parent = p => {
+      if (p===undefined) return parent;
+      parent=p;
+   }
+   this.dist = d => {
+      if (d===undefined) return dist;
+      dist=d;
+   }
+
    let walls = {
       top: true,
       bottom: true,
@@ -347,6 +360,14 @@ function Maze(s, r, c, d) {
          })
       })
    }
+   this.resetBFS = () => {
+      grid.forEach(row =>{
+         row.forEach(cell => {
+            cell.parent(-1);
+            cell.dist(Infinity);
+         })
+      })
+   }
 
    // START IN RANDOM CELL, CLOSER TO CENTER OF MAZE
    let startRow = Math.floor(Math.max(Math.min(normal_random(rows/2, rows/10), rows - 1), 0));
@@ -421,26 +442,35 @@ function Maze(s, r, c, d) {
       }
    }
 
-   this.dfs = cell => {
-      // TODO FIX THIS -- GET THE PATH TO GOAL
+   this.bfs = cell => {
+      cell.dist(0);
       let current = cell;
-      let path = [current];
-      let stack = [current];
-      // RECURSE TO FIND GOAL
-      while (!current.isGoal() && stack.length > 0) {
-         let neighbors = current.getNeighbors();
+   
+      // set up BFS variables
+      let stack = [cell];
 
-         if (neighbors.length == 0) {
-            current = stack.pop();
-         } else {
-            neighbors.forEach(neighbor => {
-               neighbor.visited(true);
-               stack.push(neighbor);
-            })
-            current = neighbors[random_int(neighbors.length)];
-         }
-         path.push(current);
+      while (stack.length > 0) {
+         let neighbors = current.getNeighbors();
+         neighbors.forEach(neighbor => {
+            neighbor.visited(true);
+            neighbor.parent(current);
+            neighbor.dist(current.dist()+1);
+            stack.push(neighbor);
+         })
+         current = stack.pop();
       }
+
+      let path = [];
+      current = goal;
+      path.push(current);
+      while (current!==cell) {
+         let parent = current.parent();
+          path.push(parent);
+          current = parent;
+      }
+
+      path.push(cell); // add the original cell
+
       return path;
    }
 
@@ -728,7 +758,7 @@ function splinePower(m, difficulty, c) {
       if (full < 100) return; // wait for it to fully charge
 
       // calculate DFS
-      path = maze.dfs(cell);
+      path = maze.bfs(cell);
 
       // convert path to coordinates
       let positions = [];
@@ -757,6 +787,7 @@ function splinePower(m, difficulty, c) {
          splinePoints = []; // save memory
          path = [];
          maze.unvisitAll();
+         maze.resetBFS();
       }
 
    }
