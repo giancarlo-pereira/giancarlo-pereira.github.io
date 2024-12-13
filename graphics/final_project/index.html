@@ -1,25 +1,26 @@
-<body bgcolor=#131862><font face=courier>
+<body bgcolor=#131862>
+<font face=courier color=white>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
 <center>
-    <font color=white><big> ESCAPE THE MAZE
+    <b>ESCAPE THE MAZE - Giancarlo Pereira</b>
     <table>
         <tr><th valign=top>
         <table>
-        <tr><td><font color=white><big> Focal Length: <input type=range id=flSlider></input> 
-        <!-- <tr><td><input type=range id=mouseSlider  ></input> <font color=white><big> Mouse Sensitivity -->
-        <tr><td><font color=white><big> Difficulty: <select name="difficulty" id=mode>
+        <tr><td>Focal Length: <input type=range id=flSlider></input> 
+        <!-- <tr><td><input type=range id=mouseSlider  ></input> Mouse Sensitivity -->
+        <tr><td>Difficulty: <select name="difficulty" id=mode>
                 <option value="peace">Peaceful</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
                 <option value="debug">Debug</option>
               </select>
-        <tr><td><font color=white><big> Rows of Grid: <select name="rows" id=rows>
+        <tr><td>Rows of Grid: <select name="rows" id=rows>
                 <option value=5>5</option>
                 <option value=10>10</option>
                 <option value=25>25</option>
                 <option value=50>50</option>
               </select>
-        <tr><td><font color=white><big> Columns of Grid: <select name="columns" id=columns>
+        <tr><td>Columns of Grid: <select name="columns" id=columns>
                 <option value=5>5</option>
                 <option value=10>10</option>
                 <option value=25>25</option>
@@ -45,13 +46,19 @@ for (let slider in sliders)
    if (sliders[slider].style)
       sliders[slider].style.width = 200;
 
-instructions.innerHTML = 'Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br>\
-Choose a difficulty and the size of the maze you want to escape.<br>\
-Peaceful has effectively unlimited powers and no timer.<br>\
-Hard disables all powers.<br>\
-Debug has no textures.<br>\
-Once you click start, the game will generate<br>\
-a random maze and you will start in random grid cell.';
+instructions.innerHTML = 'Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>\
+The goal of this game is to escape a maze.<br>\
+Choose a <b>DIFFICULTY</b>:<br>\
+- Peaceful has unlimited powers and no timer.<br>\
+- Medium has a timer and all powers.<br>\
+- Hard disables all powers.<br>\
+- Debug has unlimited powers, but no textures.<br><br>\
+Choose the <b>SIZE</b> of the maze.<br>\
+The bigger it is, the harder it will be to leave.<br><br>\
+Once you click <b>START</b>, the game will<br>\
+generate a random maze and <br>\
+you will start in random place.<br><br>\
+<b>GOOD LUCK!</b>';
 
 // ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 start.addEventListener('click', () => {
@@ -85,11 +92,11 @@ start.addEventListener('click', () => {
         start.disabled      = true;
 
         // update instructions
-        instructions.innerHTML = 'Press ASDW keys to move around.<br>\
-        Hold SHIFT to move faster.<br>\
-        Click and drag with mouse to look around.<br>\
-        Press M for map power (a map of the maze appears).<br>\
-        Press P for path power (a path to the exit is illuminated).';
+        instructions.innerHTML = '<b>ASDW keys</b> to move around<br>\
+        <b>SHIFT</b> to run<br>\
+        <b>Left click and drag</b> to look around<br>\
+        <b>M</b> for Map power (a map of the maze appears)<br>\
+        <b>P</b> for Path power (a path to the exit is illuminated)';
 
         startGame(canvas, r, c, d);
 });
@@ -174,7 +181,6 @@ function startGame(canvas, rows, columns, difficulty) {
             map.update(time);
             spline.update(time);
         }
-        // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
 
         // if player has reached goal, move to above maze and let it become toy
         pos = player.position();
@@ -182,6 +188,7 @@ function startGame(canvas, rows, columns, difficulty) {
         // let toyPos = [r*s/2, s*5, c*s/2];
         let toyPos = [0, -s*5, 0];
         if (player.isGoal()) {
+            // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
             // TODO: FIX Math.atan() ..  perhaps 5/sqrt? perhaps pi/2 - atan?
             VM.turnX(Math.max(canvas.ry, pi/2-Math.atan(Math.sqrt(s**2+c**2)/5))).turnY(canvas.rx + pi/2);
@@ -189,10 +196,15 @@ function startGame(canvas, rows, columns, difficulty) {
             // ADD DAY SKY
             material = Math.floor(mix(1, 10, change));
             document.body.style.backgroundColor = rgbToHex(mix([19,24,98], [225, 246, 255], change));
+            instructions.innerHTML = '<br><br><b>CONGRATULATIONS!!!</b><br>\
+            You solved a maze of <b>'+maze.rows()+' rows</b><br> and <b>'+maze.columns()+' columns</b> <br>\
+            in <b>'+difficulty+'<b> mode.<br>\
+            Your '+timeArea.innerHTML;
             //TODO: fix the text color to go black when the sun comes up
             document.body.style.color = rgbToHex(mix([255,255,255], [0,0,0], change));
             VM.move(add(scale(toyPos, change), scale(pos, change-1)));
         } else {
+            // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
             VM.identity().POVperspective(focalLength).scale(1,canvas.width/canvas.height,1);
             VM.turnX(canvas.ry).turnY(canvas.rx + pi/2);
             VM.move(scale(pos, -1));
