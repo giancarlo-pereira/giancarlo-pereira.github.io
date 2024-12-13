@@ -318,8 +318,8 @@ function Cell(s, r, c, g, d) {
       // draw each wall
       if (walls['top'])    M.S().move(add(pos, [ 0, size/2, size/2])).scale(size/2, size/2, size/100).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
       if (walls['bottom']) M.S().move(add(pos, [0, size/2, -size/2])).scale(size/2, size/2, size/100).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
-      if (walls['right'])  M.S().move(add(pos, [-size/2, size/2, 0])).turnZ(pi/2).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
-      if (walls['left'])   M.S().move(add(pos, [ size/2, size/2, 0])).turnZ(pi/2).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
+      if (walls['right'])  M.S().move(add(pos, [-size/2, size/2, 0])).turnX(pi/2).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
+      if (walls['left'])   M.S().move(add(pos, [ size/2, size/2, 0])).turnX(pi/2).scale(size/100, size/2, size/2).draw(myCube, wallColor, 1, wallTex, wallBtex).R();
 
       // draw floor
       if (mode!=='debug') {
