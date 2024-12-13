@@ -1,7 +1,7 @@
 <body bgcolor=#131862><font face=courier>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
 <center>
-    <font color=white><big> ESPACE THE MAZE
+    <font color=white><big> ESCAPE THE MAZE
     <table>
         <tr><th valign=top>
         <table>
@@ -183,7 +183,8 @@ function startGame(canvas, rows, columns, difficulty) {
         let toyPos = [0, -s*5, 0];
         if (player.isGoal()) {
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
-            VM.turnX(Math.max(canvas.ry, Math.atan(Math.sqrt(s**2+c**2)/5))).turnY(canvas.rx + pi/2);
+            // TODO: FIX Math.atan() ..  perhaps 5/sqrt? perhaps pi/2 - atan?
+            VM.turnX(Math.max(canvas.ry, pi/2-Math.atan(Math.sqrt(s**2+c**2)/5))).turnY(canvas.rx + pi/2);
             let change = ease((time - player.goalTime())/5);
             // ADD DAY SKY
             material = Math.floor(mix(1, 10, change));
