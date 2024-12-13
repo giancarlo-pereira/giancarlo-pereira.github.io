@@ -2,41 +2,47 @@
 <font face=courier color=white>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
 <center>
-    <b>ESCAPE THE MAZE - Giancarlo Pereira</b>
+    <span id=title style="color:white"></span>
     <table>
-        <tr><th valign=top>
-        <table>
-        <tr><td>Focal Length: <input type=range id=flSlider></input> 
-        <!-- <tr><td><input type=range id=mouseSlider  ></input> Mouse Sensitivity -->
+        <tr><td><span id=introduction style="color:white"></span>
+    </table>
+    <table cellspacing=5 cellpadding=5 id=settings style="color:white">
         <tr><td>Difficulty: <select name="difficulty" id=mode>
                 <option value="peace">Peaceful</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
                 <option value="debug">Debug</option>
               </select>
-        <tr><td>Rows of Grid: <select name="rows" id=rows>
+        <td>Rows of Grid: <select name="rows" id=rows>
                 <option value=5>5</option>
                 <option value=10>10</option>
                 <option value=25>25</option>
                 <option value=50>50</option>
               </select>
-        <tr><td>Columns of Grid: <select name="columns" id=columns>
+        <td>Columns of Grid: <select name="columns" id=columns>
                 <option value=5>5</option>
                 <option value=10>10</option>
                 <option value=25>25</option>
                 <option value=50>50</option>
               </select>
         <tr><td><button type="submit" id=start><font color=black><big>Start</button>
-        <tr><td><span id=timeArea style="color:white"></span>
-        <tr></tr>
+        </table>
+    <table cellspacing=5 cellpadding=5 id=instructions style="display:none;">
+        <tr><td><span id=asdw style="color: white"><b>ASDW keys</b> to move around</span>
+            <td><span id=mouse style="color: white"><b>Left click and drag</b> to look around</span>
+            <td><span id=shift style="color: white"><b>SHIFT key</b> to run<br></span>
+    </table>
+    <table cellspacing=5 cellpadding=5 id=gameplay style="display:none;">
         <tr><td><span id=mapArea style="color:white"></span>
+            <td><span id=splineArea style="color:white"></span>
+            <td><span id=timeArea style="color:white"></span>
         <tr><td><canvas id=mapPowerCanvas width=200 height=20></canvas>
-        <tr><td><span id=splineArea style="color:white"></span>
-        <tr><td><canvas id=splinePowerCanvas width=200 height=20></canvas>
-        <tr><td><span id=instructions style="color: white"></span>
-        </table>
-        <th><canvas id=canvas width=900 height=700></canvas>
-        </table>
+            <td><canvas id=splinePowerCanvas width=200 height=20></canvas>
+        <tr><td><spa style="color: white">Focal Length: </span><br><input type=range id=flSlider></input> 
+    </table>
+    <span id=congratulations style="color:black"></span>
+    <canvas id=canvas width=1000 height=600></canvas>
+</center>
 
 <script src=lib.js></script>
 <script>
@@ -46,19 +52,20 @@ for (let slider in sliders)
    if (sliders[slider].style)
       sliders[slider].style.width = 200;
 
-instructions.innerHTML = 'Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>\
-The goal of this game is to escape a maze.<br>\
-Choose a <b>DIFFICULTY</b>:<br>\
-- Peaceful has unlimited powers and no timer.<br>\
-- Medium has a timer and all powers.<br>\
-- Hard disables all powers.<br>\
-- Debug has unlimited powers, but no textures.<br><br>\
-Choose the <b>SIZE</b> of the maze.<br>\
-The bigger it is, the harder it will be to leave.<br><br>\
-Once you click <b>START</b>, the game will<br>\
-generate a random maze and <br>\
-you will start in random place.<br><br>\
-<b>GOOD LUCK!</b>';
+title.innerHTML = '<b>ESCAPE THE MAZE - Giancarlo Pereira</b><br>';
+
+introduction.innerHTML = ' Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>\
+ The goal of this game is to escape a maze.<br>\
+ Choose a <b>DIFFICULTY</b>:<br>\
+ - Peaceful has unlimited powers and no timer.<br>\
+ - Medium has a timer and all powers.<br>\
+ - Hard disables all powers.<br>\
+ - Debug has unlimited powers, but no textures.<br><br>\
+ Choose the <b>SIZE</b> of the maze.<br>\
+ The bigger it is, the harder it will be to leave.<br><br>\
+ Once you click <b>START</b>, the game will generate<br>\
+ a random maze and you will start in random place.<br><br>\
+   <b>GOOD LUCK!</b>';
 
 // ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 start.addEventListener('click', () => {
@@ -69,6 +76,8 @@ start.addEventListener('click', () => {
 
          // show canvas
         canvas.style.display = 'block';
+        instructions.style.display = 'table';
+        gameplay.style.display = 'table';
         mapPowerCanvas.style.display = 'block';
         splinePowerCanvas.style.display = 'block';
         mapPowerCanvas.style ='border: 2px solid black;';
@@ -78,8 +87,11 @@ start.addEventListener('click', () => {
         splineArea.innerHTML = 'Path Power';
 
         if (d==='hard') {
-            mapArea.innerHTML += ' DISABLED';
-            splineArea.innerHTML += ' DISABLED';
+            mapArea.innerHTML += ' <b>DISABLED</b>';
+            splineArea.innerHTML += ' <b>DISABLED</b>';
+        } else {
+            mapArea.innerHTML += ' (<b>M key</b>)';
+            splineArea.innerHTML += ' (<b>P key</b>)';
         }
 
         // disable game settings
@@ -90,13 +102,9 @@ start.addEventListener('click', () => {
         // hide and disable start button
         start.style.display = 'none';
         start.disabled      = true;
-
-        // update instructions
-        instructions.innerHTML = '<b>ASDW keys</b> to move around<br>\
-        <b>SHIFT</b> to run<br>\
-        <b>Left click and drag</b> to look around<br>\
-        <b>M</b> for Map power (a map of the maze appears)<br>\
-        <b>P</b> for Path power (a path to the exit is illuminated)';
+        // hide introduction
+        introduction.innerHTML = '';
+        introduction.style.display = 'none';
 
         startGame(canvas, r, c, d);
 });
@@ -188,6 +196,8 @@ function startGame(canvas, rows, columns, difficulty) {
         // let toyPos = [r*s/2, s*5, c*s/2];
         let toyPos = [0, -s*5, 0];
         if (player.isGoal()) {
+            gameplay.style.display = 'none';
+            instructions.style.display = 'none';
             // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
             // TODO: FIX Math.atan() ..  perhaps 5/sqrt? perhaps pi/2 - atan?
@@ -196,12 +206,13 @@ function startGame(canvas, rows, columns, difficulty) {
             // ADD DAY SKY
             material = Math.floor(mix(1, 10, change));
             document.body.style.backgroundColor = rgbToHex(mix([19,24,98], [225, 246, 255], change));
-            instructions.innerHTML = '<br><br><b>CONGRATULATIONS!!!</b><br>\
-            You solved a maze of <b>'+maze.rows()+' rows</b><br> and <b>'+maze.columns()+' columns</b> <br>\
-            in <b>'+difficulty+'<b> mode.<br>\
-            Your '+timeArea.innerHTML;
-            //TODO: fix the text color to go black when the sun comes up
-            document.body.style.color = rgbToHex(mix([255,255,255], [0,0,0], change));
+            let textColor = rgbToHex(mix([1,1,1], [0, 0, 0], change));
+            title.style.color = textColor;
+            congratulations.style.color = textColor;
+            congratulations.innerHTML = '<b>CONGRATULATIONS!!!</b><br>\
+            You solved a maze of <b>'+maze.rows()+' rows</b> and <b>'+maze.columns()+' columns</b> \
+            in <b>'+difficulty+'<b> mode.';
+            if (difficulty!=='peace') congratulations.innerHTML += '<br>Your '+timeArea.innerHTML;
             VM.move(add(scale(toyPos, change), scale(pos, change-1)));
         } else {
             // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
