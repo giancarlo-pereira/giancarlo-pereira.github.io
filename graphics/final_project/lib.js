@@ -1283,8 +1283,7 @@ let mySquare   = Square();
        drawScene();
       //  return;
    //  }
-   drawScene();
- 
+    
    //  if (imu.alpha0 === undefined)
    //     imu.alpha0 = imu.alpha;
    //  let isIPhone = navigator.userAgent.match(/iPhone/i);
