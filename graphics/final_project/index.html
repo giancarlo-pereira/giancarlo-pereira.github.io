@@ -1,51 +1,84 @@
 <body bgcolor=#131862>
 <font face=courier color=white>
-<canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-1000></canvas>
-<center>
-    <span id=title style="color:white"></span>
-    <table>
-        <tr><td><span id=introduction style="color:white"></span>
-    </table>
-    <table id=settings style="color:white">
-        <tr><td>&nbsp;Difficulty: <select name="difficulty" id=mode>
-                <option value="peace">Peaceful</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-                <option value="debug">Debug</option>
-              </select>&nbsp;
-        <td>&nbsp;Rows of Grid: <select name="rows" id=rows>
-                <option value=5>5</option>
-                <option value=10>10</option>
-                <option value=25>25</option>
-                <option value=50>50</option>
-              </select>&nbsp;
-        <td>&nbsp;Columns of Grid: <select name="columns" id=columns>
-                <option value=5>5</option>
-                <option value=10>10</option>
-                <option value=25>25</option>
-                <option value=50>50</option>
-              </select>&nbsp;
-        <tr><td>&nbsp;<button type="submit" id=start><font color=black><big>Start</button>
+<canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-5000></canvas>
+    <canvas id=canvas></canvas>
+    <div id=title style="position: absolute; top: 2%; left: 50%; transform: translate(-50%, -2%); color: white;"></div>
+    <div id=introduction style="display: table; position: absolute; top: 20%; left: 50%; transform: translate(-50%, -20%); color: white;">
+        Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>
+        The goal of this game is to escape a maze.<br>
+        Choose a <b>DIFFICULTY</b>:<br>
+        - Peaceful has unlimited powers and no timer.<br>
+        - Medium has a timer and all powers.<br>
+        - Hard disables all powers.<br>
+        - Debug has unlimited powers, but no textures.<br><br>
+        Choose the <b>SIZE</b> of the maze.<br>
+        The bigger it is, the harder it will be to leave.<br><br>
+        Once you click <b>START</b>, the game will generate a random<br>
+        maze and you will start in random place.<br><br>
+        <b>GOOD LUCK!</b>
+        <table id=settingsTable style="color:white">
+            <tr><td>Difficulty: <select name="difficulty" id=mode>
+                    <option value="peace">Peaceful</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="debug">Debug</option>
+                  </select>&nbsp;
+            <td>Rows of Grid: <select name="rows" id=rows>
+                    <option value=5>5</option>
+                    <option value=10>10</option>
+                    <option value=25>25</option>
+                    <option value=50>50</option>
+                  </select>&nbsp;
+            <td>Columns of Grid: <select name="columns" id=columns>
+                    <option value=5>5</option>
+                    <option value=10>10</option>
+                    <option value=25>25</option>
+                    <option value=50>50</option>
+                  </select>&nbsp;
+            <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         </table>
-    <table id=instructions style="display:none;">
-        <tr><td><span id=asdw style="color: white"><b>&nbsp;ASDW keys</b> to move around &nbsp;</span>
-            <td><span id=mouse style="color: white"><b>&nbsp;Left click and drag</b> to look around &nbsp;</span>
-            <td><span id=shift style="color: white"><b>&nbsp;SHIFT key</b> to run &nbsp;</span>
-    </table>
-    <table id=gameplay style="display:none;">
-        <tr><td><span id=timeArea style="color:white"></span>
-            <td><span id=mapArea style="color:white"></span>
-            <td><span id=splineArea style="color:white"></span>
-        <tr><td><span style="color: white">Focal Length: </span><br><input type=range id=flSlider></input> 
-            <td><canvas id=mapPowerCanvas width=200 height=20></canvas>
-            <td><canvas id=splinePowerCanvas width=200 height=20></canvas>
-    </table>
-    <span id=congratulations style="color:black"></span>
-    <canvas id=canvas width=1000 height=600></canvas>
-</center>
+    </div>
+    <div id=instructions style="position: absolute; right: 10px; top: 50px; color: white; display:none;">
+        <table id=instructionsTable>
+            <tr><td><span id=asdw style="color: white"><b>&nbsp;ASDW keys</b> to move around &nbsp;</span>
+            <tr><td><span id=mouse style="color: white"><b>&nbsp;Left click and drag</b> to look around &nbsp;</span>
+            <tr><td><span id=shift style="color: white"><b>&nbsp;SHIFT key</b> to run &nbsp;</span>
+        </table>
+    </div>
+    <div id=gameplay style="position: absolute; top: 50px; left: 10px; color: white; display:none;">
+        <table id=gameplayTable>
+            <tr><td><span id=timeArea style="color:white"></span>
+            <tr><td><span id=mapArea style="color:white"></span>
+                <tr><td><canvas id=mapPowerCanvas width=200 height=20></canvas>
+            <tr><td><span id=splineArea style="color:white"></span>
+                <tr><td><canvas id=splinePowerCanvas width=200 height=20></canvas>
+            <tr><td><span style="color: white">Focal Length: </span><br><input type=range id=flSlider></input> 
+        </table>
+    </div>
+    <div id=controls style="position: absolute; bottom: 50px; left: 10px; color: white; display:none;">
+        <table id=controlsTable>
+            <tr><td></td>
+                <td><button onmousedown=upButtonDown()    onmouseup=upButtonDown()   ><font size=10><big>&uarr;</button>
+                <td>
+            <tr><td><button onmousedown=leftButtonDown()  onmouseup=leftButtonDown() ><font size=10><big>&larr;</button>
+                <td><button onmousedown=downButtonDown()  onmouseup=downButtonDown() ><font size=10><big>&darr;</button>
+                <td><button onmousedown=rightButtonDown() onmouseup=rightButtonDown()><font size=10><big>&rarr;</button>
+        </table>
+    </div>
+    
+    <div id=congratulations  style="position: absolute; top: 25%; left: 50%; transform: translate(-50%, -25%); color:black; "></dib>
 
 <script src=lib.js></script>
 <script>
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Resize canvas when window size changes
+window.addEventListener('resize', () => {
+    canvas.width = .9*window.innerWidth ;
+    canvas.height = .9*window.innerHeight ;
+});
 
 let sliders = document.getElementsByTagName('input');
 for (let slider in sliders)
@@ -53,19 +86,6 @@ for (let slider in sliders)
       sliders[slider].style.width = 200;
 
 title.innerHTML = '<b>ESCAPE THE MAZE - Giancarlo Pereira</b><br>';
-
-introduction.innerHTML = ' Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>\
- The goal of this game is to escape a maze.<br>\
- Choose a <b>DIFFICULTY</b>:<br>\
- - Peaceful has unlimited powers and no timer.<br>\
- - Medium has a timer and all powers.<br>\
- - Hard disables all powers.<br>\
- - Debug has unlimited powers, but no textures.<br><br>\
- Choose the <b>SIZE</b> of the maze.<br>\
- The bigger it is, the harder it will be to leave.<br><br>\
- Once you click <b>START</b>, the game will generate<br>\
- a random maze and you will start in random place.<br><br>\
-   <b>GOOD LUCK!</b>';
 
 // ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 start.addEventListener('click', () => {
@@ -78,6 +98,7 @@ start.addEventListener('click', () => {
         canvas.style.display = 'block';
         instructions.style.display = 'table';
         gameplay.style.display = 'table';
+        controls.style.display = 'table';
         mapPowerCanvas.style.display = 'block';
         splinePowerCanvas.style.display = 'block';
         mapPowerCanvas.style ='border: 2px solid black;';
@@ -123,6 +144,14 @@ function startGame(canvas, rows, columns, difficulty) {
     // let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
     trackMouse(canvas, player);
     handleKeys(canvas, player, map, spline);
+    let leftButtonUp   = () => player.vs(-1);
+    let rightButtonUp  = () => player.vs(1);
+    let upButtonUp     = () => player.vf(1);
+    let downButtonUp   = () => player.vf(-1);
+    let leftButtonDown = () => player.vs(0);
+    let rightButtonDown= () => player.vs(0);
+    let upButtonDown   = () => player.vf(0);
+    let downButtonDown = () => player.vf(0);
 
     window.addEventListener('keydown', e => {
         if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',
@@ -196,9 +225,11 @@ function startGame(canvas, rows, columns, difficulty) {
         // let toyPos = [r*s/2, s*5, c*s/2];
         let toyPos = [0, -s*5, 0];
         if (player.isGoal()) {
-            settings.style.display = 'none';
+
             gameplay.style.display = 'none';
             instructions.style.display = 'none';
+            controls.style.display = 'none';
+
             // SCALE THE SCENE NON-UNIFORMLY BECAcUSE THE CANVAS IS NOT SQUARE.
             VM.identity().perspective(focalLength).scale(1,canvas.width/canvas.height,1);
             // TODO: FIX Math.atan() ..  perhaps 5/sqrt? perhaps pi/2 - atan?
