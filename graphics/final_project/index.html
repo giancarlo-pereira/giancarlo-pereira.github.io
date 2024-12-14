@@ -156,6 +156,17 @@ function startGame(canvas, rows, columns, difficulty) {
     upArrow.onmouseup   = () => player.vf(0);
     downArrow.onmouseup = () => player.vf(0);
 
+    // handle touch screen
+    leftArrow.ontouchstart   = () => player.vs(-1);
+    rightArrow.ontouchstart  = () => player.vs(1);
+    upArrow.ontouchstart     = () => player.vf(1);
+    downArrow.ontouchstart   = () => player.vf(-1);
+
+    leftArrow.ontouchend = () => player.vs(0);
+    rightArrow.ontouchend= () => player.vs(0);
+    upArrow.ontouchend   = () => player.vf(0);
+    downArrow.ontouchend = () => player.vf(0);
+
     instructions.onclick = () => instructionsTable.style.display==='none' ? instructionsTable.style.display='table' : instructionsTable.style.display='none';
 
     mapPowerCanvas.onclick = () => map.activate();

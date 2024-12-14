@@ -1279,30 +1279,31 @@ let mySquare   = Square();
  let isPhone = () => imu.alpha != null;
  
  let drawScene = drawScene => {
-    if (! isPhone()) {
+   //  if (! isPhone()) {
        drawScene();
-       return;
-    }
+      //  return;
+   //  }
+   drawScene();
  
-    if (imu.alpha0 === undefined)
-       imu.alpha0 = imu.alpha;
-    let isIPhone = navigator.userAgent.match(/iPhone/i);
-    VM.S();
-       if (navigator.userAgent.match(/iPhone/i)) {
-          VM.turnX(Math.PI/180 *  imu.gamma - Math.PI/2)
-            .turnZ(Math.PI/180 * -imu.beta)
-            .turnY(Math.PI/180 * (imu.alpha - imu.alpha0) + (Math.abs(imu.beta) > 90 ? Math.PI : 0));
-       }
-       else {
-          VM.turnX(Math.PI/180 *  imu.gamma + Math.PI/2)
-            .turnZ(Math.PI/180 *  imu.beta)
-            .turnY(Math.PI/180 * (imu.alpha0 - imu.alpha));
-       }
-       for (let eye = -1 ; eye <= 1 ; eye += 2) {
-          gl.uniform1f(uEye, eye);
-          drawScene();
-       }
-    VM.R();
+   //  if (imu.alpha0 === undefined)
+   //     imu.alpha0 = imu.alpha;
+   //  let isIPhone = navigator.userAgent.match(/iPhone/i);
+   //  VM.S();
+   //     if (navigator.userAgent.match(/iPhone/i)) {
+   //        VM.turnX(Math.PI/180 *  imu.gamma - Math.PI/2)
+   //          .turnZ(Math.PI/180 * -imu.beta)
+   //          .turnY(Math.PI/180 * (imu.alpha - imu.alpha0) + (Math.abs(imu.beta) > 90 ? Math.PI : 0));
+   //     }
+   //     else {
+   //        VM.turnX(Math.PI/180 *  imu.gamma + Math.PI/2)
+   //          .turnZ(Math.PI/180 *  imu.beta)
+   //          .turnY(Math.PI/180 * (imu.alpha0 - imu.alpha));
+   //     }
+   //     for (let eye = -1 ; eye <= 1 ; eye += 2) {
+   //        gl.uniform1f(uEye, eye);
+   //        drawScene();
+   //     }
+   //  VM.R();
  }
  
  
