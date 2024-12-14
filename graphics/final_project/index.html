@@ -1,7 +1,7 @@
 <body bgcolor=#131862>
 <font face=courier color=white>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-5000></canvas>
-    <canvas id=canvas></canvas>
+    <canvas id=canvas style="padding: 0; margin: auto"></canvas>
     <div id=title style="position: absolute; top: 2%; left: 50%; transform: translate(-50%, -2%); color: white;"></div>
     <div id=introduction style="display: table; position: absolute; top: 20%; left: 50%; transform: translate(-50%, -20%); color: white;">
         Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>
@@ -38,11 +38,12 @@
             <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         </table>
     </div>
-    <div id=instructions style="position: absolute; right: 10px; top: 50px; color: white; display:none;">
+    <div id=instructions style="position: absolute; right: 10px; top: 50px; width:200; height:20; background-color:white; color: black; display:none;">
+        Instructions (<b>I Key</b>)
         <table id=instructionsTable>
-            <tr><td><span id=asdw style="color: white"><b>&nbsp;ASDW keys</b> to move around &nbsp;</span>
-            <tr><td><span id=mouse style="color: white"><b>&nbsp;Left click and drag</b> to look around &nbsp;</span>
-            <tr><td><span id=shift style="color: white"><b>&nbsp;SHIFT key</b> to run &nbsp;</span>
+            <tr><td><span id=asdw style="color: black"><b>ASDW keys</b> to move around </span>
+            <tr><td><span id=mouse style="color: black"><b>Left click and drag</b> to look around </span>
+            <tr><td><span id=shift style="color: black"><b>SHIFT key</b> to run </span>
         </table>
     </div>
     <div id=gameplay style="position: absolute; top: 50px; left: 10px; color: white; display:none;">
@@ -76,8 +77,8 @@ canvas.height = window.innerHeight;
 
 // Resize canvas when window size changes
 window.addEventListener('resize', () => {
-    canvas.width = .9*window.innerWidth ;
-    canvas.height = .9*window.innerHeight ;
+    canvas.width = window.innerWidth ;
+    canvas.height = window.innerHeight ;
 });
 
 let sliders = document.getElementsByTagName('input');
@@ -143,7 +144,7 @@ function startGame(canvas, rows, columns, difficulty) {
 
     // let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
     trackMouse(canvas, player);
-    handleKeys(canvas, player, map, spline);
+    handleKeys(canvas, player, map, spline, instructionsTable);
     let leftButtonUp   = () => player.vs(-1);
     let rightButtonUp  = () => player.vs(1);
     let upButtonUp     = () => player.vf(1);

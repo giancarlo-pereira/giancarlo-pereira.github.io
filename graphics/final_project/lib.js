@@ -825,7 +825,7 @@ function splinePower(m, difficulty, c) {
 
  // HANDLE KEY EVENTS
 
- let handleKeys = (canvas, player, map, spline) => {
+ let handleKeys = (canvas, player, map, spline, instructionsTable) => {
    canvas.keyDown     = c => {
       switch(c) {
           case 'KeyA':        player.vs(-1);     break;
@@ -836,6 +836,7 @@ function splinePower(m, difficulty, c) {
           case 'ShifRight':   player.speed(1.5); break;
           case 'KeyP':        spline.activate(player.cell()); break;
           case 'KeyM':        map.activate();                 break;
+          case 'KeyI':        instructionsTable.style.display==='none' ? instructionsTable.style.display='table' : instructionsTable.style.display='none';
       }
    }
    
