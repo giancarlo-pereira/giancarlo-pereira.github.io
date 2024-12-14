@@ -46,7 +46,7 @@
             <tr><td><span id=shift style="color: black"><b>SHIFT key</b> to run </span>
         </table>
     </div>
-    <div id=gameplay style="position: absolute; top: 50px; left: 10px; color: white; display:none;">
+    <div id=gameplay style="position: absolute; left: 10px; top: 50px; color: white; display:none;">
         <table id=gameplayTable>
             <tr><td><span id=timeArea style="color:white"></span>
             <tr><td><span id=mapArea style="color:white"></span>
@@ -59,11 +59,11 @@
     <div id=controls style="position: absolute; bottom: 50px; left: 10px; color: white; display:none;">
         <table id=controlsTable>
             <tr><td></td>
-                <td><button onmousedown=upButtonDown()    onmouseup=upButtonDown()   ><font size=10><big>&uarr;</button>
+                <td><button id=upArrow    ><font size=10><big>&uarr;</button>
                 <td>
-            <tr><td><button onmousedown=leftButtonDown()  onmouseup=leftButtonDown() ><font size=10><big>&larr;</button>
-                <td><button onmousedown=downButtonDown()  onmouseup=downButtonDown() ><font size=10><big>&darr;</button>
-                <td><button onmousedown=rightButtonDown() onmouseup=rightButtonDown()><font size=10><big>&rarr;</button>
+            <tr><td><button id=leftArrow  ><font size=10><big>&larr;</button>
+                <td><button id=downArrow  ><font size=10><big>&darr;</button>
+                <td><button id=rightArrow ><font size=10><big>&rarr;</button>
         </table>
     </div>
     
@@ -145,14 +145,21 @@ function startGame(canvas, rows, columns, difficulty) {
     // let mouseSensitivity   = 30 * ( .5 + mouseSlider.value / 50 );
     trackMouse(canvas, player);
     handleKeys(canvas, player, map, spline, instructionsTable);
-    let leftButtonUp   = () => player.vs(-1);
-    let rightButtonUp  = () => player.vs(1);
-    let upButtonUp     = () => player.vf(1);
-    let downButtonUp   = () => player.vf(-1);
-    let leftButtonDown = () => player.vs(0);
-    let rightButtonDown= () => player.vs(0);
-    let upButtonDown   = () => player.vf(0);
-    let downButtonDown = () => player.vf(0);
+
+    leftArrow.onmousedown   = () => player.vs(-1);
+    rightArrow.onmousedown  = () => player.vs(1);
+    upArrow.onmousedown     = () => player.vf(1);
+    downArrow.onmousedown   = () => player.vf(-1);
+
+    leftArrow.onmouseup = () => player.vs(0);
+    rightArrow.onmouseup= () => player.vs(0);
+    upArrow.onmouseup   = () => player.vf(0);
+    downArrow.onmouseup = () => player.vf(0);
+
+    instructions.onclick = () => instructionsTable.style.display==='none' ? instructionsTable.style.display='table' : instructionsTable.style.display='none';
+
+    mapPowerCanvas.onclick = () => map.activate();
+    splinePowerCanvas.onclick = () => spline.activate();
 
     window.addEventListener('keydown', e => {
         if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',

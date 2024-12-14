@@ -516,7 +516,7 @@ function Maze(s, r, c, d) {
    // up remains unchanged
    let up = [0, 1, 0];
    // front will move around
-   let front = [0, 0, +1];
+   let front = [+1, 0, 0];
    // side is the third axis
    let side = cross(front, up);
 
