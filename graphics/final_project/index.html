@@ -11,7 +11,7 @@
         - <b>Hard</b> disables all powers.<br>
         - <b>Debug</b> has no textures.<br><br>
         Choose the <b>SIZE</b> (rows and columns) of the maze.<br>
-        Once you click <b>START</b>, the game will generate a random<br>
+        Once you click <b>START</b>, the game will generate a random 
         maze and you will start in random place.<br><br>
         <b>GOOD LUCK!</b>
         <center>
@@ -97,7 +97,7 @@ for (let slider in sliders)
    if (sliders[slider].style)
       sliders[slider].style.width = 200;
 
-title.innerHTML = '<b>ESCAPE THE MAZE - Giancarlo Pereira</b><br>';
+title.innerHTML = '<b>ESCAPE THE MAZE</b>';
 
 // ALL OF THIS CAN ONLY BE STARTED AFTER USER HAS PICKED THE SETTINGS (SIZE OF GRID AND DIFFICULTY)
 start.addEventListener('click', () => {
@@ -110,7 +110,7 @@ start.addEventListener('click', () => {
         canvas.style.display = 'block';
         instructions.style.display = 'table';
         gameplay.style.display = 'table';
-        controls.style.display = 'table';
+        if (isPhone()) controls.style.display = 'table';
         mapPowerCanvas.style.display = 'block';
         splinePowerCanvas.style.display = 'block';
         mapPowerCanvas.style ='border: 2px solid black;';
