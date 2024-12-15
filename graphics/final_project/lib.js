@@ -102,6 +102,31 @@ function random_int(max)
        }
     }
     canvas.onmouseup = e => canvas.pressed = undefined;
+
+    canvas.addEventListener('touchstart', e => {
+      let touch = e.touches[0];
+      let mouseEvent = new MouseEvent("mousedown", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    }, false);
+    canvas.addEventListener('touchend', e => {
+      let touch = e.touches[0];
+      let mouseEvent = new MouseEvent("mouseup", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    }, false);
+    canvas.addEventListener('touchmove', e => {
+        let touch = e.touches[0];
+        let mouseEvent = new MouseEvent("mousemove", {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }, false);
  }
 
 

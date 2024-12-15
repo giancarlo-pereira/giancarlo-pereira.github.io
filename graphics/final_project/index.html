@@ -1,7 +1,7 @@
 <body bgcolor=#131862>
 <font face=courier color=white>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-5000></canvas>
-    <canvas id=canvas style="padding: 0; margin: auto"></canvas>
+    <canvas id=canvas style="margin:0; padding:0; position:absolute; top:0; left:0"></canvas>
     <div id=title style="position: absolute; top: 2%; left: 50%; transform: translate(-50%, -2%); color: white;"></div>
     <div id=introduction style="display: table; position: absolute; top: 20%; left: 50%; transform: translate(-50%, -20%); color: white;">
         Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>
@@ -38,7 +38,7 @@
             <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         </table>
     </div>
-    <div id=instructions style="position: absolute; right: 10px; top: 50px; width:200; height:20; background-color:white; color: black; display:none;">
+    <div id=instructions style="position: absolute; right: 10px; top: 10%; transform: translateY(-5%); width:200; height:20; background-color:white; color: black; display:none;">
         Instructions (<b>I Key</b>)
         <table id=instructionsTable>
             <tr><td><span id=asdw style="color: black"><b>ASDW keys</b> to move around </span>
@@ -46,7 +46,7 @@
             <tr><td><span id=shift style="color: black"><b>SHIFT key</b> to run </span>
         </table>
     </div>
-    <div id=gameplay style="position: absolute; left: 10px; top: 50px; color: white; display:none;">
+    <div id=gameplay style="position: absolute; left: 10px; top: 10%; transform: translateY(-5%); color: white; display:none;">
         <table id=gameplayTable>
             <tr><td><span id=timeArea style="color:white"></span>
             <tr><td><span id=mapArea style="color:white"></span>
@@ -56,14 +56,14 @@
             <tr><td><span style="color: white">Focal Length: </span><br><input type=range id=flSlider></input> 
         </table>
     </div>
-    <div id=controls style="position: absolute; bottom: 50px; left: 10px; color: white; display:none;">
+    <div id=controls style="position: absolute; bottom: 0%; left: 10px; color: white; display:none;">
         <table id=controlsTable>
             <tr><td></td>
-                <td><button id=upArrow    ><font size=10><big>&uarr;</button>
+                <td><button id=upArrow    ><font size=5><big>&uarr;</button>
                 <td>
-            <tr><td><button id=leftArrow  ><font size=10><big>&larr;</button>
-                <td><button id=downArrow  ><font size=10><big>&darr;</button>
-                <td><button id=rightArrow ><font size=10><big>&rarr;</button>
+            <tr><td><button id=leftArrow  ><font size=5><big>&larr;</button>
+                <td><button id=downArrow  ><font size=5><big>&darr;</button>
+                <td><button id=rightArrow ><font size=5><big>&rarr;</button>
         </table>
     </div>
     
