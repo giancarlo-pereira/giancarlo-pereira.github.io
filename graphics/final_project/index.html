@@ -171,7 +171,7 @@ function startGame(canvas, rows, columns, difficulty) {
     instructions.onclick = () => instructionsTable.style.display==='none' ? instructionsTable.style.display='table' : instructionsTable.style.display='none';
 
     mapPowerCanvas.onclick = () => map.activate();
-    splinePowerCanvas.onclick = () => spline.activate();
+    splinePowerCanvas.onclick = () => spline.activate(player.cell());
 
     window.addEventListener('keydown', e => {
         if (['Space', 'Return', 'ShiftLeft', 'ShiftRight',
