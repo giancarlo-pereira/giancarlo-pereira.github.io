@@ -2,20 +2,19 @@
 <font face=courier color=white>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-5000></canvas>
     <canvas id=canvas style="margin:0; padding:0; position:absolute; top:0; left:0"></canvas>
-    <div id=title style="position: absolute; top: 2%; left: 50%; transform: translate(-50%, -2%); color: white;"></div>
-    <div id=introduction style="display: table; position: absolute; top: 20%; left: 50%; transform: translate(-50%, -20%); color: white;">
+    <div id=title style="position: absolute; top: 2%; left: 50%; transform: translateX(-50%); color: white;"></div>
+    <div id=introduction style="display: table; position: absolute; top: 5%; left: 50%; transform: translateX(-50%); color: white;">
         Welcome to ESCAPE THE MAZE, an a-maze-ing game!<br><br>
-        The goal of this game is to escape a maze.<br>
         Choose a <b>DIFFICULTY</b>:<br>
-        - Peaceful has unlimited powers and no timer.<br>
-        - Medium has a timer and all powers.<br>
-        - Hard disables all powers.<br>
-        - Debug has unlimited powers, but no textures.<br><br>
-        Choose the <b>SIZE</b> of the maze.<br>
-        The bigger it is, the harder it will be to leave.<br><br>
+        - <b>Peaceful</b> has unlimited powers and no timer.<br>
+        - <b>Medium</b> has a timer and all powers.<br>
+        - <b>Hard</b> disables all powers.<br>
+        - <b>Debug</b> has no textures.<br><br>
+        Choose the <b>SIZE</b> (rows and columns) of the maze.<br>
         Once you click <b>START</b>, the game will generate a random<br>
         maze and you will start in random place.<br><br>
         <b>GOOD LUCK!</b>
+        <center>
         <table id=settingsTable style="color:white">
             <tr><td>Difficulty: <select name="difficulty" id=mode>
                     <option value="peace">Peaceful</option>
@@ -37,6 +36,7 @@
                   </select>&nbsp;
             <tr><td><button type="submit" id=start><font color=black><big>Start</button>
         </table>
+        </center>
     </div>
     <div id=instructions style="position: absolute; right: 10px; top: 10%; transform: translateY(-5%); width:200; height:20; background-color:white; color: black; display:none;">
         Instructions (<b>I Key</b>)
@@ -59,11 +59,11 @@
     <div id=controls style="position: absolute; bottom: 2%; left: 10px; color: white; display:none;">
         <table id=controlsTable>
             <tr><td></td>
-                <td><button id=upArrow    ><font size=5><big>&uarr;</button>
+                <td><button id=upArrow>&uarr;</button>
                 <td>
-            <tr><td><button id=leftArrow  ><font size=5><big>&larr;</button>
-                <td><button id=downArrow  ><font size=5><big>&darr;</button>
-                <td><button id=rightArrow ><font size=5><big>&rarr;</button>
+            <tr><td><button id=leftArrow>&larr;</button>
+                <td><button id=downArrow>&darr;</button>
+                <td><button id=rightArrow>&rarr;</button>
         </table>
     </div>
     
@@ -71,15 +71,25 @@
 
 <script src=lib.js></script>
 <script>
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+let fontSize = Math.max(canvas.width / 33, 12);
+upArrow.style.fontSize = fontSize;
+downArrow.style.fontSize = fontSize;
+leftArrow.style.fontSize = fontSize;
+rightArrow.style.fontSize = fontSize;
 
 // Resize canvas when window size changes
 window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth ;
-    canvas.height = window.innerHeight ;
-    upArrow.style
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    let fontSize = Math.max(canvas.width / 33, 12);
+    upArrow.style.fontSize = fontSize;
+    downArrow.style.fontSize = fontSize;
+    leftArrow.style.fontSize = fontSize;
+    rightArrow.style.fontSize = fontSize;
+
 });
 
 let sliders = document.getElementsByTagName('input');
