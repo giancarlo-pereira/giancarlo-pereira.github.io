@@ -1,4 +1,4 @@
-<body bgcolor=#131862>
+<body bgcolor=#131862 style="margin: 0; height: 100%; overflow: hidden">
 <font face=courier color=white>
 <canvas id=textureCanvas width=512 height=512 style=position:absolute;left:-5000></canvas>
     <canvas id=canvas style="margin:0; padding:0; position:absolute; top:0; left:0"></canvas>
@@ -56,7 +56,7 @@
             <tr><td><span style="color: white">Focal Length: </span><br><input type=range id=flSlider></input> 
         </table>
     </div>
-    <div id=controls style="position: absolute; bottom: 0%; left: 10px; color: white; display:none;">
+    <div id=controls style="position: absolute; bottom: 2%; left: 10px; color: white; display:none;">
         <table id=controlsTable>
             <tr><td></td>
                 <td><button id=upArrow    ><font size=5><big>&uarr;</button>
@@ -79,6 +79,7 @@ canvas.height = window.innerHeight;
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth ;
     canvas.height = window.innerHeight ;
+    upArrow.style
 });
 
 let sliders = document.getElementsByTagName('input');
@@ -185,6 +186,7 @@ function startGame(canvas, rows, columns, difficulty) {
     });
     window.addEventListener('keydown', e => canvas.keyDown(e.code));
     window.addEventListener('keyup', e => canvas.keyUp(e.code));
+    window.addEventListener('scroll', e => e.preventDefault());
     if (! canvas.keyDown) canvas.keyDown = () => {}
     if (! canvas.keyUp  ) canvas.keyUp   = () => {}
     // ADD WALL TEXTURES 

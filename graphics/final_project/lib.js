@@ -120,6 +120,7 @@ function random_int(max)
       canvas.dispatchEvent(mouseEvent);
     }, false);
     canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
         let touch = e.touches[0];
         let mouseEvent = new MouseEvent("mousemove", {
             clientX: touch.clientX,
