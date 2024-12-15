@@ -38,9 +38,9 @@
         </table>
         </center>
     </div>
-    <div id=instructions style="position: absolute; right: 10px; top: 10%; transform: translateY(-5%); width:200; height:20; background-color:white; color: black; display:none;">
+    <div id=instructions style="position: absolute; right: 10px; top: 10%; width:200; height:20; background-color:white; color: black; display:none;">
         Instructions (<b>I Key</b>)
-        <table id=instructionsTable>
+        <table id=instructionsTable style="display: none;">
             <tr><td><span id=asdw style="color: black"><b>ASDW keys</b> to move around </span>
             <tr><td><span id=mouse style="color: black"><b>Left click and drag</b> to look around </span>
             <tr><td><span id=shift style="color: black"><b>SHIFT key</b> to run </span>
@@ -123,8 +123,8 @@ start.addEventListener('click', () => {
             mapArea.innerHTML += ' <b>DISABLED</b>';
             splineArea.innerHTML += ' <b>DISABLED</b>';
         } else {
-            mapArea.innerHTML += ' (<b>M key</b>)';
-            splineArea.innerHTML += ' (<b>P key</b>)';
+            mapArea.innerHTML += isPhone() ? ' (CLICK ON BAR)' : ' (<b>M key</b>)';
+            splineArea.innerHTML += isPhone() ? ' (CLICK ON BAR)' : ' (<b>P key</b>)';
         }
 
         // disable game settings
