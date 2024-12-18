@@ -5,35 +5,46 @@
 
 <body bgcolor=#ffffff>
     <canvas id=textureCanvas width=1024 height=1024 style=position:absolute;left:-2000></canvas>
-    <center>
-       <p>
-        <font size=12>
-        GIANCARLO PEREIRA HW9 -- CUBIC SPLINES
-       </p>
-        </font>
-        <table cellspacing=20>
-            <tr>
-                <td valign="top"><font size=5>
-                    <b>CLICK</b> to add a new node.<br>
-                    <b>CLICK</b> on an existing node to select it (the color changes to green).<br>
-                    <b>ESCAPE</b> to unselect a node (the color changes back to gray).<br>
-                    <b>CLICK AND DRAG</b> a node to move it around.<br>
-                    <b>BACKSPACE</b> a selected node to remove it.<br>
-                    <b>R</b> to remove all nodes and drawn splie.<br>
-                    <b>ENTER</b> to generate and draw the spline.<br>
-                    Number of Sample Points between Nodes:<br>
+    <div id=title style="position: absolute; top: 2%; left: 50%; transform: translateX(-50%); color: black;"></div>
+    <canvas id=canvas width=800, height=800, style="margin:0; padding:0; position:absolute; top:50%; left:50%; transform: translate(-50%, -50%)"></canvas>
+    <div id=introduction style="display: table; position: absolute; top: 5%; left: 50%; transform: translateX(-50%); color: black;">
+    Number of Sample Points between Nodes:<br>
                     <input type="range" value="25" min="1" max="100" id="n" style="width: 400"
-                    oninput="nValue.innerText = this.value"></input><span id="nValue">25</span><br>
-                </td>
-                <td>
-                    <canvas id='canvas' width=800 height=800></canvas>       
-                </td>
-        </table>  
+                    oninput="nValue.innerText = this.value"></input><span id="nValue">25</span>
+
+    </div>
+    <div id=instructions style="position: absolute; left: 10px; top: 10%; width:400; height:20; color: black; display:table;">
+        Instructions (<b>I Key</b>)
+        <table id=instructionsTable style="display: none;">
+            <tr><td><span id=asdw style="color: black"><b>CLICK</b> to add a new node </span>
+            <tr><td><span id=mouse style="color: black"><b>CLICK</b> on an existing node to select it (the color changes to green).</span>
+            <tr><td><span id=shift style="color: black"><b>ESCAPE</b> to unselect a node (the color changes back to gray).</span>
+            <tr><td><span id=shift style="color: black"><b>CLICK AND DRAG</b> a node to move it around.</span>
+            <tr><td><span id=shift style="color: black"><b>BACKSPACE</b> a selected node to remove it.</span>
+            <tr><td><span id=shift style="color: black"><b>R</b> to remove all nodes and drawn spline.</span>
+        </table>
+    </div>
     </center>
 </body>
  
 <script src=lib.js></script>
 <script>
+
+title.innerHTML = 'GIANCARLO PEREIRA HW9 -- CUBIC SPLINES';
+
+// let size = Math.min(window.innerWidth, window.innerHeight);
+
+// canvas.width = 0.8*size;
+// canvas.height = 0.8*size;
+
+// // Resize canvas when window size changes
+// window.addEventListener('resize', () => {
+//     let size = Math.min(window.innerWidth, window.innerHeight);
+//     canvas.width = 0.8*size;
+//     canvas.height = 0.8*size;
+// });
+
+instructions.onclick = () => instructionsTable.style.display==='none' ? instructionsTable.style.display='table' : instructionsTable.style.display='none';
 
 texture(0, textureCanvas);
 
@@ -43,13 +54,6 @@ window.addEventListener("keydown", e => {
     'ControlLeft', 'AltLeft', 'AltRight', 'CapsLock',
     'MetaLeft', 'MetaRight'].indexOf(e.code) >= 0)
         e.preventDefault();
-    else if (['Enter'].indexOf(e.code) >= 0) {
-        e.preventDefault();
-        points.forEach(point => {
-            point.unselect();
-        })
-        drawSpline(textureCanvas, points, n.value);
-    }
     else if (['Backspace'].indexOf(e.code) >= 0) {
         e.preventDefault();
         for (let i = points.length - 1; i >= 0; i -= 1) {
@@ -67,10 +71,15 @@ window.addEventListener("keydown", e => {
         clearSpline(textureCanvas);
         points = [];
     }
+    else if (['KeyI'].indexOf(e.code) >= 0) {
+        e.preventDefault();
+        instructionsTable.style.display==='none' ? instructionsTable.style.display='table' : instructionsTable.style.display='none';
+    }
 });
 
 function drawFrame() {
     requestAnimationFrame(drawFrame);
+    drawSpline(textureCanvas, points, n.value);
     let t = Date.now() / 1000;
 
     let wallColor = [201/255,183/255,177/255];

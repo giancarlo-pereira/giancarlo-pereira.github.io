@@ -368,7 +368,7 @@ function Point(x,y) {
 // HANDLE CURSOR
 
 let rect = canvas.getBoundingClientRect(), cursor = [0,0,0];
-let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left + window.scrollX) / canvas.width  - 1,
+let setCursor = (e, z) => cursor = [  2 * (e.clientX - rect.left) / canvas.width  - 1,
                                      -2 * (e.clientY - rect.top + window.scrollY) / canvas.height + 1,
                                      z !== undefined ? z : cursor[2] ];
 
@@ -427,19 +427,12 @@ let drawSpline = (canvas, points, n) => {
 
    ctx = canvas.getContext('2d');
    ctx.clearRect(0, 0, canvas.width, canvas.height);
-   // ctx.fillStyle = '#ededed';
-   // ctx.fillRect(0, 0, 512, 512);
-   // ctx.fillStyle = 'red';
    ctx.linewidth = 10;
    ctx.strokeStyle = 'red';
    ctx.beginPath();
 
    ctx.moveTo(splinePoints[0], splinePoints[1]);
-   for (let i = 2; i < splinePoints.length-1; i += 2) 
-      {
-         ctx.lineTo(splinePoints[i], splinePoints[i+1]);
-         console.log(`the points are ${splinePoints[i]}, ${splinePoints[i+1]}`);
-      }
+   for (let i = 2; i < splinePoints.length-1; i += 2) ctx.lineTo(splinePoints[i], splinePoints[i+1]);
    ctx.stroke();
 }
 
